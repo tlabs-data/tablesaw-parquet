@@ -1,12 +1,17 @@
 package tech.tablesaw.io.parquet;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -17,9 +22,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.HadoopReadOptions;
 import org.apache.parquet.ParquetReadOptions;
+import org.apache.parquet.Preconditions;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.example.data.Group;
-import org.apache.parquet.example.data.simple.Int96Value;
 import org.apache.parquet.example.data.simple.convert.GroupRecordConverter;
 import org.apache.parquet.format.converter.ParquetMetadataConverter;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
@@ -126,6 +131,27 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			@Override
 			public void processString(final Row row, final String fieldName, final String value) {
 				row.setString(fieldName, value);
+			}
+			@Override
+			public void processBinary(final Row row, final String fieldName, final Binary value,
+					final LogicalTypeAnnotation annotation) {
+				if(annotation == null) {
+					processString(row, fieldName, value.toStringUsingUTF8());
+				} else if(annotation instanceof IntervalLogicalTypeAnnotation) {
+				    Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
+				    final ByteBuffer buf = value.toByteBuffer();
+				    buf.order(ByteOrder.LITTLE_ENDIAN);
+					processString(row, fieldName, Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
+							+ Duration.ofMillis(buf.getInt()).toString().substring(1));
+				} // TODO: identify UUIDs
+				else {
+					processString(row, fieldName, Arrays.toString(value.getBytes()));
+				}
+			}
+			@Override
+			public void processInt96(final Row row, final String fieldName, final Binary value,
+					final LogicalTypeAnnotation annotation) {
+				processString(row, fieldName, Arrays.toString(value.getBytes()));
 			}
 		});
 		MAPPER.put(TextColumnType.instance(), new TablesawGroupConverter() {
@@ -275,8 +301,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			final int valueCount = group.getFieldRepetitionCount(field);
 			final Type fieldType = group.getType().getType(field);
 			final String fieldName = fieldType.getName();
+			if(valueCount == 0) {
+				row.setMissing(fieldName);
+				return;
+			}
 			if (valueCount > 1 || !fieldType.isPrimitive()) {
 				row.setText(fieldName, group.toString());
+				return;
 			}
 			final LogicalTypeAnnotation annotation = fieldType.getLogicalTypeAnnotation();
 			final ColumnType columnType = row.getColumnType(fieldName);
@@ -301,6 +332,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 				tablesawGroupConverter.processBinary(row, fieldName, group.getBinary(field, 0), annotation);
 				break;
 			case INT96:
+				tablesawGroupConverter.processInt96(row, fieldName, group.getInt96(field, 0), annotation);
 				break;
 			case BINARY:
 				tablesawGroupConverter.processString(row, fieldName, group.getString(field, 0));
@@ -358,18 +390,12 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			case DOUBLE:
 				return DoubleColumn.create(name); 
 			case FIXED_LEN_BYTE_ARRAY:
+				return StringColumn.create(name);
+			case INT96:
+				return StringColumn.create(name);
+			case BINARY:
 				return annotation == null ? StringColumn.create(name) :
 					annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
-					@Override
-					public Optional<Column<?>> visit(IntervalLogicalTypeAnnotation intervalLogicalType) {
-						return Optional.of(LongColumn.create(name));
-					}
-				}).orElse(StringColumn.create(name));
-			case INT96:
-				throw new UnsupportedOperationException("No support for Parquet type " + field);
-			case BINARY:
-				if(annotation == null) throw new UnsupportedOperationException("No support for Parquet type " + field);
-				return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
 					@Override
 					public Optional<Column<?>> visit(StringLogicalTypeAnnotation stringLogicalType) {
 						return Optional.of(StringColumn.create(name));
@@ -382,7 +408,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 					public Optional<Column<?>> visit(JsonLogicalTypeAnnotation jsonLogicalType) {
 						return Optional.of(TextColumn.create(name));
 					}
-				}).orElseThrow(() -> new UnsupportedOperationException("No support for Parquet type " + field));
+				}).orElse(StringColumn.create(name));
 			}
 		}
 		return TextColumn.create(name);
@@ -420,7 +446,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			throw new UnsupportedOperationException(
 					"No conversion from Binary (" + annotation.toString() + ") to " + row.getColumnType(fieldName).getPrinterFriendlyName());
 		}
-		default void processInt96(final Row row, final String fieldName, final Int96Value value) {
+		default void processInt96(final Row row, final String fieldName, final Binary value,
+				final LogicalTypeAnnotation annotation) {
 			throw new UnsupportedOperationException(
 					"No conversion from Int96 to " + row.getColumnType(fieldName).getPrinterFriendlyName());
 		}
