@@ -11,7 +11,6 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -34,6 +33,7 @@ import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.JsonLogicalTypeAnnotation;
@@ -145,13 +145,21 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 							+ Duration.ofMillis(buf.getInt()).toString().substring(1));
 				} // TODO: identify UUIDs
 				else {
-					processString(row, fieldName, Arrays.toString(value.getBytes()));
+				    final StringBuilder sb = new StringBuilder();
+				    for (byte b : value.getBytes()) {
+				        sb.append(String.format("%02X ", b));
+				    }
+					processString(row, fieldName, sb.toString());
 				}
 			}
 			@Override
 			public void processInt96(final Row row, final String fieldName, final Binary value,
 					final LogicalTypeAnnotation annotation) {
-				processString(row, fieldName, Arrays.toString(value.getBytes()));
+			    final StringBuilder sb = new StringBuilder();
+			    for (byte b : value.getBytes()) {
+			        sb.append(String.format("%02X ", b));
+			    }
+				processString(row, fieldName, sb.toString());
 			}
 		});
 		MAPPER.put(TextColumnType.instance(), new TablesawGroupConverter() {
