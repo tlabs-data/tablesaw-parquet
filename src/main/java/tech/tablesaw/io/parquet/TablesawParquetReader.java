@@ -316,20 +316,23 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 	private void fillRow(final Row row, final Group group, final TablesawParquetReadOptions options) {
 		final int fieldCount = group.getType().getFieldCount();
 		for (int field = 0; field < fieldCount; field++) {
-			final int valueCount = group.getFieldRepetitionCount(field);
 			final Type fieldType = group.getType().getType(field);
 			final String fieldName = fieldType.getName();
+			if(!row.hasColumn(fieldName)) {
+				continue;
+			}
+			final int valueCount = group.getFieldRepetitionCount(field);
 			if(valueCount == 0) {
 				row.setMissing(fieldName);
 				return;
 			}
+			final ColumnType columnType = row.getColumnType(fieldName);
+			final TablesawGroupConverter tablesawGroupConverter = MAPPER.get(columnType);
 			if (valueCount > 1 || !fieldType.isPrimitive()) {
-				row.setText(fieldName, group.toString());
+				tablesawGroupConverter.processString(row, fieldName, group.toString());
 				return;
 			}
 			final LogicalTypeAnnotation annotation = fieldType.getLogicalTypeAnnotation();
-			final ColumnType columnType = row.getColumnType(fieldName);
-			final TablesawGroupConverter tablesawGroupConverter = MAPPER.get(columnType);
 			switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
 			case BOOLEAN:
 				tablesawGroupConverter.processBoolean(row, fieldName, group.getBoolean(field, 0));
@@ -370,12 +373,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 	private Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
 		return Table.create(
 				schema.getFields().stream()
-				.map(f -> createColumn(f, options)).
-				collect(Collectors.toList())
+				.map(f -> createColumn(f, options))
+				.filter(c -> c != null)
+				.collect(Collectors.toList())
 				);
 	}
 
-	private Column<?> createColumn(final Type field, final TablesawParquetReadOptions option) {
+	private Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
 		final String name = field.getName();
 		if(field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
 			final LogicalTypeAnnotation annotation = field.getLogicalTypeAnnotation();
@@ -416,7 +420,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			case FIXED_LEN_BYTE_ARRAY:
 				return StringColumn.create(name);
 			case INT96:
-				if(option.isConvertInt96ToTimestamp()) {
+				if(options.isConvertInt96ToTimestamp()) {
 					return InstantColumn.create(name);
 				}
 				return StringColumn.create(name);
@@ -438,7 +442,16 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 				}).orElse(StringColumn.create(name));
 			}
 		}
-		return TextColumn.create(name);
+		switch(options.getManageGroupsAs()) {
+		case ERROR:
+			throw new UnsupportedOperationException("Column " + name + " is a group");
+		case SKIP:
+			return null;
+		case TEXT:
+			// CASCADE
+		default:
+			return TextColumn.create(name);
+		}
 	}
 
 	public interface TablesawGroupConverter {
