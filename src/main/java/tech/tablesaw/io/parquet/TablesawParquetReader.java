@@ -95,6 +95,14 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 	
 	private static final Map<ColumnType, TablesawGroupConverter> MAPPER = new HashMap<>();
 	
+	private static String rawBytesToHexString(final byte[] bytes) {
+		final String[] hexBytes = new String[bytes.length];
+		for(int i = 0; i < bytes.length; i++) {
+			hexBytes[i] = String.format("%02X", bytes[i]);
+		}
+		return String.join(" ", hexBytes);
+	}
+
 	static {
 		register(Table.defaultReaderRegistry);
 		MAPPER.put(BooleanColumnType.instance(), new TablesawGroupConverter() {
@@ -138,7 +146,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			public void processBinary(final Row row, final String fieldName, final Binary value,
 					final LogicalTypeAnnotation annotation) {
 				if(annotation == null) {
-					processString(row, fieldName, value.toStringUsingUTF8());
+				    processString(row, fieldName, rawBytesToHexString(value.getBytes()));
 				} else if(annotation instanceof IntervalLogicalTypeAnnotation) {
 				    Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
 				    final ByteBuffer buf = value.toByteBuffer();
@@ -147,21 +155,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 							+ Duration.ofMillis(buf.getInt()).toString().substring(1));
 				} // TODO: identify UUIDs
 				else {
-				    final StringBuilder sb = new StringBuilder();
-				    for (byte b : value.getBytes()) {
-				        sb.append(String.format("%02X ", b));
-				    }
-					processString(row, fieldName, sb.toString());
+					processString(row, fieldName, rawBytesToHexString(value.getBytes()));
 				}
 			}
 			@Override
 			public void processInt96(final Row row, final String fieldName, final Binary value,
 					final LogicalTypeAnnotation annotation) {
-			    final StringBuilder sb = new StringBuilder();
-			    for (byte b : value.getBytes()) {
-			        sb.append(String.format("%02X ", b));
-			    }
-				processString(row, fieldName, sb.toString());
+				processString(row, fieldName, rawBytesToHexString(value.getBytes()));
 			}
 		});
 		MAPPER.put(TextColumnType.instance(), new TablesawGroupConverter() {
@@ -307,13 +307,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 				final RecordReader<Group> recordReader = columnIO.getRecordReader(pages, new GroupRecordConverter(schema));
 				for (int i = 0; i < rows; i++) {
 					final Group group = recordReader.read();
-					fillRow(table.appendRow(), group);
+					fillRow(table.appendRow(), group, options);
 				}
 			}
 		}
 	}
 
-	private void fillRow(final Row row, final Group group) {
+	private void fillRow(final Row row, final Group group, final TablesawParquetReadOptions options) {
 		final int fieldCount = group.getType().getFieldCount();
 		for (int field = 0; field < fieldCount; field++) {
 			final int valueCount = group.getFieldRepetitionCount(field);
@@ -353,7 +353,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 				tablesawGroupConverter.processInt96(row, fieldName, group.getInt96(field, 0), annotation);
 				break;
 			case BINARY:
-				tablesawGroupConverter.processString(row, fieldName, group.getString(field, 0));
+				if((annotation == null && options.unnanotatedBinaryAsString()) 
+						|| annotation instanceof StringLogicalTypeAnnotation
+						|| annotation instanceof EnumLogicalTypeAnnotation) {
+					tablesawGroupConverter.processString(row, fieldName, group.getString(field, 0));
+				} else {
+					tablesawGroupConverter.processBinary(row, fieldName, group.getBinary(field, 0), annotation);
+				}
 				break;
 			default:
 				break;
