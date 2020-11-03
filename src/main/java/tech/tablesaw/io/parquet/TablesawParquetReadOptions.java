@@ -14,13 +14,21 @@ import tech.tablesaw.io.Source;
 
 public class TablesawParquetReadOptions extends ReadOptions {
 
+	public enum ManageGroupsAs {
+		TEXT,
+		SKIP,
+		ERROR
+	}
+	
 	protected boolean convertInt96ToTimestamp;
 	protected boolean unnanotatedBinaryAsString;
+	protected ManageGroupsAs manageGroupsAs;
 	
 	protected TablesawParquetReadOptions(final Builder builder) {
 		super(builder);
 		convertInt96ToTimestamp = builder.convertInt96ToTimestamp;
 		unnanotatedBinaryAsString = builder.unnanotatedBinaryAsString;
+		manageGroupsAs = builder.manageGroupsAs;
 	}
 
 	public boolean isConvertInt96ToTimestamp() {
@@ -29,6 +37,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
 	public boolean unnanotatedBinaryAsString() {
 		return unnanotatedBinaryAsString;
+	}
+
+	public ManageGroupsAs getManageGroupsAs() {
+		return manageGroupsAs;
 	}
 
 	public static Builder builder(final Source source) {
@@ -62,6 +74,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 	public static class Builder extends ReadOptions.Builder {
 		protected boolean convertInt96ToTimestamp = false;
 		protected boolean unnanotatedBinaryAsString = true;
+		protected ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
 		protected Builder(final Source source) {
 			super(source);
 		}
@@ -183,6 +196,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
 		
 		public Builder withUnnanotatedBinaryAsString(final boolean unnanotatedBinaryAsString) {
 			this.unnanotatedBinaryAsString = unnanotatedBinaryAsString;
+			return this;
+		}
+		
+		public Builder withManageGroupAs(final ManageGroupsAs manageGroupsAs) {
+			this.manageGroupsAs = manageGroupsAs;
 			return this;
 		}
 	}

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.parquet.TablesawParquetReadOptions.Builder;
+import tech.tablesaw.io.parquet.TablesawParquetReadOptions.ManageGroupsAs;
 
 class TestParquetReader {
 
@@ -19,6 +20,7 @@ class TestParquetReader {
 	private static final String APACHE_ALL_TYPES_SNAPPY = "src/test/resources/alltypes_plain.snappy.parquet";
 	private static final String APACHE_BINARY = "src/test/resources/binary.parquet";
 	private static final String APACHE_DATAPAGEV2 = "src/test/resources/datapage_v2.snappy.parquet";
+	private static final String APACHE_DICT_PAGE_OFFSET0 = "src/test/resources/dict-page-offset-zero.parquet";
 
 	public static void printTable(final Table table, final String source) {
 		System.out.println("Table " + source);
@@ -145,4 +147,66 @@ class TestParquetReader {
 		assertTrue(table.column(3).type() == ColumnType.BOOLEAN, APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
 		assertTrue(table.column(4).type() == ColumnType.TEXT, APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
 	}
+
+	@Test
+	void testDataPageV2RawBinary() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+				.withUnnanotatedBinaryAsString(false).build());
+		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
+		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
+		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
+		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
+		assertTrue(table.column(2).type() == ColumnType.DOUBLE, APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
+		assertTrue(table.column(3).type() == ColumnType.BOOLEAN, APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
+		assertTrue(table.column(4).type() == ColumnType.TEXT, APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
+	}
+
+	@Test
+	void testDataPageV2Text() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+				.withManageGroupAs(ManageGroupsAs.TEXT).build());
+		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
+		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
+		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
+		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
+		assertTrue(table.column(2).type() == ColumnType.DOUBLE, APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
+		assertTrue(table.column(3).type() == ColumnType.BOOLEAN, APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
+		assertTrue(table.column(4).type() == ColumnType.TEXT, APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
+	}
+
+	@Test
+	void testDataPageV2Skip() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+				.withManageGroupAs(ManageGroupsAs.SKIP).build());
+		validateTable(table, 4, 5, APACHE_DATAPAGEV2);
+		printTable(table, APACHE_DATAPAGEV2);
+		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
+		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
+		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
+		assertTrue(table.column(2).type() == ColumnType.DOUBLE, APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
+		assertTrue(table.column(3).type() == ColumnType.BOOLEAN, APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
+	}
+
+	@Test()
+	void testDataPageV2Error() throws IOException {
+		assertThrows(UnsupportedOperationException.class, () ->
+			new TablesawParquetReader().read(
+					TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+					.withManageGroupAs(ManageGroupsAs.ERROR).build())
+			);
+	}
+	
+	@Test
+	void testDictPageOffset0() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_DICT_PAGE_OFFSET0).build());
+		validateTable(table, 1, 39, APACHE_DICT_PAGE_OFFSET0);
+		assertTrue(table.column(0).type() == ColumnType.INTEGER, APACHE_DICT_PAGE_OFFSET0 + "[" + "l_partkey" + "] wrong type");
+		assertEquals(1552, table.intColumn(0).getInt(0), APACHE_DICT_PAGE_OFFSET0 + "[" + "l_partkey" + ",0] wrong value");
+		assertEquals(1552, table.intColumn(0).getInt(38), APACHE_DICT_PAGE_OFFSET0 + "[" + "l_partkey" + ",0] wrong value");		
+	}
+	
 }
