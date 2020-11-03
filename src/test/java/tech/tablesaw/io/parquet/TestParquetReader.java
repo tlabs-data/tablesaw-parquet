@@ -24,6 +24,7 @@ class TestParquetReader {
 	private static final String APACHE_INT32_DECIMAL = "src/test/resources/int32_decimal.parquet";
 	private static final String APACHE_INT64_DECIMAL = "src/test/resources/int64_decimal.parquet";
 	private static final String APACHE_FIXED_LENGTH_DECIMAL = "src/test/resources/fixed_length_decimal.parquet";
+	private static final String APACHE_FIXED_LENGTH_DECIMAL_LEGACY = "src/test/resources/fixed_length_decimal_legacy.parquet";
 
 	public static void printTable(final Table table, final String source) {
 		System.out.println("Table " + source);
@@ -79,7 +80,7 @@ class TestParquetReader {
 
 	@Test
 	void testAllTypesPlain() throws IOException {
-		final Table table = validateAllTypesDefault(APACHE_ALL_TYPES_PLAIN, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN), 8);
+		validateAllTypesDefault(APACHE_ALL_TYPES_PLAIN, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN), 8);
 	}
 
 	@Test
@@ -239,4 +240,13 @@ class TestParquetReader {
 		assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + ",0] wrong value");		
 	}
 	
+	@Test
+	void testFixedLengthDecimalLegacy() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL_LEGACY).build());
+		validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL_LEGACY);
+		assertEquals(table.column(0).type(), ColumnType.DOUBLE, APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "l_partkey" + "] wrong type");
+		assertEquals(1.0d, table.doubleColumn(0).getDouble(0), APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "l_partkey" + ",0] wrong value");
+		assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "l_partkey" + ",0] wrong value");		
+	}
 }
