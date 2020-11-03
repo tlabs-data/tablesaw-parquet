@@ -21,6 +21,8 @@ class TestParquetReader {
 	private static final String APACHE_BINARY = "src/test/resources/binary.parquet";
 	private static final String APACHE_DATAPAGEV2 = "src/test/resources/datapage_v2.snappy.parquet";
 	private static final String APACHE_DICT_PAGE_OFFSET0 = "src/test/resources/dict-page-offset-zero.parquet";
+	private static final String APACHE_INT32_DECIMAL = "src/test/resources/int32_decimal.parquet";
+	private static final String APACHE_INT64_DECIMAL = "src/test/resources/int64_decimal.parquet";
 
 	public static void printTable(final Table table, final String source) {
 		System.out.println("Table " + source);
@@ -207,6 +209,26 @@ class TestParquetReader {
 		assertTrue(table.column(0).type() == ColumnType.INTEGER, APACHE_DICT_PAGE_OFFSET0 + "[" + "l_partkey" + "] wrong type");
 		assertEquals(1552, table.intColumn(0).getInt(0), APACHE_DICT_PAGE_OFFSET0 + "[" + "l_partkey" + ",0] wrong value");
 		assertEquals(1552, table.intColumn(0).getInt(38), APACHE_DICT_PAGE_OFFSET0 + "[" + "l_partkey" + ",0] wrong value");		
+	}
+	
+	@Test
+	void testInt32Decimal() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_INT32_DECIMAL).build());
+		validateTable(table, 1, 24, APACHE_INT32_DECIMAL);
+		assertTrue(table.column(0).type() == ColumnType.INTEGER, APACHE_INT32_DECIMAL + "[" + "l_partkey" + "] wrong type");
+		assertEquals(100, table.intColumn(0).getInt(0), APACHE_INT32_DECIMAL + "[" + "l_partkey" + ",0] wrong value");
+		assertEquals(2400, table.intColumn(0).getInt(23), APACHE_INT32_DECIMAL + "[" + "l_partkey" + ",0] wrong value");		
+	}
+	
+	@Test
+	void testInt64Decimal() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_INT64_DECIMAL).build());
+		validateTable(table, 1, 24, APACHE_INT64_DECIMAL);
+		assertEquals(table.column(0).type(), ColumnType.LONG, APACHE_INT64_DECIMAL + "[" + "l_partkey" + "] wrong type");
+		assertEquals(100l, table.longColumn(0).getLong(0), APACHE_INT64_DECIMAL + "[" + "l_partkey" + ",0] wrong value");
+		assertEquals(2400l, table.longColumn(0).getLong(23), APACHE_INT64_DECIMAL + "[" + "l_partkey" + ",0] wrong value");		
 	}
 	
 }
