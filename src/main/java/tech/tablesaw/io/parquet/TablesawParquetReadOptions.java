@@ -15,14 +15,20 @@ import tech.tablesaw.io.Source;
 public class TablesawParquetReadOptions extends ReadOptions {
 
 	protected boolean convertInt96ToTimestamp;
+	protected boolean unnanotatedBinaryAsString;
 	
 	protected TablesawParquetReadOptions(final Builder builder) {
 		super(builder);
 		convertInt96ToTimestamp = builder.convertInt96ToTimestamp;
+		unnanotatedBinaryAsString = builder.unnanotatedBinaryAsString;
 	}
 
 	public boolean isConvertInt96ToTimestamp() {
 		return convertInt96ToTimestamp;
+	}
+
+	public boolean unnanotatedBinaryAsString() {
+		return unnanotatedBinaryAsString;
 	}
 
 	public static Builder builder(final Source source) {
@@ -55,6 +61,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
 	public static class Builder extends ReadOptions.Builder {
 		protected boolean convertInt96ToTimestamp = false;
+		protected boolean unnanotatedBinaryAsString = true;
 		protected Builder(final Source source) {
 			super(source);
 		}
@@ -169,8 +176,13 @@ public class TablesawParquetReadOptions extends ReadOptions {
 			return this;
 		}
 
-		public Builder withConvertInt96ToTimestamp(boolean convertInt96ToTimestamp) {
+		public Builder withConvertInt96ToTimestamp(final boolean convertInt96ToTimestamp) {
 			this.convertInt96ToTimestamp = convertInt96ToTimestamp;
+			return this;
+		}
+		
+		public Builder withUnnanotatedBinaryAsString(final boolean unnanotatedBinaryAsString) {
+			this.unnanotatedBinaryAsString = unnanotatedBinaryAsString;
 			return this;
 		}
 	}

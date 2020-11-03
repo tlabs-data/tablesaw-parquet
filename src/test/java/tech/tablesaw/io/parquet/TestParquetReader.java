@@ -3,6 +3,8 @@ package tech.tablesaw.io.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +17,8 @@ class TestParquetReader {
 	private static final String APACHE_ALL_TYPES_DICT = "src/test/resources/alltypes_dictionary.parquet";
 	private static final String APACHE_ALL_TYPES_PLAIN = "src/test/resources/alltypes_plain.parquet";
 	private static final String APACHE_ALL_TYPES_SNAPPY = "src/test/resources/alltypes_plain.snappy.parquet";
+	private static final String APACHE_BINARY = "src/test/resources/binary.parquet";
+	private static final String APACHE_DATAPAGEV2 = "src/test/resources/datapage_v2.snappy.parquet";
 
 	public static void printTable(final Table table, final String source) {
 		System.out.println("Table " + source);
@@ -103,8 +107,42 @@ class TestParquetReader {
 					.withConvertInt96ToTimestamp(true).build());
 		validateTable(table, 11, 8, APACHE_ALL_TYPES_PLAIN);
 		assertTrue(table.column(10).type() == ColumnType.INSTANT, APACHE_ALL_TYPES_PLAIN + "[" + "timestamp_col" + "] wrong type");
-		printTable(table, APACHE_ALL_TYPES_PLAIN);
 	}
 
+	@Test
+	void testBinaryUTF8() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_BINARY).build());
+		validateTable(table, 1, 12, APACHE_BINARY);
+		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_BINARY + "[" + "foo" + "] wrong type");
+		assertEquals(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(new byte[] {0})).toString(), table.getString(0, 0),
+				APACHE_BINARY + "[" + "foo" + ",0] wrong value");
+		assertEquals(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(new byte[] {1})).toString(), table.getString(1, 0),
+				APACHE_BINARY + "[" + "foo" + ",0] wrong value");
+	}
 
+	@Test
+	void testBinaryRaw() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_BINARY)
+				.withUnnanotatedBinaryAsString(false).build());
+		validateTable(table, 1, 12, APACHE_BINARY);
+		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_BINARY + "[" + "foo" + "] wrong type");
+		assertEquals("00", table.getString(0, 0), APACHE_BINARY + "[" + "foo" + ",0] wrong value");
+		assertEquals("01", table.getString(1, 0), APACHE_BINARY + "[" + "foo" + ",0] wrong value");
+	}
+	
+	@Test
+	void testDataPageV2() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2).build());
+		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
+		printTable(table, APACHE_DATAPAGEV2);
+		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
+		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
+		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
+		assertTrue(table.column(2).type() == ColumnType.DOUBLE, APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
+		assertTrue(table.column(3).type() == ColumnType.BOOLEAN, APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
+		assertTrue(table.column(4).type() == ColumnType.TEXT, APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
+	}
 }

@@ -1,5 +1,6 @@
 From https://github.com/apache/parquet-testing
 
+```
 message schema {
   optional int32 id;
   optional boolean bool_col;
@@ -13,7 +14,8 @@ message schema {
   optional binary string_col;
   optional int96 timestamp_col;
 }
-
+```
+```
 id:              OPTIONAL INT32 R:0 D:1
 bool_col:        OPTIONAL BOOLEAN R:0 D:1
 tinyint_col:     OPTIONAL INT32 R:0 D:1
@@ -25,4 +27,5 @@ double_col:      OPTIONAL DOUBLE R:0 D:1
 date_string_col: OPTIONAL BINARY R:0 D:1
 string_col:      OPTIONAL BINARY R:0 D:1
 timestamp_col:   OPTIONAL INT96 R:0 D:1
+```
 
