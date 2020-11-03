@@ -23,6 +23,7 @@ class TestParquetReader {
 	private static final String APACHE_DICT_PAGE_OFFSET0 = "src/test/resources/dict-page-offset-zero.parquet";
 	private static final String APACHE_INT32_DECIMAL = "src/test/resources/int32_decimal.parquet";
 	private static final String APACHE_INT64_DECIMAL = "src/test/resources/int64_decimal.parquet";
+	private static final String APACHE_FIXED_LENGTH_DECIMAL = "src/test/resources/fixed_length_decimal.parquet";
 
 	public static void printTable(final Table table, final String source) {
 		System.out.println("Table " + source);
@@ -79,7 +80,6 @@ class TestParquetReader {
 	@Test
 	void testAllTypesPlain() throws IOException {
 		final Table table = validateAllTypesDefault(APACHE_ALL_TYPES_PLAIN, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN), 8);
-		printTable(table, APACHE_ALL_TYPES_PLAIN);
 	}
 
 	@Test
@@ -141,7 +141,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2).build());
 		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
-		printTable(table, APACHE_DATAPAGEV2);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
 		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
 		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
@@ -184,7 +183,6 @@ class TestParquetReader {
 				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
 				.withManageGroupAs(ManageGroupsAs.SKIP).build());
 		validateTable(table, 4, 5, APACHE_DATAPAGEV2);
-		printTable(table, APACHE_DATAPAGEV2);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
 		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
 		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
@@ -229,6 +227,16 @@ class TestParquetReader {
 		assertEquals(table.column(0).type(), ColumnType.LONG, APACHE_INT64_DECIMAL + "[" + "l_partkey" + "] wrong type");
 		assertEquals(100l, table.longColumn(0).getLong(0), APACHE_INT64_DECIMAL + "[" + "l_partkey" + ",0] wrong value");
 		assertEquals(2400l, table.longColumn(0).getLong(23), APACHE_INT64_DECIMAL + "[" + "l_partkey" + ",0] wrong value");		
+	}
+	
+	@Test
+	void testFixedLengthDecimal() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL).build());
+		validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL);
+		assertEquals(table.column(0).type(), ColumnType.DOUBLE, APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + "] wrong type");
+		assertEquals(1.0d, table.doubleColumn(0).getDouble(0), APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + ",0] wrong value");
+		assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + ",0] wrong value");		
 	}
 	
 }

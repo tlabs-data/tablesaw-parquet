@@ -1,6 +1,8 @@
 package tech.tablesaw.io.parquet;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Duration;
@@ -36,6 +38,7 @@ import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.JsonLogicalTypeAnnotation;
@@ -132,6 +135,16 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			}
 		});
 		MAPPER.put(DoubleColumnType.instance(), new TablesawGroupConverter() {
+			@Override
+			public void processBinary(final Row row, final String fieldName, final Binary value, 
+					final LogicalTypeAnnotation annotation) {
+				if(annotation instanceof DecimalLogicalTypeAnnotation) {
+					final DecimalLogicalTypeAnnotation dannotation = (DecimalLogicalTypeAnnotation)annotation;
+					final int scale = dannotation.getScale();
+					final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), scale);
+					row.setDouble(fieldName, bigd.doubleValue());
+				}
+			}
 			@Override
 			public void processDouble(final Row row, final String fieldName, final double value) {
 				row.setDouble(fieldName, value);
@@ -418,7 +431,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			case DOUBLE:
 				return DoubleColumn.create(name); 
 			case FIXED_LEN_BYTE_ARRAY:
-				return StringColumn.create(name);
+				return annotation == null ? StringColumn.create(name) :
+					annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
+						@Override
+						public Optional<Column<?>> visit(DecimalLogicalTypeAnnotation decimalLogicalType) {
+							return Optional.of(DoubleColumn.create(name));
+						}
+					}).orElse(StringColumn.create(name));
 			case INT96:
 				if(options.isConvertInt96ToTimestamp()) {
 					return InstantColumn.create(name);
