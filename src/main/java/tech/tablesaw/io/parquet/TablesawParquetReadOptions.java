@@ -14,8 +14,15 @@ import tech.tablesaw.io.Source;
 
 public class TablesawParquetReadOptions extends ReadOptions {
 
+	protected boolean convertInt96ToTimestamp;
+	
 	protected TablesawParquetReadOptions(final Builder builder) {
 		super(builder);
+		convertInt96ToTimestamp = builder.convertInt96ToTimestamp;
+	}
+
+	public boolean isConvertInt96ToTimestamp() {
+		return convertInt96ToTimestamp;
 	}
 
 	public static Builder builder(final Source source) {
@@ -47,6 +54,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 	}
 
 	public static class Builder extends ReadOptions.Builder {
+		protected boolean convertInt96ToTimestamp = false;
 		protected Builder(final Source source) {
 			super(source);
 		}
@@ -160,5 +168,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
 			super.ignoreZeroDecimal(ignoreZeroDecimal);
 			return this;
 		}
+
+		public Builder withConvertInt96ToTimestamp(boolean convertInt96ToTimestamp) {
+			this.convertInt96ToTimestamp = convertInt96ToTimestamp;
+			return this;
+		}
 	}
+
 }

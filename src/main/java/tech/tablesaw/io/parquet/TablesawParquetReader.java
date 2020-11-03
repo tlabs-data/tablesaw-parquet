@@ -10,7 +10,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.JulianFields;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -24,6 +26,7 @@ import org.apache.parquet.ParquetReadOptions;
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.column.page.PageReadStore;
 import org.apache.parquet.example.data.Group;
+import org.apache.parquet.example.data.simple.NanoTime;
 import org.apache.parquet.example.data.simple.convert.GroupRecordConverter;
 import org.apache.parquet.format.converter.ParquetMetadataConverter;
 import org.apache.parquet.hadoop.util.HadoopInputFile;
@@ -33,7 +36,6 @@ import org.apache.parquet.io.RecordReader;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
-import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.JsonLogicalTypeAnnotation;
@@ -197,6 +199,14 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 					row.setInstant(fieldName, Instant.ofEpochMilli(value));
 				}
 			}
+			@Override
+			public void processInt96(final Row row, final String fieldName, final Binary value,
+					final LogicalTypeAnnotation annotation) {
+				final NanoTime nanoTime = NanoTime.fromBinary(value);
+				final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, nanoTime.getJulianDay());
+				row.setInstant(fieldName, ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
+						.plus(nanoTime.getTimeOfDayNanos(), ChronoUnit.NANOS));
+			}
 		});
 		MAPPER.put(DateColumnType.instance(), new TablesawGroupConverter() {
 			@Override
@@ -287,7 +297,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 				.withMetadataFilter(ParquetMetadataConverter.NO_FILTER).build();
 		try (final ParquetFileReader reader = ParquetFileReader.open(hif, opts)) {
 			final MessageType schema = reader.getFooter().getFileMetaData().getSchema();
-			final Table table = createTable(schema);
+			final Table table = createTable(schema, options);
 			table.setName(options.tableName());
 			while (true) {
 				final PageReadStore pages = reader.readNextRowGroup();
@@ -351,15 +361,15 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 		}
 	}
 
-	private Table createTable(final MessageType schema) {
+	private Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
 		return Table.create(
 				schema.getFields().stream()
-				.map(this::createColumn).
+				.map(f -> createColumn(f, options)).
 				collect(Collectors.toList())
 				);
 	}
 
-	private Column<?> createColumn(final Type field) {
+	private Column<?> createColumn(final Type field, final TablesawParquetReadOptions option) {
 		final String name = field.getName();
 		if(field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
 			final LogicalTypeAnnotation annotation = field.getLogicalTypeAnnotation();
@@ -400,6 +410,9 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			case FIXED_LEN_BYTE_ARRAY:
 				return StringColumn.create(name);
 			case INT96:
+				if(option.isConvertInt96ToTimestamp()) {
+					return InstantColumn.create(name);
+				}
 				return StringColumn.create(name);
 			case BINARY:
 				return annotation == null ? StringColumn.create(name) :
@@ -454,7 +467,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			throw new UnsupportedOperationException(
 					"No conversion from Binary (" + annotation.toString() + ") to " + row.getColumnType(fieldName).getPrinterFriendlyName());
 		}
-		default void processInt96(final Row row, final String fieldName, final Binary value,
+		default void processInt96(final Row row, final String fieldName, final Binary binary,
 				final LogicalTypeAnnotation annotation) {
 			throw new UnsupportedOperationException(
 					"No conversion from Int96 to " + row.getColumnType(fieldName).getPrinterFriendlyName());
