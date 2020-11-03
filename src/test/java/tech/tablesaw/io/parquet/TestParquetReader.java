@@ -96,4 +96,15 @@ class TestParquetReader {
 		return table;
 	}
 
+	@Test
+	void testInt96AsTimestamp() throws IOException {
+		final Table table = new TablesawParquetReader().read(
+				TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN)
+					.withConvertInt96ToTimestamp(true).build());
+		validateTable(table, 11, 8, APACHE_ALL_TYPES_PLAIN);
+		assertTrue(table.column(10).type() == ColumnType.INSTANT, APACHE_ALL_TYPES_PLAIN + "[" + "timestamp_col" + "] wrong type");
+		printTable(table, APACHE_ALL_TYPES_PLAIN);
+	}
+
+
 }
