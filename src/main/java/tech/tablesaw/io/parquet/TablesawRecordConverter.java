@@ -79,13 +79,16 @@ public class TablesawRecordConverter extends GroupConverter {
 	private final Converter[] converters;
 	private Row currentRow = null;
 	private int currentRownum = -1;
+	private boolean[] rowColumnsSet;
 	
 	public TablesawRecordConverter(final Table table, final MessageType fileSchema, final TablesawParquetReadOptions options) {
 		super();
 		this.table = table;
 		this.converters = new Converter[fileSchema.getFieldCount()];
 		final List<Column<?>> columns = table.columns();
-		for(int i = 0, size = columns.size(); i < size; i++) {
+		final int size = columns.size();
+		rowColumnsSet = new boolean[size];
+		for(int i = 0; i < size; i++) {
 			final Column<?> column = columns.get(i);
 			final String columnName = column.name();
 			final int fieldIndex = fileSchema.getFieldIndex(columnName);
@@ -97,8 +100,8 @@ public class TablesawRecordConverter extends GroupConverter {
 				converters[fieldIndex] = new SimpleRecordConverter(type.asGroupType()) {
 					@Override
 					public void end() {
-						table.textColumn(col).set(currentRownum, this.record.toString());
-//						currentRow.setText(columnName, this.record.toString());
+						table.textColumn(col).append(this.record.toString());
+						rowColumnsSet[col] = true;
 					}
 				};
 			}
@@ -126,8 +129,8 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addBoolean(final boolean value) {
-					table.booleanColumn(colIndex).set(currentRownum, value);
-//					currentRow.setBoolean(columnName, value);
+					table.booleanColumn(colIndex).append(value);
+					rowColumnsSet[colIndex] = true;
 				}
 			};
 		}
@@ -135,8 +138,8 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addInt(final int value) {
-					table.intColumn(colIndex).set(currentRownum, value);
-//					currentRow.setInt(columnName, value);
+					table.intColumn(colIndex).append(value);
+					rowColumnsSet[colIndex] = true;
 				}
 			};
 		}
@@ -144,8 +147,8 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addLong(final long value) {
-					table.longColumn(colIndex).set(currentRownum, value);
-//					currentRow.setLong(columnName, value);
+					table.longColumn(colIndex).append(value);
+					rowColumnsSet[colIndex] = true;
 				}
 			};
 		}
@@ -153,8 +156,8 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addFloat(final float value) {
-					table.floatColumn(colIndex).set(currentRownum, value);
-//					currentRow.setFloat(columnName, value);
+					table.floatColumn(colIndex).append(value);
+					rowColumnsSet[colIndex] = true;
 				}
 			};
 		}
@@ -164,8 +167,8 @@ public class TablesawRecordConverter extends GroupConverter {
 				return new PrimitiveConverter() {
 					@Override
 					public void addDouble(final double value) {
-						table.doubleColumn(colIndex).set(currentRownum, value);
-//						currentRow.setDouble(columnName, value);
+						table.doubleColumn(colIndex).append(value);
+						rowColumnsSet[colIndex] = true;
 					}
 				};
 			}
@@ -176,21 +179,21 @@ public class TablesawRecordConverter extends GroupConverter {
 						@Override
 						public void addBinary(final Binary value) {
 							final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
-							table.doubleColumn(colIndex).set(currentRownum, bigd.doubleValue());
-//							currentRow.setDouble(columnName, bigd.doubleValue());
+							table.doubleColumn(colIndex).append(bigd.doubleValue());
+							rowColumnsSet[colIndex] = true;
 						}
 						@Override
 						public void addDouble(final double value) {
-							table.doubleColumn(colIndex).set(currentRownum, value);
-//							currentRow.setDouble(columnName, value);
+							table.doubleColumn(colIndex).append(value);
+							rowColumnsSet[colIndex] = true;
 						}
 					});
 				}
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addDouble(final double value) {
-					table.doubleColumn(colIndex).set(currentRownum, value);
-//					currentRow.setDouble(columnName, value);
+					table.doubleColumn(colIndex).append(value);
+					rowColumnsSet[colIndex] = true;
 				}
 			});
 		}
@@ -202,15 +205,15 @@ public class TablesawRecordConverter extends GroupConverter {
 					new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).set(currentRownum, value.toStringUsingUTF8());
-//							currentRow.setString(columnName, value.toStringUsingUTF8());
+							table.stringColumn(colIndex).append(value.toStringUsingUTF8());
+							rowColumnsSet[colIndex] = true;
 						}
 					}:
 					new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).set(currentRownum, rawBytesToHexString(value.getBytes()));
-//							currentRow.setString(columnName, rawBytesToHexString(value.getBytes()));
+							table.stringColumn(colIndex).append(rawBytesToHexString(value.getBytes()));
+							rowColumnsSet[colIndex] = true;
 						}
 					};
 			}
@@ -220,8 +223,8 @@ public class TablesawRecordConverter extends GroupConverter {
 					return Optional.of(new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).set(currentRownum, value.toStringUsingUTF8());
-//							currentRow.setString(columnName, value.toStringUsingUTF8());
+							table.stringColumn(colIndex).append(value.toStringUsingUTF8());
+							rowColumnsSet[colIndex] = true;
 						}
 					});
 				}
@@ -230,8 +233,8 @@ public class TablesawRecordConverter extends GroupConverter {
 					return Optional.of(new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).set(currentRownum, value.toStringUsingUTF8());
-//							currentRow.setString(columnName, value.toStringUsingUTF8());
+							table.stringColumn(colIndex).append(value.toStringUsingUTF8());
+							rowColumnsSet[colIndex] = true;
 						}
 					});
 				}
@@ -243,18 +246,17 @@ public class TablesawRecordConverter extends GroupConverter {
 						    Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
 						    final ByteBuffer buf = value.toByteBuffer();
 						    buf.order(ByteOrder.LITTLE_ENDIAN);
-							table.stringColumn(colIndex).set(currentRownum, Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
+							table.stringColumn(colIndex).append(Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
 									+ Duration.ofMillis(buf.getInt()).toString().substring(1));
-//							currentRow.setString(columnName, Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
-//									+ Duration.ofMillis(buf.getInt()).toString().substring(1));
+							rowColumnsSet[colIndex] = true;
 						}
 					});
 				}
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addBinary(final Binary value) {
-					table.stringColumn(colIndex).set(currentRownum, rawBytesToHexString(value.getBytes()));
-//					currentRow.setString(columnName, rawBytesToHexString(value.getBytes()));
+					table.stringColumn(colIndex).append(rawBytesToHexString(value.getBytes()));
+					rowColumnsSet[colIndex] = true;
 				}
 			});
 		}
@@ -262,8 +264,8 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addBinary(final Binary value) {
-					table.stringColumn(colIndex).set(currentRownum, rawBytesToHexString(value.getBytes()));
-//					currentRow.setString(columnName, value.toStringUsingUTF8());
+					table.stringColumn(colIndex).append(rawBytesToHexString(value.getBytes()));
+					rowColumnsSet[colIndex] = true;
 				}
 			};
 		}
@@ -273,8 +275,8 @@ public class TablesawRecordConverter extends GroupConverter {
 				return new PrimitiveConverter() {
 					@Override
 					public void addLong(long value) {
-						table.instantColumn(colIndex).set(currentRownum,  Instant.ofEpochMilli(value));
-//						currentRow.setInstant(columnName, Instant.ofEpochMilli(value));
+						table.instantColumn(colIndex).append( Instant.ofEpochMilli(value));
+						rowColumnsSet[colIndex] = true;
 					}
 					@Override
 					public void addBinary(final Binary value) {
@@ -284,11 +286,10 @@ public class TablesawRecordConverter extends GroupConverter {
 						final long nanotime = buf.getLong();
 					    final int juliaday = buf.getInt();
 						final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, juliaday);
-						table.instantColumn(colIndex).set(currentRownum, 
+						table.instantColumn(colIndex).append(
 								ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
 								.plus(nanotime, ChronoUnit.NANOS));
-//						currentRow.setInstant(columnName, ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
-//								.plus(nanotime, ChronoUnit.NANOS));
+						rowColumnsSet[colIndex] = true;
 					}
 				};
 			}
@@ -301,22 +302,19 @@ public class TablesawRecordConverter extends GroupConverter {
 							switch(timestampLogicalType.getUnit()) {
 							case MICROS:
 								final long millisFromMicro = value / MILLIS_TO_MICRO;
-								table.instantColumn(colIndex).set(currentRownum,  Instant.ofEpochMilli(millisFromMicro)
+								table.instantColumn(colIndex).append( Instant.ofEpochMilli(millisFromMicro)
 										.plus(value - millisFromMicro * MILLIS_TO_MICRO, ChronoUnit.MICROS));
-//								currentRow.setInstant(columnName,
-//										Instant.ofEpochMilli(millisFromMicro)
-//										.plus(value - millisFromMicro * MILLIS_TO_MICRO, ChronoUnit.MICROS));
+								rowColumnsSet[colIndex] = true;
 								break;
 							case MILLIS:
-								table.instantColumn(colIndex).set(currentRownum,  Instant.ofEpochMilli(value));
-//								currentRow.setInstant(columnName, Instant.ofEpochMilli(value));
+								table.instantColumn(colIndex).append( Instant.ofEpochMilli(value));
+								rowColumnsSet[colIndex] = true;
 								break;
 							case NANOS:
 								final long millisFromNanos = value / MILLIS_TO_NANO;
 								table.instantColumn(colIndex).set(currentRownum,
 										Instant.ofEpochMilli(millisFromNanos).plusNanos(value - millisFromNanos * MILLIS_TO_NANO));
-//								currentRow.setInstant(columnName,
-//										Instant.ofEpochMilli(millisFromNanos).plusNanos(value - millisFromNanos * MILLIS_TO_NANO));
+								rowColumnsSet[colIndex] = true;
 								break;
 							default:
 								throw new UnsupportedOperationException(
@@ -331,19 +329,18 @@ public class TablesawRecordConverter extends GroupConverter {
 							final long nanoday = buf.getLong();
 						    final int julianday = buf.getInt();
 							final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
-							table.instantColumn(colIndex).set(currentRownum, 
+							table.instantColumn(colIndex).append(
 									ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
 									.plus(nanoday, ChronoUnit.NANOS));
-//							currentRow.setInstant(columnName, ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
-//									.plus(nanoday, ChronoUnit.NANOS));
+							rowColumnsSet[colIndex] = true;
 						}
 					});
 				}
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addLong(long value) {
-					table.instantColumn(colIndex).set(currentRownum,  Instant.ofEpochMilli(value));
-//					currentRow.setInstant(columnName, Instant.ofEpochMilli(value));
+					table.instantColumn(colIndex).append( Instant.ofEpochMilli(value));
+					rowColumnsSet[colIndex] = true;
 				}
 				@Override
 				public void addBinary(final Binary value) {
@@ -353,11 +350,10 @@ public class TablesawRecordConverter extends GroupConverter {
 					final long nanotime = buf.getLong();
 				    final int juliaday = buf.getInt();
 					final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, juliaday);
-					table.instantColumn(colIndex).set(currentRownum, 
+					table.instantColumn(colIndex).append(
 							ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
 							.plus(nanotime, ChronoUnit.NANOS));
-//					currentRow.setInstant(columnName, ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
-//							.plus(nanotime, ChronoUnit.NANOS));
+					rowColumnsSet[colIndex] = true;
 				}
 			});
 		}
@@ -365,8 +361,8 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addInt(int value) {
-					table.dateColumn(colIndex).set(currentRownum, LocalDate.ofEpochDay(value));
-//					currentRow.setDate(columnName, LocalDate.ofEpochDay(value));
+					table.dateColumn(colIndex).append(LocalDate.ofEpochDay(value));
+					rowColumnsSet[colIndex] = true;
 				}
 			};
 		}
@@ -376,13 +372,13 @@ public class TablesawRecordConverter extends GroupConverter {
 				return new PrimitiveConverter() {
 					@Override
 					public void addInt(int value) {
-						table.timeColumn(colIndex).set(currentRownum, LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
-//						currentRow.setTime(columnName, LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+						table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+						rowColumnsSet[colIndex] = true;
 					}
 					@Override
 					public void addLong(long value) {
-						table.timeColumn(colIndex).set(currentRownum, LocalTime.ofNanoOfDay(value));
-//						currentRow.setTime(columnName, LocalTime.ofNanoOfDay(value));
+						table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value));
+						rowColumnsSet[colIndex] = true;
 					}
 				};
 			}
@@ -394,12 +390,12 @@ public class TablesawRecordConverter extends GroupConverter {
 						public void addLong(long value) {
 							switch(timeLogicalType.getUnit()) {
 							case MICROS:
-								table.timeColumn(colIndex).set(currentRownum, LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
-//								currentRow.setTime(columnName, LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
+								table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
+								rowColumnsSet[colIndex] = true;
 								break;
 							case NANOS:
-								table.timeColumn(colIndex).set(currentRownum, LocalTime.ofNanoOfDay(value));
-//								currentRow.setTime(columnName,LocalTime.ofNanoOfDay(value));
+								table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value));
+								rowColumnsSet[colIndex] = true;
 								break;
 							default:
 								throw new UnsupportedOperationException(
@@ -411,13 +407,13 @@ public class TablesawRecordConverter extends GroupConverter {
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addInt(int value) {
-					table.timeColumn(colIndex).set(currentRownum, LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
-//					currentRow.setTime(columnName, LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+					table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+					rowColumnsSet[colIndex] = true;
 				}
 				@Override
 				public void addLong(long value) {
-					table.timeColumn(colIndex).set(currentRownum, LocalTime.ofNanoOfDay(value));
-//					currentRow.setTime(columnName, LocalTime.ofNanoOfDay(value));
+					table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value));
+					rowColumnsSet[colIndex] = true;
 				}
 			});
 		}
@@ -428,10 +424,9 @@ public class TablesawRecordConverter extends GroupConverter {
 					@Override
 					public void addLong(long value) {
 						final long epochSecond = value / SECOND_TO_MILLIS;
-						table.dateTimeColumn(colIndex).set(currentRownum, LocalDateTime.ofEpochSecond(epochSecond,
+						table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecond,
 								(int)((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
-//						currentRow.setDateTime(columnName, LocalDateTime.ofEpochSecond(epochSecond,
-//								(int)((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
+						rowColumnsSet[colIndex] = true;
 					}
 				};
 			}
@@ -444,24 +439,21 @@ public class TablesawRecordConverter extends GroupConverter {
 							switch(timestampLogicalType.getUnit()) {
 							case MICROS:
 								final long epochSecondFromMicros = value / SECOND_TO_MICROS;
-								table.dateTimeColumn(colIndex).set(currentRownum, LocalDateTime.ofEpochSecond(epochSecondFromMicros,
+								table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecondFromMicros,
 										(int)(value - (epochSecondFromMicros * SECOND_TO_MICROS) * MICRO_TO_NANO), ZoneOffset.UTC));
-//								currentRow.setDateTime(columnName, LocalDateTime.ofEpochSecond(epochSecondFromMicros,
-//										(int)(value - (epochSecondFromMicros * SECOND_TO_MICROS) * MICRO_TO_NANO), ZoneOffset.UTC));
+								rowColumnsSet[colIndex] = true;
 								break;
 							case MILLIS:
 								final long epochSecondFromMillis = value / SECOND_TO_MILLIS;
-								table.dateTimeColumn(colIndex).set(currentRownum, LocalDateTime.ofEpochSecond(epochSecondFromMillis,
+								table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecondFromMillis,
 										(int)((value - (epochSecondFromMillis * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
-//										currentRow.setDateTime(columnName, LocalDateTime.ofEpochSecond(epochSecondFromMillis,
-//										(int)((value - (epochSecondFromMillis * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
+								rowColumnsSet[colIndex] = true;
 								break;
 							case NANOS:
 								final long epochSecondFromNanos = value / SECOND_TO_NANOS;
-								table.dateTimeColumn(colIndex).set(currentRownum, LocalDateTime.ofEpochSecond(epochSecondFromNanos,
+								table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecondFromNanos,
 										(int)((value - (epochSecondFromNanos * SECOND_TO_NANOS))), ZoneOffset.UTC));
-//								currentRow.setDateTime(columnName, LocalDateTime.ofEpochSecond(epochSecondFromNanos,
-//										(int)((value - (epochSecondFromNanos * SECOND_TO_NANOS))), ZoneOffset.UTC));
+								rowColumnsSet[colIndex] = true;
 								break;
 							default:
 								throw new UnsupportedOperationException(
@@ -474,10 +466,9 @@ public class TablesawRecordConverter extends GroupConverter {
 				@Override
 				public void addLong(long value) {
 					final long epochSecond = value / SECOND_TO_MILLIS;
-					table.dateTimeColumn(colIndex).set(currentRownum, LocalDateTime.ofEpochSecond(epochSecond,
+					table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecond,
 							(int)((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
-//					currentRow.setDateTime(columnName, LocalDateTime.ofEpochSecond(epochSecond,
-//							(int)((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
+					rowColumnsSet[colIndex] = true;
 				}
 			});
 		}
@@ -500,22 +491,25 @@ public class TablesawRecordConverter extends GroupConverter {
 	@Override
 	public void start() {
 		currentRownum++;
-		if(this.currentRow == null || table.columnCount() == 0) {
-			this.currentRow = this.table.appendRow();
-		} else {
-			for(Column<?> col : table.columns()) {
-				col.appendMissing();
-			}
-			this.currentRow = this.currentRow.next();
-		}
 	}
 
 	@Override
 	public void end() {
-		// nothing to do
+		for(int i = 0; i < rowColumnsSet.length; i++) {
+			if(!rowColumnsSet[i]) {
+				table.column(i).appendMissing();
+			} else {
+				rowColumnsSet[i] = false;
+			}
+		}
 	}
 
 	public Row getCurrentRow() {
+		if(this.currentRow == null) {
+			this.currentRow = table.row(currentRownum);
+		} else {
+			currentRow.at(currentRownum);
+		}
 		return currentRow;
 	}
 	
