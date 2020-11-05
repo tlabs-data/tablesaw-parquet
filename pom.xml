@@ -92,6 +92,11 @@
 			<artifactId>parquet-hadoop</artifactId>
 			<version>1.11.1</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.parquet</groupId>
+			<artifactId>parquet-tools</artifactId>
+			<version>1.11.1</version>
+		</dependency>
  		<dependency>
 			<groupId>org.apache.hadoop</groupId>
 			<artifactId>hadoop-client</artifactId>
