@@ -90,8 +90,7 @@ public class TablesawRecordConverter extends GroupConverter {
 		rowColumnsSet = new boolean[size];
 		for(int i = 0; i < size; i++) {
 			final Column<?> column = columns.get(i);
-			final String columnName = column.name();
-			final int fieldIndex = fileSchema.getFieldIndex(columnName);
+			final int fieldIndex = fileSchema.getFieldIndex(column.name());
 			final Type type = fileSchema.getType(fieldIndex);
 			if(type.isPrimitive()) {
 				converters[fieldIndex] = createConverter(i, column.type(), type, options);
