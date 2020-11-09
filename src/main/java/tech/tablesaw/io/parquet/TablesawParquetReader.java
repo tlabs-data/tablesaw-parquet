@@ -43,9 +43,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 		try (final ParquetReader<Row> reader = ParquetReader.<Row>builder(readSupport, path).build()) {
 			int i = 0;
 			while(reader.read() != null) {
-				if(++i % 10_000 == 0) {
-					LOG.debug("Read {} rows from {}", i, filename);
-				}
+				i++;
 			}
 			LOG.debug("Finished reading {} rows from {}", i, filename);
 		}
