@@ -7,12 +7,17 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.api.WriteSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataWriter;
 import tech.tablesaw.io.Destination;
 
 public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOptions> {
+
+	private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
 
 	@Override
 	public void write(final Table table, final Destination dest) throws IOException {
@@ -24,11 +29,14 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 	public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
 		try(final ParquetWriter<Row> writer = new Builder(new Path(options.destFile.getAbsolutePath()), table)
 				.withWriteMode(Mode.OVERWRITE).build()) {
+			final long start = System.currentTimeMillis();
 			Row row = new Row(table);
 			while(row.hasNext()) {
 				row = row.next();
 				writer.write(row);
 			}
+			final long end = System.currentTimeMillis();
+			LOG.debug("Finished writing {} rows to {} in {} ms", row.getRowNumber(), options.destFile.getName(), (end - start));
 		}
 	}
 
