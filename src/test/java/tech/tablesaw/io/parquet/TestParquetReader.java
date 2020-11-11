@@ -29,12 +29,6 @@ class TestParquetReader {
 	private static final String APACHE_NATION_MALFORMED = "src/test/resources/nation.dict-malformed.parquet";
 	private static final String APACHE_NULLS_SNAPPY = "src/test/resources/nulls.snappy.parquet";
 
-	public static void printTable(final Table table, final String source) {
-		System.out.println("Table " + source);
-		System.out.println(table.structure());
-		System.out.println(table.print(10));
-	}
-	
 	private void validateTable(final Table table, int cols, int rows, String source) {
 		assertNotNull(table, source + " is null");
 		assertEquals(cols, table.columnCount(), source + " wrong column count");
@@ -83,8 +77,7 @@ class TestParquetReader {
 
 	@Test
 	void testAllTypesPlain() throws IOException {
-		Table table = validateAllTypesDefault(APACHE_ALL_TYPES_PLAIN, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN), 8);
-		printTable(table, APACHE_ALL_TYPES_PLAIN);
+		validateAllTypesDefault(APACHE_ALL_TYPES_PLAIN, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN), 8);
 	}
 
 	@Test
@@ -115,7 +108,6 @@ class TestParquetReader {
 				TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN)
 					.withConvertInt96ToTimestamp(true).build());
 		validateTable(table, 11, 8, APACHE_ALL_TYPES_PLAIN);
-		printTable(table, APACHE_ALL_TYPES_PLAIN);
 		assertTrue(table.column(10).type() == ColumnType.INSTANT, APACHE_ALL_TYPES_PLAIN + "[" + "timestamp_col" + "] wrong type");
 	}
 
@@ -124,7 +116,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_BINARY).build());
 		validateTable(table, 1, 12, APACHE_BINARY);
-		printTable(table, APACHE_BINARY);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_BINARY + "[" + "foo" + "] wrong type");
 		assertEquals(StandardCharsets.UTF_8.decode(ByteBuffer.wrap(new byte[] {0})).toString(), table.getString(0, 0),
 				APACHE_BINARY + "[" + "foo" + ",0] wrong value");
@@ -138,7 +129,6 @@ class TestParquetReader {
 				TablesawParquetReadOptions.builder(APACHE_BINARY)
 				.withUnnanotatedBinaryAsString(false).build());
 		validateTable(table, 1, 12, APACHE_BINARY);
-		printTable(table, APACHE_BINARY);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_BINARY + "[" + "foo" + "] wrong type");
 		assertEquals("00", table.getString(0, 0), APACHE_BINARY + "[" + "foo" + ",0] wrong value");
 		assertEquals("01", table.getString(1, 0), APACHE_BINARY + "[" + "foo" + ",0] wrong value");
@@ -149,7 +139,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2).build());
 		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
-		printTable(table, APACHE_DATAPAGEV2);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
 		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
 		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
@@ -164,7 +153,6 @@ class TestParquetReader {
 				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
 				.withUnnanotatedBinaryAsString(false).build());
 		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
-		printTable(table, APACHE_DATAPAGEV2);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
 		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
 		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
@@ -179,7 +167,6 @@ class TestParquetReader {
 				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
 				.withManageGroupAs(ManageGroupsAs.TEXT).build());
 		validateTable(table, 5, 5, APACHE_DATAPAGEV2);
-		printTable(table, APACHE_DATAPAGEV2);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
 		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
 		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
@@ -194,7 +181,6 @@ class TestParquetReader {
 				TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
 				.withManageGroupAs(ManageGroupsAs.SKIP).build());
 		validateTable(table, 4, 5, APACHE_DATAPAGEV2);
-		printTable(table, APACHE_DATAPAGEV2);
 		assertTrue(table.column(0).type() == ColumnType.STRING, APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
 		assertEquals("abc", table.getString(0, 0), APACHE_DATAPAGEV2 + "[" + "a" + ",0] wrong value");
 		assertTrue(table.column(1).type() == ColumnType.INTEGER, APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
@@ -246,7 +232,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL).build());
 		validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL);
-		printTable(table, APACHE_FIXED_LENGTH_DECIMAL);
 		assertEquals(table.column(0).type(), ColumnType.DOUBLE, APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + "] wrong type");
 		assertEquals(1.0d, table.doubleColumn(0).getDouble(0), APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + ",0] wrong value");
 		assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_FIXED_LENGTH_DECIMAL + "[" + "l_partkey" + ",0] wrong value");		
@@ -257,7 +242,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL_LEGACY).build());
 		validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL_LEGACY);
-		printTable(table, APACHE_FIXED_LENGTH_DECIMAL_LEGACY);
 		assertEquals(table.column(0).type(), ColumnType.DOUBLE, APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "l_partkey" + "] wrong type");
 		assertEquals(1.0d, table.doubleColumn(0).getDouble(0), APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "l_partkey" + ",0] wrong value");
 		assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "l_partkey" + ",0] wrong value");		
@@ -268,7 +252,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_NATION_MALFORMED).build());
 		validateTable(table, 4, 25, APACHE_NATION_MALFORMED);
-		printTable(table, APACHE_NATION_MALFORMED);
 		assertEquals(table.column(0).type(), ColumnType.INTEGER, APACHE_NATION_MALFORMED + "[" + "nation_key" + "] wrong type");
 		assertEquals(table.column(1).type(), ColumnType.STRING, APACHE_NATION_MALFORMED + "[" + "name" + "] wrong type");
 		assertEquals(table.column(2).type(), ColumnType.INTEGER, APACHE_NATION_MALFORMED + "[" + "region_key" + "] wrong type");
@@ -280,7 +263,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_NULLS_SNAPPY).build());
 		validateTable(table, 1, 8, APACHE_NULLS_SNAPPY);
-		printTable(table, APACHE_NULLS_SNAPPY);
 		assertEquals(table.column(0).type(), ColumnType.TEXT, APACHE_NULLS_SNAPPY + "[" + "b_struct" + "] wrong type");
 	}
 
@@ -289,7 +271,6 @@ class TestParquetReader {
 		final Table table = new TablesawParquetReader().read(
 				TablesawParquetReadOptions.builder(APACHE_NULLS_SNAPPY)
 				.withManageGroupAs(ManageGroupsAs.SKIP).build());
-		printTable(table, APACHE_NULLS_SNAPPY);
 		validateTable(table, 0, 0, APACHE_NULLS_SNAPPY);
 	}
 }
