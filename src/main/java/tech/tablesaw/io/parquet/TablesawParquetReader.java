@@ -36,6 +36,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 
 	@Override
 	public Table read(final TablesawParquetReadOptions options) throws IOException {
+		final long start = System.currentTimeMillis();
 		final File file = options.source().file();
 		final String filename = file.getName();
 		final Path path = new Path(file.getAbsolutePath());
@@ -45,7 +46,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 			while(reader.read() != null) {
 				i++;
 			}
-			LOG.debug("Finished reading {} rows from {}", i, filename);
+			final long end = System.currentTimeMillis();
+			LOG.debug("Finished reading {} rows from {} in {} ms", i, filename, (end - start));
 		}
 		return readSupport.getTable();
 	}
