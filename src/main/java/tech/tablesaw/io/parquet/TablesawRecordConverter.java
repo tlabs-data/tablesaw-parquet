@@ -35,9 +35,20 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.tools.read.SimpleRecordConverter;
 
+import tech.tablesaw.api.BooleanColumn;
 import tech.tablesaw.api.ColumnType;
+import tech.tablesaw.api.DateColumn;
+import tech.tablesaw.api.DateTimeColumn;
+import tech.tablesaw.api.DoubleColumn;
+import tech.tablesaw.api.FloatColumn;
+import tech.tablesaw.api.InstantColumn;
+import tech.tablesaw.api.IntColumn;
+import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.api.TextColumn;
+import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 
 public class TablesawRecordConverter extends GroupConverter {
@@ -79,7 +90,18 @@ public class TablesawRecordConverter extends GroupConverter {
 	private final Converter[] converters;
 	private Row currentRow = null;
 	private int currentRownum = -1;
-	private boolean[] rowColumnsSet;
+	private final boolean[] rowColumnsSet;
+	private final BooleanColumn[] booleanColumns;
+	private final IntColumn[] intColumns;
+	private final LongColumn[] longColumns;
+	private final FloatColumn[] floatColumns;
+	private final DoubleColumn[] doubleColumns;
+	private final DateColumn[] dateColumns;
+	private final TimeColumn[] timeColumns;
+	private final DateTimeColumn[] dateTimeColumns;
+	private final InstantColumn[] instantColumns;
+	private final StringColumn[] stringColumns;
+	private final TextColumn[] textColumns;
 	
 	public TablesawRecordConverter(final Table table, final MessageType fileSchema, final TablesawParquetReadOptions options) {
 		super();
@@ -88,18 +110,31 @@ public class TablesawRecordConverter extends GroupConverter {
 		final List<Column<?>> columns = table.columns();
 		final int size = columns.size();
 		rowColumnsSet = new boolean[size];
+		booleanColumns = new BooleanColumn[size];
+		intColumns = new IntColumn[size];
+		longColumns = new LongColumn[size];
+		floatColumns = new FloatColumn[size];
+		doubleColumns = new DoubleColumn[size];
+		dateColumns = new DateColumn[size];
+		timeColumns = new TimeColumn[size];
+		dateTimeColumns = new DateTimeColumn[size];
+		instantColumns = new InstantColumn[size];
+		stringColumns = new StringColumn[size];
+		textColumns = new TextColumn[size];
 		for(int i = 0; i < size; i++) {
 			final Column<?> column = columns.get(i);
+			final ColumnType columnType = column.type();
+			fillColumnArrays(i, columnType);
 			final int fieldIndex = fileSchema.getFieldIndex(column.name());
 			final Type type = fileSchema.getType(fieldIndex);
 			if(type.isPrimitive()) {
-				converters[fieldIndex] = createConverter(i, column.type(), type, options);
+				converters[fieldIndex] = createConverter(i, columnType, type, options);
 			} else {
 				final int col = i;
 				converters[fieldIndex] = new SimpleRecordConverter(type.asGroupType()) {
 					@Override
 					public void end() {
-						table.textColumn(col).append(this.record.toString());
+						textColumns[col].append(this.record.toString());
 						rowColumnsSet[col] = true;
 					}
 				};
@@ -122,13 +157,39 @@ public class TablesawRecordConverter extends GroupConverter {
 		}
 	}
 
+	private void fillColumnArrays(final int i, final ColumnType columnType) {
+		if(columnType == ColumnType.BOOLEAN) {
+			booleanColumns[i] = table.booleanColumn(i);
+		} else if (columnType == ColumnType.INTEGER) {
+			intColumns[i] = table.intColumn(i);
+		} else if (columnType == ColumnType.LONG) {
+			longColumns[i] =table.longColumn(i);
+		} else if(columnType == ColumnType.FLOAT) {
+			floatColumns[i] = table.floatColumn(i);
+		} else if(columnType == ColumnType.DOUBLE) {
+			doubleColumns[i] = table.doubleColumn(i);
+		} else if(columnType == ColumnType.LOCAL_TIME) {
+			timeColumns[i] = table.timeColumn(i);
+		} else if(columnType == ColumnType.LOCAL_DATE) {
+			dateColumns[i] = table.dateColumn(i);
+		} else if(columnType == ColumnType.LOCAL_DATE_TIME) {
+			dateTimeColumns[i] = table.dateTimeColumn(i);
+		} else if(columnType == ColumnType.INSTANT) {
+			instantColumns[i] = table.instantColumn(i);
+		} else if(columnType == ColumnType.STRING) {
+			stringColumns[i] = table.stringColumn(i);
+		} else if(columnType == ColumnType.TEXT) {
+			textColumns[i] = table.textColumn(i);
+		}
+	}
+
 	private Converter createConverter(/*final String columnName*/ final int colIndex, final ColumnType columnType,
 			final Type schemaType, final TablesawParquetReadOptions options) {
 		if(columnType == ColumnType.BOOLEAN) {
 			return new PrimitiveConverter() {
 				@Override
 				public void addBoolean(final boolean value) {
-					table.booleanColumn(colIndex).append(value);
+					booleanColumns[colIndex].append(value);
 					rowColumnsSet[colIndex] = true;
 				}
 			};
@@ -137,7 +198,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addInt(final int value) {
-					table.intColumn(colIndex).append(value);
+					intColumns[colIndex].append(value);
 					rowColumnsSet[colIndex] = true;
 				}
 			};
@@ -146,7 +207,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addLong(final long value) {
-					table.longColumn(colIndex).append(value);
+					longColumns[colIndex].append(value);
 					rowColumnsSet[colIndex] = true;
 				}
 			};
@@ -155,7 +216,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addFloat(final float value) {
-					table.floatColumn(colIndex).append(value);
+					floatColumns[colIndex].append(value);
 					rowColumnsSet[colIndex] = true;
 				}
 			};
@@ -166,7 +227,7 @@ public class TablesawRecordConverter extends GroupConverter {
 				return new PrimitiveConverter() {
 					@Override
 					public void addDouble(final double value) {
-						table.doubleColumn(colIndex).append(value);
+						doubleColumns[colIndex].append(value);
 						rowColumnsSet[colIndex] = true;
 					}
 				};
@@ -178,12 +239,12 @@ public class TablesawRecordConverter extends GroupConverter {
 						@Override
 						public void addBinary(final Binary value) {
 							final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
-							table.doubleColumn(colIndex).append(bigd.doubleValue());
+							doubleColumns[colIndex].append(bigd.doubleValue());
 							rowColumnsSet[colIndex] = true;
 						}
 						@Override
 						public void addDouble(final double value) {
-							table.doubleColumn(colIndex).append(value);
+							doubleColumns[colIndex].append(value);
 							rowColumnsSet[colIndex] = true;
 						}
 					});
@@ -191,7 +252,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addDouble(final double value) {
-					table.doubleColumn(colIndex).append(value);
+					doubleColumns[colIndex].append(value);
 					rowColumnsSet[colIndex] = true;
 				}
 			});
@@ -204,14 +265,14 @@ public class TablesawRecordConverter extends GroupConverter {
 					new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).append(value.toStringUsingUTF8());
+							stringColumns[colIndex].append(value.toStringUsingUTF8());
 							rowColumnsSet[colIndex] = true;
 						}
 					}:
 					new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).append(rawBytesToHexString(value.getBytes()));
+							stringColumns[colIndex].append(rawBytesToHexString(value.getBytes()));
 							rowColumnsSet[colIndex] = true;
 						}
 					};
@@ -222,7 +283,7 @@ public class TablesawRecordConverter extends GroupConverter {
 					return Optional.of(new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).append(value.toStringUsingUTF8());
+							stringColumns[colIndex].append(value.toStringUsingUTF8());
 							rowColumnsSet[colIndex] = true;
 						}
 					});
@@ -232,7 +293,7 @@ public class TablesawRecordConverter extends GroupConverter {
 					return Optional.of(new PrimitiveConverter() {
 						@Override
 						public void addBinary(final Binary value) {
-							table.stringColumn(colIndex).append(value.toStringUsingUTF8());
+							stringColumns[colIndex].append(value.toStringUsingUTF8());
 							rowColumnsSet[colIndex] = true;
 						}
 					});
@@ -245,7 +306,7 @@ public class TablesawRecordConverter extends GroupConverter {
 						    Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
 						    final ByteBuffer buf = value.toByteBuffer();
 						    buf.order(ByteOrder.LITTLE_ENDIAN);
-							table.stringColumn(colIndex).append(Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
+						    stringColumns[colIndex].append(Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
 									+ Duration.ofMillis(buf.getInt()).toString().substring(1));
 							rowColumnsSet[colIndex] = true;
 						}
@@ -254,7 +315,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addBinary(final Binary value) {
-					table.stringColumn(colIndex).append(rawBytesToHexString(value.getBytes()));
+					stringColumns[colIndex].append(rawBytesToHexString(value.getBytes()));
 					rowColumnsSet[colIndex] = true;
 				}
 			});
@@ -263,7 +324,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addBinary(final Binary value) {
-					table.stringColumn(colIndex).append(rawBytesToHexString(value.getBytes()));
+					textColumns[colIndex].append(value.toStringUsingUTF8());
 					rowColumnsSet[colIndex] = true;
 				}
 			};
@@ -274,7 +335,7 @@ public class TablesawRecordConverter extends GroupConverter {
 				return new PrimitiveConverter() {
 					@Override
 					public void addLong(long value) {
-						table.instantColumn(colIndex).append( Instant.ofEpochMilli(value));
+						instantColumns[colIndex].append( Instant.ofEpochMilli(value));
 						rowColumnsSet[colIndex] = true;
 					}
 					@Override
@@ -285,7 +346,7 @@ public class TablesawRecordConverter extends GroupConverter {
 						final long nanotime = buf.getLong();
 					    final int juliaday = buf.getInt();
 						final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, juliaday);
-						table.instantColumn(colIndex).append(
+						instantColumns[colIndex].append(
 								ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
 								.plus(nanotime, ChronoUnit.NANOS));
 						rowColumnsSet[colIndex] = true;
@@ -301,17 +362,17 @@ public class TablesawRecordConverter extends GroupConverter {
 							switch(timestampLogicalType.getUnit()) {
 							case MICROS:
 								final long millisFromMicro = value / MILLIS_TO_MICRO;
-								table.instantColumn(colIndex).append( Instant.ofEpochMilli(millisFromMicro)
+								instantColumns[colIndex].append( Instant.ofEpochMilli(millisFromMicro)
 										.plus(value - millisFromMicro * MILLIS_TO_MICRO, ChronoUnit.MICROS));
 								rowColumnsSet[colIndex] = true;
 								break;
 							case MILLIS:
-								table.instantColumn(colIndex).append( Instant.ofEpochMilli(value));
+								instantColumns[colIndex].append( Instant.ofEpochMilli(value));
 								rowColumnsSet[colIndex] = true;
 								break;
 							case NANOS:
 								final long millisFromNanos = value / MILLIS_TO_NANO;
-								table.instantColumn(colIndex).set(currentRownum,
+								instantColumns[colIndex].set(currentRownum,
 										Instant.ofEpochMilli(millisFromNanos).plusNanos(value - millisFromNanos * MILLIS_TO_NANO));
 								rowColumnsSet[colIndex] = true;
 								break;
@@ -328,7 +389,7 @@ public class TablesawRecordConverter extends GroupConverter {
 							final long nanoday = buf.getLong();
 						    final int julianday = buf.getInt();
 							final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
-							table.instantColumn(colIndex).append(
+							instantColumns[colIndex].append(
 									ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
 									.plus(nanoday, ChronoUnit.NANOS));
 							rowColumnsSet[colIndex] = true;
@@ -338,7 +399,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addLong(long value) {
-					table.instantColumn(colIndex).append( Instant.ofEpochMilli(value));
+					instantColumns[colIndex].append( Instant.ofEpochMilli(value));
 					rowColumnsSet[colIndex] = true;
 				}
 				@Override
@@ -349,7 +410,7 @@ public class TablesawRecordConverter extends GroupConverter {
 					final long nanotime = buf.getLong();
 				    final int juliaday = buf.getInt();
 					final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, juliaday);
-					table.instantColumn(colIndex).append(
+					instantColumns[colIndex].append(
 							ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant()
 							.plus(nanotime, ChronoUnit.NANOS));
 					rowColumnsSet[colIndex] = true;
@@ -360,7 +421,7 @@ public class TablesawRecordConverter extends GroupConverter {
 			return new PrimitiveConverter() {
 				@Override
 				public void addInt(int value) {
-					table.dateColumn(colIndex).append(LocalDate.ofEpochDay(value));
+					dateColumns[colIndex].append(LocalDate.ofEpochDay(value));
 					rowColumnsSet[colIndex] = true;
 				}
 			};
@@ -371,12 +432,12 @@ public class TablesawRecordConverter extends GroupConverter {
 				return new PrimitiveConverter() {
 					@Override
 					public void addInt(int value) {
-						table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+						timeColumns[colIndex].append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
 						rowColumnsSet[colIndex] = true;
 					}
 					@Override
 					public void addLong(long value) {
-						table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value));
+						timeColumns[colIndex].append(LocalTime.ofNanoOfDay(value));
 						rowColumnsSet[colIndex] = true;
 					}
 				};
@@ -389,11 +450,11 @@ public class TablesawRecordConverter extends GroupConverter {
 						public void addLong(long value) {
 							switch(timeLogicalType.getUnit()) {
 							case MICROS:
-								table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
+								timeColumns[colIndex].append(LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
 								rowColumnsSet[colIndex] = true;
 								break;
 							case NANOS:
-								table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value));
+								timeColumns[colIndex].append(LocalTime.ofNanoOfDay(value));
 								rowColumnsSet[colIndex] = true;
 								break;
 							default:
@@ -406,12 +467,12 @@ public class TablesawRecordConverter extends GroupConverter {
 			}).orElse(new PrimitiveConverter() {
 				@Override
 				public void addInt(int value) {
-					table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+					timeColumns[colIndex].append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
 					rowColumnsSet[colIndex] = true;
 				}
 				@Override
 				public void addLong(long value) {
-					table.timeColumn(colIndex).append(LocalTime.ofNanoOfDay(value));
+					timeColumns[colIndex].append(LocalTime.ofNanoOfDay(value));
 					rowColumnsSet[colIndex] = true;
 				}
 			});
@@ -423,7 +484,7 @@ public class TablesawRecordConverter extends GroupConverter {
 					@Override
 					public void addLong(long value) {
 						final long epochSecond = value / SECOND_TO_MILLIS;
-						table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecond,
+						dateTimeColumns[colIndex].append(LocalDateTime.ofEpochSecond(epochSecond,
 								(int)((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
 						rowColumnsSet[colIndex] = true;
 					}
@@ -438,19 +499,19 @@ public class TablesawRecordConverter extends GroupConverter {
 							switch(timestampLogicalType.getUnit()) {
 							case MICROS:
 								final long epochSecondFromMicros = value / SECOND_TO_MICROS;
-								table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecondFromMicros,
+								dateTimeColumns[colIndex].append(LocalDateTime.ofEpochSecond(epochSecondFromMicros,
 										(int)(value - (epochSecondFromMicros * SECOND_TO_MICROS) * MICRO_TO_NANO), ZoneOffset.UTC));
 								rowColumnsSet[colIndex] = true;
 								break;
 							case MILLIS:
 								final long epochSecondFromMillis = value / SECOND_TO_MILLIS;
-								table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecondFromMillis,
+								dateTimeColumns[colIndex].append(LocalDateTime.ofEpochSecond(epochSecondFromMillis,
 										(int)((value - (epochSecondFromMillis * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
 								rowColumnsSet[colIndex] = true;
 								break;
 							case NANOS:
 								final long epochSecondFromNanos = value / SECOND_TO_NANOS;
-								table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecondFromNanos,
+								dateTimeColumns[colIndex].append(LocalDateTime.ofEpochSecond(epochSecondFromNanos,
 										(int)((value - (epochSecondFromNanos * SECOND_TO_NANOS))), ZoneOffset.UTC));
 								rowColumnsSet[colIndex] = true;
 								break;
@@ -465,7 +526,7 @@ public class TablesawRecordConverter extends GroupConverter {
 				@Override
 				public void addLong(long value) {
 					final long epochSecond = value / SECOND_TO_MILLIS;
-					table.dateTimeColumn(colIndex).append(LocalDateTime.ofEpochSecond(epochSecond,
+					dateTimeColumns[colIndex].append(LocalDateTime.ofEpochSecond(epochSecond,
 							(int)((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
 					rowColumnsSet[colIndex] = true;
 				}
