@@ -36,7 +36,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 				writer.write(row);
 			}
 			final long end = System.currentTimeMillis();
-			LOG.debug("Finished writing {} rows to {} in {} ms", row.getRowNumber(), options.destFile.getName(), (end - start));
+			LOG.debug("Finished writing {} rows to {} in {} ms", row.getRowNumber() + 1, options.destFile.getName(), (end - start));
 		}
 	}
 
