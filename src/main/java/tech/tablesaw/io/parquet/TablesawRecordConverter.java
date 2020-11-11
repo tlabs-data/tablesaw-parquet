@@ -183,7 +183,7 @@ public class TablesawRecordConverter extends GroupConverter {
 		}
 	}
 
-	private Converter createConverter(/*final String columnName*/ final int colIndex, final ColumnType columnType,
+	private Converter createConverter(final int colIndex, final ColumnType columnType,
 			final Type schemaType, final TablesawParquetReadOptions options) {
 		if(columnType == ColumnType.BOOLEAN) {
 			return new PrimitiveConverter() {
