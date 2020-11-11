@@ -38,7 +38,6 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 	public Table read(final TablesawParquetReadOptions options) throws IOException {
 		final long start = System.currentTimeMillis();
 		final File file = options.source().file();
-		final String filename = file.getName();
 		final Path path = new Path(file.getAbsolutePath());
 		final TablesawReadSupport readSupport = new TablesawReadSupport(options);
 		try (final ParquetReader<Row> reader = ParquetReader.<Row>builder(readSupport, path).build()) {
@@ -47,7 +46,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 				i++;
 			}
 			final long end = System.currentTimeMillis();
-			LOG.debug("Finished reading {} rows from {} in {} ms", i, filename, (end - start));
+			LOG.debug("Finished reading {} rows from {} in {} ms", i, file.getName(), (end - start));
 		}
 		return readSupport.getTable();
 	}
