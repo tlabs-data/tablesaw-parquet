@@ -24,7 +24,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
     register(Table.defaultWriterRegistry);
   }
 
-  public static void register(WriterRegistry registry) {
+  public static void register(final WriterRegistry registry) {
     registry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
   }
 
