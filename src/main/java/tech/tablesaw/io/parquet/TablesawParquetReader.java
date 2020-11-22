@@ -28,14 +28,19 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 
   @Override
   public Table read(final Source source) throws IOException {
-    return read(TablesawParquetReadOptions.builder(source).build());
+    final File file = source.file();
+    if (file != null) {
+      return read(TablesawParquetReadOptions.builder(file).build());
+    }
+    throw new UnsupportedOperationException(
+        "Can only work with file based source, please use the read(TablesawParquetReadOptions) merthod for additional possibilities");
   }
 
   @Override
   public Table read(final TablesawParquetReadOptions options) throws IOException {
     final long start = System.currentTimeMillis();
-    final File file = options.source().file();
-    final Path path = new Path(file.getAbsolutePath());
+    final String inputPath = options.getInputPath();
+    final Path path = new Path(inputPath);
     final TablesawReadSupport readSupport = new TablesawReadSupport(options);
     try (final ParquetReader<Row> reader = ParquetReader.<Row>builder(readSupport, path).build()) {
       int i = 0;
@@ -43,7 +48,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         i++;
       }
       final long end = System.currentTimeMillis();
-      LOG.debug("Finished reading {} rows from {} in {} ms", i, file.getName(), (end - start));
+      LOG.debug("Finished reading {} rows from {} in {} ms", i, inputPath, (end - start));
     }
     return readSupport.getTable();
   }
