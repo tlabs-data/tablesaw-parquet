@@ -3,8 +3,10 @@ package tech.tablesaw.io.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.io.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
 class TestParquetWriter {
 
@@ -125,5 +127,69 @@ class TestParquetWriter {
     final Table dest =
         new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
     assertTableEquals(orig, dest, APACHE_DATAPAGEV2 + " reloaded");
+  }
+
+  @Test
+  void testOverwriteOption() throws IOException {
+    final Table orig =
+        new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+    assertThrows(
+        FileAlreadyExistsException.class,
+        () ->
+            new TablesawParquetWriter()
+                .write(
+                    orig,
+                    TablesawParquetWriteOptions.builder(OUTPUT_FILE).withOverwrite(false).build()));
+  }
+
+  @Test
+  void testGZIPCompressor() throws IOException {
+    final Table orig =
+        new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+    new TablesawParquetWriter()
+        .write(
+            orig,
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+                .withCompressionCode(CompressionCodec.GZIP)
+                .build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
+  }
+
+  @Test
+  void testPLAINCompressor() throws IOException {
+    final Table orig =
+        new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+    new TablesawParquetWriter()
+        .write(
+            orig,
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+                .withCompressionCode(CompressionCodec.UNCOMPRESSED)
+                .build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
+  }
+
+  @Test
+  void testSNAPPYCompressor() throws IOException {
+    final Table orig =
+        new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+    new TablesawParquetWriter()
+        .write(
+            orig,
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+                .withCompressionCode(CompressionCodec.SNAPPY)
+                .build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
   }
 }

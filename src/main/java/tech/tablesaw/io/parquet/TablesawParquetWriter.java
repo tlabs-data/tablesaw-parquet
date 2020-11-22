@@ -6,6 +6,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.api.WriteSupport;
+import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.Row;
@@ -38,7 +39,10 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
   public void write(final Table table, final TablesawParquetWriteOptions options)
       throws IOException {
     try (final ParquetWriter<Row> writer =
-        new Builder(new Path(options.outputFile), table).withWriteMode(Mode.OVERWRITE).build()) {
+        new Builder(new Path(options.outputFile), table)
+            .withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
+            .withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE)
+            .build()) {
       final long start = System.currentTimeMillis();
       Row row = new Row(table);
       while (row.hasNext()) {
