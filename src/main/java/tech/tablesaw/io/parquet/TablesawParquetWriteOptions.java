@@ -7,7 +7,15 @@ import tech.tablesaw.io.WriteOptions;
 
 public class TablesawParquetWriteOptions extends WriteOptions {
 
+  public enum CompressionCodec {
+    UNCOMPRESSED,
+    SNAPPY,
+    GZIP
+  }
+
   protected final String outputFile;
+  protected final CompressionCodec compressionCodec;
+  protected final boolean overwrite;
 
   public static Builder builder(final File file) throws IOException {
     return new Builder(file.getAbsolutePath());
@@ -20,15 +28,29 @@ public class TablesawParquetWriteOptions extends WriteOptions {
   protected TablesawParquetWriteOptions(final Builder builder) {
     super(builder);
     this.outputFile = builder.outputFile;
+    this.compressionCodec = builder.compressionCodec;
+    this.overwrite = builder.overwrite;
   }
 
   public static class Builder extends WriteOptions.Builder {
 
     protected final String outputFile;
+    protected CompressionCodec compressionCodec = CompressionCodec.SNAPPY;
+    protected boolean overwrite = true;
 
     public Builder(final String outputFile) throws IOException {
       super((Writer) null);
       this.outputFile = outputFile;
+    }
+
+    public Builder withCompressionCode(final CompressionCodec compressionCodec) {
+      this.compressionCodec = compressionCodec;
+      return this;
+    }
+
+    public Builder withOverwrite(final boolean overwrite) {
+      this.overwrite = overwrite;
+      return this;
     }
 
     public TablesawParquetWriteOptions build() {
