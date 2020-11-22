@@ -38,9 +38,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
   public void write(final Table table, final TablesawParquetWriteOptions options)
       throws IOException {
     try (final ParquetWriter<Row> writer =
-        new Builder(new Path(options.destFile.getAbsolutePath()), table)
-            .withWriteMode(Mode.OVERWRITE)
-            .build()) {
+        new Builder(new Path(options.outputFile), table).withWriteMode(Mode.OVERWRITE).build()) {
       final long start = System.currentTimeMillis();
       Row row = new Row(table);
       while (row.hasNext()) {
@@ -51,7 +49,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
       LOG.debug(
           "Finished writing {} rows to {} in {} ms",
           row.getRowNumber() + 1,
-          options.destFile.getName(),
+          options.outputFile,
           (end - start));
     }
   }
