@@ -4,9 +4,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.junit.jupiter.api.Test;
+import tech.tablesaw.api.BooleanColumn;
+import tech.tablesaw.api.DateColumn;
+import tech.tablesaw.api.DateTimeColumn;
+import tech.tablesaw.api.DoubleColumn;
+import tech.tablesaw.api.FloatColumn;
+import tech.tablesaw.api.InstantColumn;
+import tech.tablesaw.api.IntColumn;
+import tech.tablesaw.api.LongColumn;
+import tech.tablesaw.api.ShortColumn;
+import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.api.TextColumn;
+import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.io.Destination;
 import tech.tablesaw.io.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
@@ -27,18 +43,18 @@ class TestParquetWriter {
   public static void assertTableEquals(
       final Table expected, final Table actual, final String header) {
     assertEquals(
-        actual.rowCount(), expected.rowCount(), header + " tables should have same number of rows");
+        expected.rowCount(), actual.rowCount(), header + " tables should have same number of rows");
     assertEquals(
-        actual.columnCount(),
         expected.columnCount(),
+        actual.columnCount(),
         header + " tables should have same number of columns");
     final int maxRows = actual.rowCount();
     final int numberOfColumns = actual.columnCount();
     for (int rowIndex = 0; rowIndex < maxRows; rowIndex++) {
       for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
         assertEquals(
-            actual.get(rowIndex, columnIndex),
             expected.get(rowIndex, columnIndex),
+            actual.get(rowIndex, columnIndex),
             header + " cells[" + rowIndex + ", " + columnIndex + "] do not match");
       }
     }
@@ -213,5 +229,29 @@ class TestParquetWriter {
         UnsupportedOperationException.class,
         () -> new TablesawParquetWriter().write(null, (Destination) null),
         "Wrong exception on writing to destination");
+  }
+
+  @Test
+  void testWriteReadAllColumnTypes() throws IOException {
+    final Table orig =
+        Table.create(
+            BooleanColumn.create("boolean", true, false),
+            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+            InstantColumn.create("instant", Instant.now(), Instant.now()),
+            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0l, 500_000_000_000l),
+            FloatColumn.create("float", Float.NaN, 3.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
+            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
   }
 }

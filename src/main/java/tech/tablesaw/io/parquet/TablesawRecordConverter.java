@@ -44,6 +44,7 @@ import tech.tablesaw.api.InstantColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.ShortColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
@@ -130,6 +131,7 @@ public class TablesawRecordConverter extends GroupConverter {
   private int currentRownum = -1;
   private final boolean[] rowColumnsSet;
   private final BooleanColumn[] booleanColumns;
+  private final ShortColumn[] shortColumns;
   private final IntColumn[] intColumns;
   private final LongColumn[] longColumns;
   private final FloatColumn[] floatColumns;
@@ -150,6 +152,7 @@ public class TablesawRecordConverter extends GroupConverter {
     final int size = columns.size();
     rowColumnsSet = new boolean[size];
     booleanColumns = new BooleanColumn[size];
+    shortColumns = new ShortColumn[size];
     intColumns = new IntColumn[size];
     longColumns = new LongColumn[size];
     floatColumns = new FloatColumn[size];
@@ -188,6 +191,8 @@ public class TablesawRecordConverter extends GroupConverter {
   private void fillColumnArrays(final int i, final ColumnType columnType) {
     if (columnType == ColumnType.BOOLEAN) {
       booleanColumns[i] = table.booleanColumn(i);
+    } else if (columnType == ColumnType.SHORT) {
+      shortColumns[i] = table.shortColumn(i);
     } else if (columnType == ColumnType.INTEGER) {
       intColumns[i] = table.intColumn(i);
     } else if (columnType == ColumnType.LONG) {
@@ -221,6 +226,15 @@ public class TablesawRecordConverter extends GroupConverter {
         @Override
         public void addBoolean(final boolean value) {
           booleanColumns[colIndex].append(value);
+          rowColumnsSet[colIndex] = true;
+        }
+      };
+    }
+    if (columnType == ColumnType.SHORT) {
+      return new PrimitiveConverter() {
+        @Override
+        public void addInt(final int value) {
+          shortColumns[colIndex].append((short) value);
           rowColumnsSet[colIndex] = true;
         }
       };

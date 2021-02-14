@@ -11,6 +11,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.IntLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.JsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.LogicalTypeAnnotationVisitor;
 import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
@@ -28,6 +29,7 @@ import tech.tablesaw.api.InstantColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.Row;
+import tech.tablesaw.api.ShortColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
@@ -91,6 +93,14 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                         public Optional<Column<?>> visit(
                             TimeLogicalTypeAnnotation timeLogicalType) {
                           return Optional.of(TimeColumn.create(name));
+                        }
+
+                        @Override
+                        public Optional<Column<?>> visit(IntLogicalTypeAnnotation intLogicalType) {
+                          if (intLogicalType.getBitWidth() < 32) {
+                            return Optional.of(ShortColumn.create(name));
+                          }
+                          return Optional.of(IntColumn.create(name));
                         }
                       })
                   .orElse(IntColumn.create(name));
