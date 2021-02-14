@@ -23,6 +23,7 @@ import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
+import tech.tablesaw.columns.Column;
 import tech.tablesaw.io.Destination;
 import tech.tablesaw.io.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
@@ -42,15 +43,28 @@ class TestParquetWriter {
 
   public static void assertTableEquals(
       final Table expected, final Table actual, final String header) {
-    assertEquals(
-        expected.rowCount(), actual.rowCount(), header + " tables should have same number of rows");
+    final int numberOfColumns = actual.columnCount();
     assertEquals(
         expected.columnCount(),
-        actual.columnCount(),
+        numberOfColumns,
         header + " tables should have same number of columns");
-    final int maxRows = actual.rowCount();
-    final int numberOfColumns = actual.columnCount();
-    for (int rowIndex = 0; rowIndex < maxRows; rowIndex++) {
+    for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
+      final Column<?> actualColumn = actual.column(columnIndex);
+      final Column<?> expectedColumn = expected.column(columnIndex);
+      assertEquals(expectedColumn.name(), actualColumn.name(), "Wrong column name");
+      // No good way to distinguish between string and text after writing
+      if (actualColumn instanceof StringColumn) {
+        assertTrue(
+            expectedColumn instanceof StringColumn || expectedColumn instanceof TextColumn,
+            "Column transformed to StringColumns");
+      } else {
+        assertEquals(expectedColumn.type(), actualColumn.type(), "Column type different");
+      }
+    }
+    final int numberOfRows = actual.rowCount();
+    assertEquals(
+        expected.rowCount(), numberOfRows, header + " tables should have same number of rows");
+    for (int rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
       for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
         assertEquals(
             expected.get(rowIndex, columnIndex),
