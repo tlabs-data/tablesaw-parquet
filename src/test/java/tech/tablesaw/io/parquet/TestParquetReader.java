@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.io.Source;
 import tech.tablesaw.io.parquet.TablesawParquetReadOptions.Builder;
 import tech.tablesaw.io.parquet.TablesawParquetReadOptions.ManageGroupsAs;
 
@@ -73,6 +74,23 @@ class TestParquetReader {
                     .build());
     assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
     assertTrue(table.name().startsWith("file:/"));
+  }
+
+  @Test
+  void testTableFromFileSource() throws IOException {
+    final Table table =
+        new TablesawParquetReader().read(new Source(new File(APACHE_ALL_TYPES_DICT)));
+    assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
+    assertEquals(
+        "alltypes_dictionary.parquet", table.name(), APACHE_ALL_TYPES_DICT + " wrong name");
+  }
+
+  @Test
+  void testTableFromOtherSource() throws IOException {
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> new TablesawParquetReader().read(Source.fromString("A,B,C,D,E")),
+        "Wrong exception reading from non-file source");
   }
 
   @Test

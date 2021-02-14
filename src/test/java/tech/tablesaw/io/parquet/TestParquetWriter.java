@@ -2,10 +2,12 @@ package tech.tablesaw.io.parquet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.File;
 import java.io.IOException;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.io.Destination;
 import tech.tablesaw.io.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
 class TestParquetWriter {
@@ -49,6 +51,18 @@ class TestParquetWriter {
             .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+  }
+
+  @Test
+  void testReadWriteAllTypeDictToFile() throws IOException {
+    final Table orig =
+        new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).build());
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE)).build());
     final Table dest =
         new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
     assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
@@ -191,5 +205,13 @@ class TestParquetWriter {
     final Table dest =
         new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
     assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
+  }
+
+  @Test
+  void testDestinationWriteException() {
+    assertThrows(
+        UnsupportedOperationException.class,
+        () -> new TablesawParquetWriter().write(null, (Destination) null),
+        "Wrong exception on writing to destination");
   }
 }
