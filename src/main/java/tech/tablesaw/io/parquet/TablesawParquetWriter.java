@@ -32,7 +32,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
   @Override
   public void write(final Table table, final Destination dest) throws IOException {
     throw new UnsupportedOperationException(
-        "The use of Destination is not yet supported, please use the write(Table, TablesawParquetWriteOptions) method");
+        "The use of Destination is not supported, please use the write(Table, TablesawParquetWriteOptions) method");
   }
 
   @Override

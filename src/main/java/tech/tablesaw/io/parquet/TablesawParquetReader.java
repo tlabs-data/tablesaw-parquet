@@ -33,7 +33,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
       return read(TablesawParquetReadOptions.builder(file).build());
     }
     throw new UnsupportedOperationException(
-        "Can only work with file based source, please use the read(TablesawParquetReadOptions) merthod for additional possibilities");
+        "Can only work with file based source, please use the read(TablesawParquetReadOptions) method for additional possibilities");
   }
 
   @Override
