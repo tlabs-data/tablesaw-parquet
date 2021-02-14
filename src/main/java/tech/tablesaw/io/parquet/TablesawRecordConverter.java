@@ -301,7 +301,7 @@ public class TablesawRecordConverter extends GroupConverter {
       final LogicalTypeAnnotation annotation = schemaType.getLogicalTypeAnnotation();
       if (annotation == null) {
         return schemaType.asPrimitiveType().getPrimitiveTypeName() != PrimitiveTypeName.INT96
-                && options.unnanotatedBinaryAsString
+                && options.unnanotatedBinaryAsString()
             ? new StringPrimitiveConverter(colIndex)
             : new PrimitiveConverter() {
               @Override
