@@ -271,6 +271,12 @@ public class TablesawRecordConverter extends GroupConverter {
       if (annotation == null) {
         return new PrimitiveConverter() {
           @Override
+          public void addFloat(final float value) {
+            doubleColumns[colIndex].append(value);
+            rowColumnsSet[colIndex] = true;
+          }
+
+          @Override
           public void addDouble(final double value) {
             doubleColumns[colIndex].append(value);
             rowColumnsSet[colIndex] = true;
