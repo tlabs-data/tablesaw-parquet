@@ -17,25 +17,43 @@ public class TablesawParquetReadOptions extends ReadOptions {
     ERROR
   }
 
+  public enum UnnanotatedBinaryAs {
+    STRING,
+    HEXSTRING,
+    SKIP
+  }
+
   protected boolean convertInt96ToTimestamp;
-  protected boolean unnanotatedBinaryAsString;
+  protected UnnanotatedBinaryAs unnanotatedBinaryAs;
+  protected boolean shortColumnTypeUsed;
+  protected boolean floatColumnTypeUsed;
   protected ManageGroupsAs manageGroupsAs;
   protected String inputPath;
 
   protected TablesawParquetReadOptions(final Builder builder) {
     super(builder);
     convertInt96ToTimestamp = builder.convertInt96ToTimestamp;
-    unnanotatedBinaryAsString = builder.unnanotatedBinaryAsString;
+    unnanotatedBinaryAs = builder.unnanotatedBinaryAs;
     manageGroupsAs = builder.manageGroupsAs;
     inputPath = builder.inputPath;
+    shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
+    floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
+  }
+
+  public boolean isShortColumnTypeUsed() {
+    return shortColumnTypeUsed;
+  }
+
+  public boolean isFloatColumnTypeUsed() {
+    return floatColumnTypeUsed;
   }
 
   public boolean isConvertInt96ToTimestamp() {
     return convertInt96ToTimestamp;
   }
 
-  public boolean unnanotatedBinaryAsString() {
-    return unnanotatedBinaryAsString;
+  public UnnanotatedBinaryAs getUnnanotatedBinaryAs() {
+    return unnanotatedBinaryAs;
   }
 
   public ManageGroupsAs getManageGroupsAs() {
@@ -61,7 +79,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
   public static class Builder extends ReadOptions.Builder {
     protected boolean convertInt96ToTimestamp = false;
-    protected boolean unnanotatedBinaryAsString = true;
+    protected UnnanotatedBinaryAs unnanotatedBinaryAs = UnnanotatedBinaryAs.STRING;
     protected ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
     protected String inputPath;
 
@@ -77,6 +95,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
     // Override super-class setters to return an instance of this class
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder header(final boolean header) {
       super.header(header);
@@ -89,12 +108,14 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder sample(final boolean sample) {
       super.sample(sample);
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     @Deprecated
     public Builder dateFormat(final String dateFormat) {
@@ -102,6 +123,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     @Deprecated
     public Builder timeFormat(final String timeFormat) {
@@ -109,6 +131,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     @Deprecated
     public Builder dateTimeFormat(final String dateTimeFormat) {
@@ -116,18 +139,21 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder dateFormat(final DateTimeFormatter dateFormat) {
       super.dateFormat(dateFormat);
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder timeFormat(final DateTimeFormatter timeFormat) {
       super.timeFormat(timeFormat);
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder dateTimeFormat(final DateTimeFormatter dateTimeFormat) {
       super.dateTimeFormat(dateTimeFormat);
@@ -140,18 +166,29 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder locale(final Locale locale) {
       super.locale(locale);
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder missingValueIndicator(final String missingValueIndicator) {
       super.missingValueIndicator(missingValueIndicator);
       return this;
     }
 
+    /**
+     * This option can be used to select whether to use: ShortColumn or IntColumn for parquet short
+     * and byte columns FloatColumn or DoubleColumn for parquet float columns If the list does not
+     * contain ColumnType.SHORT, an IntColumn will be used for parquet short and byte columns If the
+     * list does not contain ColumnType.FLOAT, a DoubleColumn will be used for parquet float columns
+     *
+     * @param columnTypesToDetect only checked for presence of ColumnType.SHORT and ColumnType.FLOAT
+     * @return this builder
+     */
     @Override
     public Builder columnTypesToDetect(final List<ColumnType> columnTypesToDetect) {
       super.columnTypesToDetect(columnTypesToDetect);
@@ -164,22 +201,46 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder ignoreZeroDecimal(final boolean ignoreZeroDecimal) {
       super.ignoreZeroDecimal(ignoreZeroDecimal);
       return this;
     }
 
+    /**
+     * Option to read parquet INT96 values as TimeStamp. False by default.
+     *
+     * @param convertInt96ToTimestamp set to true to read parquet INT96 values as TimeStamp, false
+     *     to read as String
+     * @return this builder
+     */
     public Builder withConvertInt96ToTimestamp(final boolean convertInt96ToTimestamp) {
       this.convertInt96ToTimestamp = convertInt96ToTimestamp;
       return this;
     }
 
-    public Builder withUnnanotatedBinaryAsString(final boolean unnanotatedBinaryAsString) {
-      this.unnanotatedBinaryAsString = unnanotatedBinaryAsString;
+    /**
+     * Option for managing unnanotated parquet Binary With UnnanotatedBinaryAs.STRING, these
+     * binaries are converted to UTF-8 Strings With UnnanotatedBinaryAs.HEXSTRING, these binaries
+     * are converted to hexadecimal Strings With UnnanotatedBinaryAs.SKIP, these fields are skipped
+     *
+     * @param unnanotatedBinaryAs the UnnanotatedBinaryAs option
+     * @return this builder
+     */
+    public Builder withUnnanotatedBinaryAs(final UnnanotatedBinaryAs unnanotatedBinaryAs) {
+      this.unnanotatedBinaryAs = unnanotatedBinaryAs;
       return this;
     }
 
+    /**
+     * Option for managing parquet groups (incl. repeats) With ManageGroupsAs.TEXT, groups are
+     * converted to String columns (default behavior) With ManageGroupsAs.SKIP, groups are ignored
+     * With ManageGroupsAs.ERROR, reading a parquet file containing groups will throw an exception
+     *
+     * @param manageGroupsAs the ManageGroupsAs option
+     * @return this builder
+     */
     public Builder withManageGroupAs(final ManageGroupsAs manageGroupsAs) {
       this.manageGroupsAs = manageGroupsAs;
       return this;

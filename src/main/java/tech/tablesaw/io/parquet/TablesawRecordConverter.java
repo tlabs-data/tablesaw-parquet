@@ -50,6 +50,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
+import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 public class TablesawRecordConverter extends GroupConverter {
 
@@ -321,7 +322,7 @@ public class TablesawRecordConverter extends GroupConverter {
       final LogicalTypeAnnotation annotation = schemaType.getLogicalTypeAnnotation();
       if (annotation == null) {
         return schemaType.asPrimitiveType().getPrimitiveTypeName() != PrimitiveTypeName.INT96
-                && options.unnanotatedBinaryAsString()
+                && options.unnanotatedBinaryAs == UnnanotatedBinaryAs.STRING
             ? new StringPrimitiveConverter(colIndex)
             : new PrimitiveConverter() {
               @Override

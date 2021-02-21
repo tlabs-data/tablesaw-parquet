@@ -8,9 +8,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.BooleanColumn;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DateColumn;
 import tech.tablesaw.api.DateTimeColumn;
 import tech.tablesaw.api.DoubleColumn;
@@ -311,6 +314,100 @@ class TestParquetWriter {
 
     final Table dest =
         new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+  }
+
+  @Test
+  void testWriteReadEmptyColumnTypeList() throws IOException {
+    final Table orig =
+        Table.create(
+            BooleanColumn.create("boolean", true, false),
+            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+            InstantColumn.create("instant", Instant.now(), Instant.now()),
+            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0l, 500_000_000_000l),
+            FloatColumn.create("float", Float.NaN, 3.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
+            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+
+    orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
+    orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
+
+    final Table dest =
+        new TablesawParquetReader()
+            .read(
+                TablesawParquetReadOptions.builder(OUTPUT_FILE)
+                    .columnTypesToDetect(new ArrayList<>())
+                    .build());
+    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+  }
+
+  @Test
+  void testWriteReadNoShorts() throws IOException {
+    final Table orig =
+        Table.create(
+            BooleanColumn.create("boolean", true, false),
+            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+            InstantColumn.create("instant", Instant.now(), Instant.now()),
+            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0l, 500_000_000_000l),
+            FloatColumn.create("float", Float.NaN, 3.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
+            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+
+    orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
+
+    final List<ColumnType> types = new ArrayList<>();
+    types.add(ColumnType.FLOAT);
+    final Table dest =
+        new TablesawParquetReader()
+            .read(
+                TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
+    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+  }
+
+  @Test
+  void testWriteReadNoFloat() throws IOException {
+    final Table orig =
+        Table.create(
+            BooleanColumn.create("boolean", true, false),
+            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+            InstantColumn.create("instant", Instant.now(), Instant.now()),
+            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0l, 500_000_000_000l),
+            FloatColumn.create("float", Float.NaN, 3.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
+            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+
+    orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
+
+    final List<ColumnType> types = new ArrayList<>();
+    types.add(ColumnType.SHORT);
+    final Table dest =
+        new TablesawParquetReader()
+            .read(
+                TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
     assertTableEquals(orig, dest, "All ColumnTypes reloaded");
   }
 }
