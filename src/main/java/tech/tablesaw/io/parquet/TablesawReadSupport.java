@@ -1,5 +1,6 @@
 package tech.tablesaw.io.parquet;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 import tech.tablesaw.api.BooleanColumn;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DateColumn;
 import tech.tablesaw.api.DateTimeColumn;
 import tech.tablesaw.api.DoubleColumn;
@@ -72,6 +74,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
   private Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
     final String name = field.getName();
+    final List<ColumnType> columnTypesToDetect = options.columnTypesToDetect();
     if (field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
       final LogicalTypeAnnotation annotation = field.getLogicalTypeAnnotation();
       switch (field.asPrimitiveType().getPrimitiveTypeName()) {
@@ -97,7 +100,8 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
                         @Override
                         public Optional<Column<?>> visit(IntLogicalTypeAnnotation intLogicalType) {
-                          if (intLogicalType.getBitWidth() < 32) {
+                          if (intLogicalType.getBitWidth() < 32
+                              && columnTypesToDetect.contains(ColumnType.SHORT)) {
                             return Optional.of(ShortColumn.create(name));
                           }
                           return Optional.of(IntColumn.create(name));
@@ -127,7 +131,9 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                       })
                   .orElse(LongColumn.create(name));
         case FLOAT:
-          return FloatColumn.create(name);
+          return columnTypesToDetect.contains(ColumnType.FLOAT)
+              ? FloatColumn.create(name)
+              : DoubleColumn.create(name);
         case DOUBLE:
           return DoubleColumn.create(name);
         case FIXED_LEN_BYTE_ARRAY:

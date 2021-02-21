@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
 public class TablesawParquetReadOptions extends ReadOptions {
@@ -147,6 +149,12 @@ public class TablesawParquetReadOptions extends ReadOptions {
     @Override
     public Builder missingValueIndicator(final String missingValueIndicator) {
       super.missingValueIndicator(missingValueIndicator);
+      return this;
+    }
+
+    @Override
+    public Builder columnTypesToDetect(final List<ColumnType> columnTypesToDetect) {
+      super.columnTypesToDetect(columnTypesToDetect);
       return this;
     }
 

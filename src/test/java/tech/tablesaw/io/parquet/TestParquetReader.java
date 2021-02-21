@@ -115,19 +115,25 @@ class TestParquetReader {
   @Test
   void testAllTypesDict() throws IOException {
     validateAllTypesDefault(
-        APACHE_ALL_TYPES_DICT, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT), 2);
+        APACHE_ALL_TYPES_DICT,
+        TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).minimizeColumnSizes(),
+        2);
   }
 
   @Test
   void testAllTypesPlain() throws IOException {
     validateAllTypesDefault(
-        APACHE_ALL_TYPES_PLAIN, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN), 8);
+        APACHE_ALL_TYPES_PLAIN,
+        TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).minimizeColumnSizes(),
+        8);
   }
 
   @Test
   void testAllTypesSnappy() throws IOException {
     validateAllTypesDefault(
-        APACHE_ALL_TYPES_SNAPPY, TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY), 2);
+        APACHE_ALL_TYPES_SNAPPY,
+        TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY).minimizeColumnSizes(),
+        2);
   }
 
   private Table validateAllTypesDefault(
