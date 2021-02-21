@@ -160,6 +160,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
+    /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder maxCharsPerColumn(final int maxCharsPerColumn) {
       super.maxCharsPerColumn(maxCharsPerColumn);
