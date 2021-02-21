@@ -13,6 +13,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.io.Source;
 import tech.tablesaw.io.parquet.TablesawParquetReadOptions.Builder;
 import tech.tablesaw.io.parquet.TablesawParquetReadOptions.ManageGroupsAs;
+import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 class TestParquetReader {
 
@@ -215,13 +216,24 @@ class TestParquetReader {
         new TablesawParquetReader()
             .read(
                 TablesawParquetReadOptions.builder(APACHE_BINARY)
-                    .withUnnanotatedBinaryAsString(false)
+                    .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING)
                     .build());
     validateTable(table, 1, 12, APACHE_BINARY);
     assertEquals(
         ColumnType.STRING, table.column(0).type(), APACHE_BINARY + "[" + "foo" + "] wrong type");
     assertEquals("00", table.getString(0, 0), APACHE_BINARY + "[" + "foo" + ",0] wrong value");
     assertEquals("01", table.getString(1, 0), APACHE_BINARY + "[" + "foo" + ",0] wrong value");
+  }
+
+  @Test
+  void testBinarySkip() throws IOException {
+    final Table table =
+        new TablesawParquetReader()
+            .read(
+                TablesawParquetReadOptions.builder(APACHE_BINARY)
+                    .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.SKIP)
+                    .build());
+    assertEquals(0, table.columnCount(), "Unnanotated binary column should have beend skipped");
   }
 
   @Test
@@ -249,7 +261,7 @@ class TestParquetReader {
         new TablesawParquetReader()
             .read(
                 TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
-                    .withUnnanotatedBinaryAsString(false)
+                    .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING)
                     .build());
     validateTable(table, 5, 5, APACHE_DATAPAGEV2);
     assertEquals(

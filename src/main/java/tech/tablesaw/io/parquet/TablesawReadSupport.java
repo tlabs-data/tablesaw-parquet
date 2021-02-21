@@ -1,6 +1,5 @@
 package tech.tablesaw.io.parquet;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 import tech.tablesaw.api.BooleanColumn;
-import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DateColumn;
 import tech.tablesaw.api.DateTimeColumn;
 import tech.tablesaw.api.DoubleColumn;
@@ -37,6 +35,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
+import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 public class TablesawReadSupport extends ReadSupport<Row> {
 
@@ -74,7 +73,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
   private Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
     final String name = field.getName();
-    final List<ColumnType> columnTypesToDetect = options.columnTypesToDetect();
     if (field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
       final LogicalTypeAnnotation annotation = field.getLogicalTypeAnnotation();
       switch (field.asPrimitiveType().getPrimitiveTypeName()) {
@@ -101,7 +99,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                         @Override
                         public Optional<Column<?>> visit(IntLogicalTypeAnnotation intLogicalType) {
                           if (intLogicalType.getBitWidth() < 32
-                              && columnTypesToDetect.contains(ColumnType.SHORT)) {
+                              && options.isShortColumnTypeUsed()) {
                             return Optional.of(ShortColumn.create(name));
                           }
                           return Optional.of(IntColumn.create(name));
@@ -131,14 +129,16 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                       })
                   .orElse(LongColumn.create(name));
         case FLOAT:
-          return columnTypesToDetect.contains(ColumnType.FLOAT)
+          return options.isFloatColumnTypeUsed()
               ? FloatColumn.create(name)
               : DoubleColumn.create(name);
         case DOUBLE:
           return DoubleColumn.create(name);
         case FIXED_LEN_BYTE_ARRAY:
           return annotation == null
-              ? StringColumn.create(name)
+              ? (options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP
+                  ? null
+                  : StringColumn.create(name))
               : annotation
                   .accept(
                       new LogicalTypeAnnotationVisitor<Column<?>>() {
@@ -156,7 +156,9 @@ public class TablesawReadSupport extends ReadSupport<Row> {
           return StringColumn.create(name);
         case BINARY:
           return annotation == null
-              ? StringColumn.create(name)
+              ? (options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP
+                  ? null
+                  : StringColumn.create(name))
               : annotation
                   .accept(
                       new LogicalTypeAnnotationVisitor<Column<?>>() {
