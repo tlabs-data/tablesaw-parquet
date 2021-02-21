@@ -136,7 +136,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
           return DoubleColumn.create(name);
         case FIXED_LEN_BYTE_ARRAY:
           return annotation == null
-              ? (options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP
+              ? (options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.SKIP
                   ? null
                   : StringColumn.create(name))
               : annotation
