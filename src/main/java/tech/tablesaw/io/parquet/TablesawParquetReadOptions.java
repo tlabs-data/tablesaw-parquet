@@ -6,6 +6,8 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
@@ -22,6 +24,8 @@ public class TablesawParquetReadOptions extends ReadOptions {
     HEXSTRING,
     SKIP
   }
+
+  private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReadOptions.class);
 
   protected boolean convertInt96ToTimestamp;
   protected UnnanotatedBinaryAs unnanotatedBinaryAs;
@@ -111,6 +115,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder sample(final boolean sample) {
+      LOG.warn("Sampling is not used in TablesawParquetReadOptions");
       super.sample(sample);
       return this;
     }
@@ -177,6 +182,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder missingValueIndicator(final String missingValueIndicator) {
+      LOG.warn("Missing value indicator is not used in TablesawParquetReadOptions");
       super.missingValueIndicator(missingValueIndicator);
       return this;
     }
@@ -205,6 +211,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     /** This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder ignoreZeroDecimal(final boolean ignoreZeroDecimal) {
+      LOG.warn("ignoreZeroDecimal has no effect in TablesawParquetReadOptions");
       super.ignoreZeroDecimal(ignoreZeroDecimal);
       return this;
     }
@@ -222,9 +229,9 @@ public class TablesawParquetReadOptions extends ReadOptions {
     }
 
     /**
-     * Option for managing unnanotated parquet Binary With UnnanotatedBinaryAs.STRING, these
-     * binaries are converted to UTF-8 Strings With UnnanotatedBinaryAs.HEXSTRING, these binaries
-     * are converted to hexadecimal Strings With UnnanotatedBinaryAs.SKIP, these fields are skipped
+     * Option for managing unnanotated parquet Binary. With UnnanotatedBinaryAs.STRING, these
+     * binaries are converted to UTF-8 Strings. With UnnanotatedBinaryAs.HEXSTRING, these binaries
+     * are converted to hexadecimal Strings. With UnnanotatedBinaryAs.SKIP, these fields are skipped
      *
      * @param unnanotatedBinaryAs the UnnanotatedBinaryAs option
      * @return this builder
@@ -235,8 +242,8 @@ public class TablesawParquetReadOptions extends ReadOptions {
     }
 
     /**
-     * Option for managing parquet groups (incl. repeats) With ManageGroupsAs.TEXT, groups are
-     * converted to String columns (default behavior) With ManageGroupsAs.SKIP, groups are ignored
+     * Option for managing parquet groups (incl. repeats). With ManageGroupsAs.TEXT, groups are
+     * converted to String columns (default behavior). With ManageGroupsAs.SKIP, groups are ignored
      * With ManageGroupsAs.ERROR, reading a parquet file containing groups will throw an exception
      *
      * @param manageGroupsAs the ManageGroupsAs option
