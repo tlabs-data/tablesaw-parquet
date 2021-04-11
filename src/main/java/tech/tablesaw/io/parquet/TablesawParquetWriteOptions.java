@@ -10,7 +10,8 @@ public class TablesawParquetWriteOptions extends WriteOptions {
   public enum CompressionCodec {
     UNCOMPRESSED,
     SNAPPY,
-    GZIP
+    GZIP,
+    ZSTD
   }
 
   protected final String outputFile;
