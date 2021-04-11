@@ -257,6 +257,22 @@ class TestParquetWriter {
   }
 
   @Test
+  void testZSTDCompressor() throws IOException {
+    final Table orig =
+        new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+    new TablesawParquetWriter()
+        .write(
+            orig,
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+                .withCompressionCode(CompressionCodec.ZSTD)
+                .build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " zstd reloaded");
+  }
+
+  @Test
   void testDestinationWriteException() {
     assertThrows(
         UnsupportedOperationException.class,
