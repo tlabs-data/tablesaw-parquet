@@ -11,14 +11,13 @@
 	</parent>
 
 	<artifactId>tablesaw-parquet</artifactId>
-
 	<packaging>jar</packaging>
+
 	<properties>
 		<parquet.version>1.12.0</parquet.version>
 		<hadoop.version>2.10.1</hadoop.version>
 	</properties>
-
-
+  
 	<profiles>
 		<profile>
 			<id>release</id>
@@ -57,6 +56,25 @@
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>com.googlecode.maven-download-plugin</groupId>
+				<artifactId>download-maven-plugin</artifactId>
+				<version>1.6.3</version>
+				<executions>
+					<execution>
+						<id>get-test-files</id>
+						<phase>generate-test-resources</phase>
+						<goals>
+							<goal>wget</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<url>https://github.com/apache/parquet-testing/archive/refs/heads/master.zip</url>
+					<unpack>true</unpack>
+					<outputDirectory>${project.build.directory}/test/data/</outputDirectory>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>

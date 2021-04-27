@@ -17,26 +17,23 @@ import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 class TestParquetReader {
 
-  private static final String APACHE_ALL_TYPES_DICT =
-      "src/test/resources/alltypes_dictionary.parquet";
-  private static final String APACHE_ALL_TYPES_PLAIN = "src/test/resources/alltypes_plain.parquet";
-  private static final String APACHE_ALL_TYPES_SNAPPY =
-      "src/test/resources/alltypes_plain.snappy.parquet";
-  private static final String APACHE_BINARY = "src/test/resources/binary.parquet";
-  private static final String APACHE_DATAPAGEV2 = "src/test/resources/datapage_v2.snappy.parquet";
-  private static final String APACHE_DICT_PAGE_OFFSET0 =
-      "src/test/resources/dict-page-offset-zero.parquet";
-  private static final String APACHE_INT32_DECIMAL = "src/test/resources/int32_decimal.parquet";
-  private static final String APACHE_INT64_DECIMAL = "src/test/resources/int64_decimal.parquet";
-  private static final String APACHE_FIXED_LENGTH_DECIMAL =
-      "src/test/resources/fixed_length_decimal.parquet";
+  private static final String PARQUET_TESTING_FOLDER =
+      "target/test/data/parquet-testing-master/data/";
+
+  private static final String APACHE_ALL_TYPES_DICT = "alltypes_dictionary.parquet";
+  private static final String APACHE_ALL_TYPES_PLAIN = "alltypes_plain.parquet";
+  private static final String APACHE_ALL_TYPES_SNAPPY = "alltypes_plain.snappy.parquet";
+  private static final String APACHE_BINARY = "binary.parquet";
+  private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
+  private static final String APACHE_DICT_PAGE_OFFSET0 = "dict-page-offset-zero.parquet";
+  private static final String APACHE_INT32_DECIMAL = "int32_decimal.parquet";
+  private static final String APACHE_INT64_DECIMAL = "int64_decimal.parquet";
+  private static final String APACHE_FIXED_LENGTH_DECIMAL = "fixed_length_decimal.parquet";
   private static final String APACHE_FIXED_LENGTH_DECIMAL_LEGACY =
-      "src/test/resources/fixed_length_decimal_legacy.parquet";
-  private static final String APACHE_BYTE_ARRAY_DECIMAL =
-      "src/test/resources/byte_array_decimal.parquet";
-  private static final String APACHE_NATION_MALFORMED =
-      "src/test/resources/nation.dict-malformed.parquet";
-  private static final String APACHE_NULLS_SNAPPY = "src/test/resources/nulls.snappy.parquet";
+      "fixed_length_decimal_legacy.parquet";
+  private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
+  private static final String APACHE_NATION_MALFORMED = "nation.dict-malformed.parquet";
+  private static final String APACHE_NULLS_SNAPPY = "nulls.snappy.parquet";
 
   private void validateTable(final Table table, int cols, int rows, String source) {
     assertNotNull(table, source + " is null");
@@ -48,7 +45,10 @@ class TestParquetReader {
   void testTableNameFromFile() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(new File(APACHE_ALL_TYPES_DICT)).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT))
+                    .build());
     assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
     assertEquals(
         "alltypes_dictionary.parquet", table.name(), APACHE_ALL_TYPES_DICT + " wrong name");
@@ -59,7 +59,8 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(new File(APACHE_ALL_TYPES_DICT))
+                TablesawParquetReadOptions.builder(
+                        new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT))
                     .tableName("ANOTHERNAME")
                     .build());
     assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
@@ -71,7 +72,8 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(new File(APACHE_ALL_TYPES_DICT).toURI().toURL())
+                TablesawParquetReadOptions.builder(
+                        new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT).toURI().toURL())
                     .build());
     assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
     assertTrue(table.name().startsWith("file:/"));
@@ -80,7 +82,8 @@ class TestParquetReader {
   @Test
   void testTableFromFileSource() throws IOException {
     final Table table =
-        new TablesawParquetReader().read(new Source(new File(APACHE_ALL_TYPES_DICT)));
+        new TablesawParquetReader()
+            .read(new Source(new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT)));
     assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
     assertEquals(
         "alltypes_dictionary.parquet", table.name(), APACHE_ALL_TYPES_DICT + " wrong name");
@@ -98,7 +101,9 @@ class TestParquetReader {
   void testColumnNames() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
+                    .build());
     validateTable(table, 11, 2, APACHE_ALL_TYPES_DICT);
     assertEquals("id", table.column(0).name());
     assertEquals("bool_col", table.column(1).name());
@@ -117,7 +122,8 @@ class TestParquetReader {
   void testAllTypesDict() throws IOException {
     validateAllTypesDefault(
         APACHE_ALL_TYPES_DICT,
-        TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).minimizeColumnSizes(),
+        TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
+            .minimizeColumnSizes(),
         2);
   }
 
@@ -125,7 +131,8 @@ class TestParquetReader {
   void testAllTypesPlain() throws IOException {
     validateAllTypesDefault(
         APACHE_ALL_TYPES_PLAIN,
-        TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).minimizeColumnSizes(),
+        TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+            .minimizeColumnSizes(),
         8);
   }
 
@@ -133,7 +140,8 @@ class TestParquetReader {
   void testAllTypesSnappy() throws IOException {
     validateAllTypesDefault(
         APACHE_ALL_TYPES_SNAPPY,
-        TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY).minimizeColumnSizes(),
+        TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY)
+            .minimizeColumnSizes(),
         2);
   }
 
@@ -183,7 +191,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
                     .withConvertInt96ToTimestamp(true)
                     .build());
     validateTable(table, 11, 8, APACHE_ALL_TYPES_PLAIN);
@@ -196,7 +204,9 @@ class TestParquetReader {
   @Test
   void testBinaryUTF8() throws IOException {
     final Table table =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(APACHE_BINARY).build());
+        new TablesawParquetReader()
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BINARY).build());
     validateTable(table, 1, 12, APACHE_BINARY);
     assertEquals(
         ColumnType.STRING, table.column(0).type(), APACHE_BINARY + "[" + "foo" + "] wrong type");
@@ -215,7 +225,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_BINARY)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BINARY)
                     .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING)
                     .build());
     validateTable(table, 1, 12, APACHE_BINARY);
@@ -230,7 +240,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_BINARY)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BINARY)
                     .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.SKIP)
                     .build());
     assertEquals(0, table.columnCount(), "Unnanotated binary column should have beend skipped");
@@ -240,7 +250,9 @@ class TestParquetReader {
   void testDataPageV2() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
+                    .build());
     validateTable(table, 5, 5, APACHE_DATAPAGEV2);
     assertEquals(
         ColumnType.STRING, table.column(0).type(), APACHE_DATAPAGEV2 + "[" + "a" + "] wrong type");
@@ -260,7 +272,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
                     .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING)
                     .build());
     validateTable(table, 5, 5, APACHE_DATAPAGEV2);
@@ -282,7 +294,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
                     .withManageGroupAs(ManageGroupsAs.TEXT)
                     .build());
     validateTable(table, 5, 5, APACHE_DATAPAGEV2);
@@ -304,7 +316,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
                     .withManageGroupAs(ManageGroupsAs.SKIP)
                     .build());
     validateTable(table, 4, 5, APACHE_DATAPAGEV2);
@@ -326,7 +338,7 @@ class TestParquetReader {
         () ->
             new TablesawParquetReader()
                 .read(
-                    TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2)
+                    TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
                         .withManageGroupAs(ManageGroupsAs.ERROR)
                         .build()));
   }
@@ -335,7 +347,10 @@ class TestParquetReader {
   void testDictPageOffset0() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_DICT_PAGE_OFFSET0).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        PARQUET_TESTING_FOLDER + APACHE_DICT_PAGE_OFFSET0)
+                    .build());
     validateTable(table, 1, 39, APACHE_DICT_PAGE_OFFSET0);
     assertEquals(
         ColumnType.INTEGER,
@@ -355,7 +370,9 @@ class TestParquetReader {
   void testInt32Decimal() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_INT32_DECIMAL).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT32_DECIMAL)
+                    .build());
     validateTable(table, 1, 24, APACHE_INT32_DECIMAL);
     assertEquals(
         ColumnType.INTEGER,
@@ -375,7 +392,9 @@ class TestParquetReader {
   void testInt64Decimal() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_INT64_DECIMAL).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT64_DECIMAL)
+                    .build());
     validateTable(table, 1, 24, APACHE_INT64_DECIMAL);
     assertEquals(
         ColumnType.LONG,
@@ -395,7 +414,10 @@ class TestParquetReader {
   void testFixedLengthDecimal() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL)
+                    .build());
     validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL);
     assertEquals(
         ColumnType.DOUBLE,
@@ -415,7 +437,10 @@ class TestParquetReader {
   void testFixedLengthDecimalLegacy() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL_LEGACY).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL_LEGACY)
+                    .build());
     validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL_LEGACY);
     assertEquals(
         ColumnType.DOUBLE,
@@ -435,7 +460,10 @@ class TestParquetReader {
   void testByteArrayDecimal() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_BYTE_ARRAY_DECIMAL).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL)
+                    .build());
     validateTable(table, 1, 24, APACHE_BYTE_ARRAY_DECIMAL);
     assertEquals(
         ColumnType.DOUBLE,
@@ -456,7 +484,9 @@ class TestParquetReader {
   void testNationMalformed() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_NATION_MALFORMED).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_NATION_MALFORMED)
+                    .build());
     validateTable(table, 4, 25, APACHE_NATION_MALFORMED);
     assertEquals(
         table.column(0).type(),
@@ -480,7 +510,9 @@ class TestParquetReader {
   void testNullsSnappy() throws IOException {
     final Table table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_NULLS_SNAPPY).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_NULLS_SNAPPY)
+                    .build());
     validateTable(table, 1, 8, APACHE_NULLS_SNAPPY);
     assertEquals(
         table.column(0).type(),
@@ -493,7 +525,7 @@ class TestParquetReader {
     final Table table =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_NULLS_SNAPPY)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_NULLS_SNAPPY)
                     .withManageGroupAs(ManageGroupsAs.SKIP)
                     .build());
     validateTable(table, 0, 0, APACHE_NULLS_SNAPPY);
