@@ -32,16 +32,15 @@ import tech.tablesaw.io.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
 class TestParquetWriter {
 
-  private static final String APACHE_ALL_TYPES_DICT =
-      "src/test/resources/alltypes_dictionary.parquet";
-  private static final String APACHE_ALL_TYPES_PLAIN = "src/test/resources/alltypes_plain.parquet";
-  private static final String APACHE_ALL_TYPES_SNAPPY =
-      "src/test/resources/alltypes_plain.snappy.parquet";
-  private static final String APACHE_FIXED_LENGTH_DECIMAL =
-      "src/test/resources/fixed_length_decimal.parquet";
-  private static final String APACHE_BYTE_ARRAY_DECIMAL =
-      "src/test/resources/byte_array_decimal.parquet";
-  private static final String APACHE_DATAPAGEV2 = "src/test/resources/datapage_v2.snappy.parquet";
+  private static final String PARQUET_TESTING_FOLDER =
+      "target/test/data/parquet-testing-master/data/";
+
+  private static final String APACHE_ALL_TYPES_DICT = "alltypes_dictionary.parquet";
+  private static final String APACHE_ALL_TYPES_PLAIN = "alltypes_plain.parquet";
+  private static final String APACHE_ALL_TYPES_SNAPPY = "alltypes_plain.snappy.parquet";
+  private static final String APACHE_FIXED_LENGTH_DECIMAL = "fixed_length_decimal.parquet";
+  private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
+  private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
   private static final String OUTPUT_FILE = "target/test/results/out.parquet";
 
   public static void assertTableEquals(
@@ -81,7 +80,9 @@ class TestParquetWriter {
   void testReadWriteAllTypeDict() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     final Table dest =
@@ -94,7 +95,7 @@ class TestParquetWriter {
     final Table orig =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
                     .minimizeColumnSizes()
                     .build());
     new TablesawParquetWriter()
@@ -109,7 +110,9 @@ class TestParquetWriter {
   void testReadWriteAllTypeDictToFile() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_DICT).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE)).build());
     final Table dest =
@@ -121,7 +124,9 @@ class TestParquetWriter {
   void testReadWriteAllTypePlain() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     final Table dest =
@@ -133,7 +138,9 @@ class TestParquetWriter {
   void testReadWriteAllTypeSnappy() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     final Table dest =
@@ -146,7 +153,7 @@ class TestParquetWriter {
     final Table orig =
         new TablesawParquetReader()
             .read(
-                TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN)
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
                     .withConvertInt96ToTimestamp(true)
                     .build());
     new TablesawParquetWriter()
@@ -160,7 +167,10 @@ class TestParquetWriter {
   void testFixedLengthDecimal() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_FIXED_LENGTH_DECIMAL).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     final Table dest =
@@ -172,7 +182,10 @@ class TestParquetWriter {
   void testBinaryDecimal() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_BYTE_ARRAY_DECIMAL).build());
+            .read(
+                TablesawParquetReadOptions.builder(
+                        PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     final Table dest =
@@ -184,7 +197,9 @@ class TestParquetWriter {
   void testDatapageV2() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_DATAPAGEV2).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     final Table dest =
@@ -196,7 +211,9 @@ class TestParquetWriter {
   void testOverwriteOption() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+                    .build());
     new TablesawParquetWriter()
         .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
     assertThrows(
@@ -212,7 +229,9 @@ class TestParquetWriter {
   void testGZIPCompressor() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+                    .build());
     new TablesawParquetWriter()
         .write(
             orig,
@@ -228,7 +247,9 @@ class TestParquetWriter {
   void testPLAINCompressor() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+                    .build());
     new TablesawParquetWriter()
         .write(
             orig,
@@ -244,7 +265,9 @@ class TestParquetWriter {
   void testSNAPPYCompressor() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+                    .build());
     new TablesawParquetWriter()
         .write(
             orig,
@@ -260,7 +283,9 @@ class TestParquetWriter {
   void testZSTDCompressor() throws IOException {
     final Table orig =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_PLAIN).build());
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
+                    .build());
     new TablesawParquetWriter()
         .write(
             orig,
