@@ -148,7 +148,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
   private static Type createType(final Column<?> column) {
     final ColumnType type = column.type();
     return Types.optional(PRIMITIVE_MAPPING.get(type))
-        .as(ANNOTATION_MAPPING.get(column.type()))
+        .as(ANNOTATION_MAPPING.get(type))
         .named(column.name());
   }
 
