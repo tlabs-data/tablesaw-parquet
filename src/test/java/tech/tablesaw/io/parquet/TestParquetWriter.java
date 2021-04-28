@@ -258,7 +258,7 @@ class TestParquetWriter {
                 .build());
     final Table dest =
         new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " plain reloaded");
   }
 
   @Test
@@ -276,7 +276,7 @@ class TestParquetWriter {
                 .build());
     final Table dest =
         new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " snappy reloaded");
   }
 
   @Test
