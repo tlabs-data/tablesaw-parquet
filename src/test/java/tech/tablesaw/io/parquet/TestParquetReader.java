@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
@@ -32,7 +31,6 @@ class TestParquetReader {
   private static final String APACHE_FIXED_LENGTH_DECIMAL_LEGACY =
       "fixed_length_decimal_legacy.parquet";
   private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
-  private static final String APACHE_NATION_MALFORMED = "nation.dict-malformed.parquet";
   private static final String APACHE_NULLS_SNAPPY = "nulls.snappy.parquet";
 
   private void validateTable(final Table table, int cols, int rows, String source) {
@@ -477,33 +475,6 @@ class TestParquetReader {
         24.0d,
         table.doubleColumn(0).getDouble(23),
         APACHE_BYTE_ARRAY_DECIMAL + "[" + "value" + ",23] wrong value");
-  }
-
-  @Test
-  @Disabled("EOFException with this data file")
-  void testNationMalformed() throws IOException {
-    final Table table =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_NATION_MALFORMED)
-                    .build());
-    validateTable(table, 4, 25, APACHE_NATION_MALFORMED);
-    assertEquals(
-        table.column(0).type(),
-        ColumnType.INTEGER,
-        APACHE_NATION_MALFORMED + "[" + "nation_key" + "] wrong type");
-    assertEquals(
-        table.column(1).type(),
-        ColumnType.STRING,
-        APACHE_NATION_MALFORMED + "[" + "name" + "] wrong type");
-    assertEquals(
-        table.column(2).type(),
-        ColumnType.INTEGER,
-        APACHE_NATION_MALFORMED + "[" + "region_key" + "] wrong type");
-    assertEquals(
-        table.column(3).type(),
-        ColumnType.STRING,
-        APACHE_NATION_MALFORMED + "[" + "comment_col" + "] wrong type");
   }
 
   @Test
