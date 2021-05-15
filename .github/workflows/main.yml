@@ -34,6 +34,14 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
+      - name: Install Hadoop on Windows
+        if: ${{runner.os == 'Windows'}}
+        run: choco install hadoop --version=2.9.0
       - name: Test with Maven
+        if: ${{runner.os != 'Windows'}}
         run: mvn test
-
+      - name: Test with Maven on Windows
+        if: ${{runner.os == 'Windows'}}
+        run: mvn test
+        env:
+          HADOOP_HOME: 'C:\Hadoop\hadoop-2.9.0\'
