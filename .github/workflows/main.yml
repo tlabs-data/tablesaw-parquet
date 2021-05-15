@@ -24,7 +24,7 @@ jobs:
       matrix:
         # Test the Java LTS versions and latest version available
         java-version: [8, 11, 16]
-        os: [macOS-latest, ubuntu-latest, windows-latest]
+        os: [macOS-latest, ubuntu-latest]
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout
@@ -34,14 +34,11 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'adopt'
-      - name: Install Hadoop on Windows
-        if: ${{runner.os == 'Windows'}}
-        run: choco install hadoop --version=2.9.0
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
       - name: Test with Maven
-        if: ${{runner.os != 'Windows'}}
         run: mvn test
-      - name: Test with Maven on Windows
-        if: ${{runner.os == 'Windows'}}
-        run: mvn test
-        env:
-          HADOOP_HOME: 'C:\Hadoop\hadoop-2.9.0\'
