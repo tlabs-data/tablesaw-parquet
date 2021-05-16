@@ -78,20 +78,16 @@ class TestParquetWriter {
 
   @Test
   void testReadWriteAllTypeDict() throws IOException {
-    try {
-      final Table orig =
-          new TablesawParquetReader()
-              .read(
-                  TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
-                      .build());
-      new TablesawParquetWriter()
-          .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-      final Table dest =
-          new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-      assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    final Table orig =
+        new TablesawParquetReader()
+            .read(
+                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
+                    .build());
+    new TablesawParquetWriter()
+        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+    final Table dest =
+        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+    assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
   }
 
   @Test
