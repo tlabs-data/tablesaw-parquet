@@ -68,11 +68,13 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
-      - name: Build and analyze
+      - name: Build with Maven
+        run: mvn -B verify --no-transfer-progress
+      - name: Sonar analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B --no-transfer-progress verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+        run: mvn -B --no-transfer-progress org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
       - name: Upload coverage to codecov
         uses: codecov/codecov-action@v1
         with:
