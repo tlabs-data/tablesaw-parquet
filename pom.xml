@@ -16,6 +16,10 @@
 	<properties>
 		<parquet.version>1.12.0</parquet.version>
 		<hadoop.version>2.10.1</hadoop.version>
+		<!-- Sonar Cloud integration -->
+		<sonar.projectKey>tlabs-data_tablesaw-parquet</sonar.projectKey>
+		<sonar.organization>tlabs-data</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
   
 	<profiles>
