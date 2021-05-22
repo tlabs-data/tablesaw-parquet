@@ -6,3 +6,6 @@ target/
 .settings
 .classpath
 
+#Idea
+.idea/
+*.iml
