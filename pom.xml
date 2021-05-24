@@ -4,16 +4,55 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>tech.tablesaw</groupId>
-		<artifactId>tablesaw-parent</artifactId>
-		<version>0.38.2</version>
-	</parent>
-
+	<groupId>net.tlabs-data</groupId>
 	<artifactId>tablesaw-parquet</artifactId>
+	<version>0.38.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
+    <name>Tablesaw-Parquet</name>
+    <description>Parquet I/O for Tablesaw</description>
+	<inceptionYear>2020</inceptionYear>
+    <url>https://github.com/tlabs-data/tablesaw-parquet</url>
+
+	<organization>
+		<name>Tlabs-data</name>
+		<url>https://tlabs-data.net</url>
+	</organization>
+
+    <scm>
+        <connection>scm:git:https://github.com/tlabs-data/tablesaw-parquet.git</connection>
+        <developerConnection>scm:git:https://github.com/tlabs-data/tablesaw-parquet.git</developerConnection>
+        <url>https://github.com/tlabs-data/tablesaw-parquet</url>
+        <tag>HEAD</tag>
+    </scm>
+
+	<distributionManagement>
+	  <snapshotRepository>
+	    <id>ossrh</id>
+	    <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+	  </snapshotRepository>
+	</distributionManagement>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    
+    <developers>
+    	<developer>
+    		<name>Tlabs-data</name>
+    		<email>contact@tlabs-data.net</email>
+    		<organization>Tlabs-data</organization>
+    		<organizationUrl>https://tlabs-data.net</organizationUrl>
+    	</developer>
+    </developers>
+
 	<properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<tablesaw.version>0.38.2</tablesaw.version>
 		<parquet.version>1.12.0</parquet.version>
 		<hadoop.version>2.10.1</hadoop.version>
 		<!-- Sonar Cloud integration -->
@@ -35,11 +74,6 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<configuration>
-							<quiet>true</quiet>
-							<additionalOptions>-Xdoclint:none</additionalOptions>
-							<additionalJOption>-Xdoclint:none</additionalJOption>
-						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -59,11 +93,119 @@
 	</profiles>
 
 	<build>
+        <pluginManagement>
+            <plugins>
+                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.6.2</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                        <compilerArgument>-Xlint:all</compilerArgument>
+                    </configuration>
+                </plugin>
+				<plugin>
+					<groupId>com.googlecode.maven-download-plugin</groupId>
+					<artifactId>download-maven-plugin</artifactId>
+					<version>1.6.3</version>
+				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>2.22.1</version>
+                </plugin>
+ 	            <plugin>
+	                <groupId>org.jacoco</groupId>
+	                <artifactId>jacoco-maven-plugin</artifactId>
+	                <version>0.8.6</version>
+	            </plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-shade-plugin</artifactId>
+					<version>3.1.0</version>
+				</plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.1.1</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <detectOfflineLinks>false</detectOfflineLinks>
+                        <failOnError>false</failOnError>
+                        <quiet>true</quiet>
+                        <additionalOptions>-Xdoclint:none</additionalOptions>
+                        <additionalJOption>-Xdoclint:none</additionalJOption>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.1</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>2.5.3</version>
+                    <configuration>
+                        <tagNameFormat>v@{project.version}</tagNameFormat>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <useReleaseProfile>false</useReleaseProfile>
+                        <releaseProfiles>release</releaseProfiles>
+                        <goals>deploy</goals>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.6</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
+                    <groupId>org.sonatype.plugins</groupId>
+                    <artifactId>nexus-staging-maven-plugin</artifactId>
+                    <version>1.6.8</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <serverId>ossrh</serverId>
+                        <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                        <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
 			<plugin>
 				<groupId>com.googlecode.maven-download-plugin</groupId>
 				<artifactId>download-maven-plugin</artifactId>
-				<version>1.6.3</version>
 				<executions>
 					<execution>
 						<id>get-test-files</id>
@@ -79,14 +221,41 @@
 					<outputDirectory>${project.build.directory}/test/data/</outputDirectory>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-			</plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <printSummary>false</printSummary>
+                    <!-- Jacoco prepare-agent builds some command-line params without -->
+                    <!-- which jacoco will not instrument. Hence it is important to add -->
+                    <!-- those command-line params here (${argLine} holds those params) -->
+                    <argLine>${argLine} -Xms256m -Xmx2048m</argLine>
+                    <forkCount>1</forkCount>
+                    <runOrder>random</runOrder>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -117,7 +286,7 @@
 		<dependency>
 			<groupId>tech.tablesaw</groupId>
 			<artifactId>tablesaw-core</artifactId>
-			<version>0.38.2</version>
+			<version>${tablesaw.version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -160,9 +329,15 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+        </dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
+			<version>5.5.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
