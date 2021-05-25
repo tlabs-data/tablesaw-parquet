@@ -215,22 +215,34 @@ public class TablesawRecordConverter extends GroupConverter {
   private static final Converter PRIMITIVE_SKIP_CONVERTER =
       new PrimitiveConverter() {
         @Override
-        public void addBinary(Binary value) {}
+        public void addBinary(Binary value) {
+          /* SKIPPED */
+        }
 
         @Override
-        public void addBoolean(boolean value) {}
+        public void addBoolean(boolean value) {
+          /* SKIPPED */
+        }
 
         @Override
-        public void addDouble(double value) {}
+        public void addDouble(double value) {
+          /* SKIPPED */
+        }
 
         @Override
-        public void addFloat(float value) {}
+        public void addFloat(float value) {
+          /* SKIPPED */
+        }
 
         @Override
-        public void addInt(int value) {}
+        public void addInt(int value) {
+          /* SKIPPED */
+        }
 
         @Override
-        public void addLong(long value) {}
+        public void addLong(long value) {
+          /* SKIPPED */
+        }
       };
   private final Table table;
   private final Converter[] converters;
