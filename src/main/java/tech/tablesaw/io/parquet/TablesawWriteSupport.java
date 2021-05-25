@@ -163,8 +163,8 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
   }
 
   @Override
-  public void write(final Row record) {
-    final int rowNumber = record.getRowNumber();
+  public void write(final Row row) {
+    final int rowNumber = row.getRowNumber();
     recordConsumer.startMessage();
     final int nbfields = schema.getFieldCount();
     for (int i = 0; i < nbfields; i++) {
