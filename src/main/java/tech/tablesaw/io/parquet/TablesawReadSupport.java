@@ -1,6 +1,7 @@
 package tech.tablesaw.io.parquet;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
@@ -67,7 +68,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     return Table.create(
         schema.getFields().stream()
             .map(f -> createColumn(f, options))
-            .filter(c -> c != null)
+            .filter(Objects::nonNull)
             .collect(Collectors.toList()));
   }
 
