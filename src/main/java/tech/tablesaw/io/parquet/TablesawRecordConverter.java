@@ -616,7 +616,7 @@ public class TablesawRecordConverter extends GroupConverter {
                               dateTimeColumns[colIndex].append(
                                   LocalDateTime.ofEpochSecond(
                                       epochSecondFromNanos,
-                                      (int) ((value - (epochSecondFromNanos * SECOND_TO_NANOS))),
+                                      (int) (value - (epochSecondFromNanos * SECOND_TO_NANOS)),
                                       ZoneOffset.UTC));
                               rowColumnsSet[colIndex] = true;
                               break;
