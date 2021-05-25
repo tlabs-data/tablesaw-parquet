@@ -486,8 +486,8 @@ class TestParquetReader {
                     .build());
     validateTable(table, 1, 8, APACHE_NULLS_SNAPPY);
     assertEquals(
-        table.column(0).type(),
         ColumnType.TEXT,
+        table.column(0).type(),
         APACHE_NULLS_SNAPPY + "[" + "b_struct" + "] wrong type");
   }
 
