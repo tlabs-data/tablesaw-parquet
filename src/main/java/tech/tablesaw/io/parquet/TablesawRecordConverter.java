@@ -54,6 +54,9 @@ import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 public class TablesawRecordConverter extends GroupConverter {
 
+  private static final int BINARY_INSTANT_LENGTH_VALUE = 12;
+  private static final String BINARY_INSTANT_LENGTH_MESSAGE = "Must be 12 bytes";
+
   private final class DefaultDateTimePrimitiveConverter extends PrimitiveConverter {
     private final int colIndex;
 
@@ -88,7 +91,8 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void addBinary(final Binary value) {
-      Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
+      Preconditions.checkArgument(
+          value.length() == BINARY_INSTANT_LENGTH_VALUE, BINARY_INSTANT_LENGTH_MESSAGE);
       final ByteBuffer buf = value.toByteBuffer();
       buf.order(ByteOrder.LITTLE_ENDIAN);
       final long nanotime = buf.getLong();
@@ -424,7 +428,9 @@ public class TablesawRecordConverter extends GroupConverter {
                       new PrimitiveConverter() {
                         @Override
                         public void addBinary(final Binary value) {
-                          Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
+                          Preconditions.checkArgument(
+                              value.length() == BINARY_INSTANT_LENGTH_VALUE,
+                              BINARY_INSTANT_LENGTH_MESSAGE);
                           final ByteBuffer buf = value.toByteBuffer();
                           buf.order(ByteOrder.LITTLE_ENDIAN);
                           stringColumns[colIndex].append(
@@ -491,7 +497,9 @@ public class TablesawRecordConverter extends GroupConverter {
 
                         @Override
                         public void addBinary(final Binary value) {
-                          Preconditions.checkArgument(value.length() == 12, "Must be 12 bytes");
+                          Preconditions.checkArgument(
+                              value.length() == BINARY_INSTANT_LENGTH_VALUE,
+                              BINARY_INSTANT_LENGTH_MESSAGE);
                           final ByteBuffer buf = value.toByteBuffer();
                           buf.order(ByteOrder.LITTLE_ENDIAN);
                           final long nanoday = buf.getLong();
