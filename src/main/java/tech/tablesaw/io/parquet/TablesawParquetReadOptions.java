@@ -99,7 +99,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
     // Override super-class setters to return an instance of this class
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder header(final boolean header) {
       super.header(header);
@@ -112,7 +112,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder sample(final boolean sample) {
       LOG.warn("Sampling is not used in TablesawParquetReadOptions");
@@ -120,7 +120,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     @Deprecated
     public Builder dateFormat(final String dateFormat) {
@@ -128,7 +128,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     @Deprecated
     public Builder timeFormat(final String timeFormat) {
@@ -136,7 +136,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     @Deprecated
     public Builder dateTimeFormat(final String dateTimeFormat) {
@@ -144,42 +144,42 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder dateFormat(final DateTimeFormatter dateFormat) {
       super.dateFormat(dateFormat);
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder timeFormat(final DateTimeFormatter timeFormat) {
       super.timeFormat(timeFormat);
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder dateTimeFormat(final DateTimeFormatter dateTimeFormat) {
       super.dateTimeFormat(dateTimeFormat);
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder maxCharsPerColumn(final int maxCharsPerColumn) {
       super.maxCharsPerColumn(maxCharsPerColumn);
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder locale(final Locale locale) {
       super.locale(locale);
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder missingValueIndicator(final String missingValueIndicator) {
       LOG.warn("Missing value indicator is not used in TablesawParquetReadOptions");
@@ -208,7 +208,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
       return this;
     }
 
-    /** This option is not used by TablesawParquetReadOptions */
+    /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
     @Override
     public Builder ignoreZeroDecimal(final boolean ignoreZeroDecimal) {
       LOG.warn("ignoreZeroDecimal has no effect in TablesawParquetReadOptions");
