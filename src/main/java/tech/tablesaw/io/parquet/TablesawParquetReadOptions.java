@@ -1,7 +1,6 @@
 package tech.tablesaw.io.parquet;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -76,7 +75,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     return new Builder(inputPath).tableName(inputPath);
   }
 
-  public static Builder builder(final URL url) throws IOException {
+  public static Builder builder(final URL url) {
     final String urlString = url.toString();
     return new Builder(urlString).tableName(urlString);
   }
