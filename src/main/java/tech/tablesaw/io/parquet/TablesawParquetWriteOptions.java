@@ -22,7 +22,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     return new Builder(file.getAbsolutePath());
   }
 
-  public static Builder builder(final String outputFile) throws IOException {
+  public static Builder builder(final String outputFile) {
     return new Builder(outputFile);
   }
 
@@ -39,7 +39,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     protected CompressionCodec compressionCodec = CompressionCodec.SNAPPY;
     protected boolean overwrite = true;
 
-    public Builder(final String outputFile) throws IOException {
+    public Builder(final String outputFile) {
       super((Writer) null);
       this.outputFile = outputFile;
     }
