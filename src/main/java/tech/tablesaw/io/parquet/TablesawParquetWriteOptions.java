@@ -1,7 +1,6 @@
 package tech.tablesaw.io.parquet;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Writer;
 import tech.tablesaw.io.WriteOptions;
 
@@ -18,7 +17,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
   protected final CompressionCodec compressionCodec;
   protected final boolean overwrite;
 
-  public static Builder builder(final File file) throws IOException {
+  public static Builder builder(final File file) {
     return new Builder(file.getAbsolutePath());
   }
 
