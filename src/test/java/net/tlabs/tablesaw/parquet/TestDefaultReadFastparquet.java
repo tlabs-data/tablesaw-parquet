@@ -1,16 +1,16 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.provider.Arguments;
 import tech.tablesaw.api.ColumnType;
 
-class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
+class TestDefaultReadFastparquet extends AbstractTableParameterizedTest {
 
   @SuppressWarnings("unused")
   private static Stream<Arguments> columnTypeParameters() {
@@ -26,7 +26,7 @@ class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
         Arguments.of(8, ColumnType.LONG, "int64"),
         Arguments.of(9, ColumnType.DOUBLE, "float32"),
         Arguments.of(10, ColumnType.DOUBLE, "float64"),
-        Arguments.of(11, ColumnType.LOCAL_DATE_TIME, "TIMESTAMP_MILLIS"),
+        Arguments.of(11, ColumnType.INSTANT, "TIMESTAMP_MICROS"),
         Arguments.of(12, ColumnType.STRING, "string"));
   }
 
@@ -55,19 +55,19 @@ class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
         Arguments.of(9, 1, 1.0d, "double"),
         Arguments.of(10, 0, 0.0d, "double"),
         Arguments.of(10, 1, null, "double"),
-        Arguments.of(11, 0, LocalDateTime.of(2021, 4, 23, 0, 0), "LocalDateTime"),
-        Arguments.of(11, 1, LocalDateTime.of(2021, 4, 23, 0, 0, 1), "LocalDateTime"),
+        Arguments.of(11, 0, Instant.parse("2021-04-23T00:00:00Z"), "Instant"),
+        Arguments.of(11, 1, Instant.parse("2021-04-23T00:00:01Z"), "Instant"),
         Arguments.of(12, 0, "string1", "String"),
         Arguments.of(12, 1, "string2", "String"));
   }
 
-  private static final String PANDAS_PYARROW = "target/test-classes/pandas_pyarrow.parquet";
+  private static final String PANDAS_FASTPARQUET = "target/test-classes/pandas_fastparquet.parquet";
 
   @BeforeAll
   static void beforeAll() throws IOException {
     table =
         new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(new File(PANDAS_PYARROW)).build());
-    assertEquals("pandas_pyarrow.parquet", table.name(), "Wrong table name");
+            .read(TablesawParquetReadOptions.builder(new File(PANDAS_FASTPARQUET)).build());
+    assertEquals("pandas_fastparquet.parquet", table.name(), "Wrong table name");
   }
 }

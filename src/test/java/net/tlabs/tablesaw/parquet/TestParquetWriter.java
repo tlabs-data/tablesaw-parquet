@@ -1,4 +1,4 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.CompressionCodec;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.BooleanColumn;
@@ -28,7 +29,6 @@ import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 import tech.tablesaw.io.Destination;
-import tech.tablesaw.io.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
 class TestParquetWriter {
 

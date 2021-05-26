@@ -1,4 +1,4 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -23,7 +23,7 @@ class TestParquetReadOptions {
       verify(appender).doAppend(argument.capture());
       final LoggingEvent event = argument.getValue();
       assertEquals(Level.WARN, event.getLevel());
-      assertEquals("tech.tablesaw.io.parquet.TablesawParquetReadOptions", event.getLoggerName());
+      assertEquals("net.tlabs.tablesaw.parquet.TablesawParquetReadOptions", event.getLoggerName());
       assertEquals(
           "Missing value indicator is not used in TablesawParquetReadOptions", event.getMessage());
     } finally {
@@ -41,7 +41,7 @@ class TestParquetReadOptions {
       verify(appender).doAppend(argument.capture());
       final LoggingEvent event = argument.getValue();
       assertEquals(Level.WARN, event.getLevel());
-      assertEquals("tech.tablesaw.io.parquet.TablesawParquetReadOptions", event.getLoggerName());
+      assertEquals("net.tlabs.tablesaw.parquet.TablesawParquetReadOptions", event.getLoggerName());
       assertEquals(
           "ignoreZeroDecimal has no effect in TablesawParquetReadOptions", event.getMessage());
     } finally {
@@ -59,7 +59,7 @@ class TestParquetReadOptions {
       verify(appender).doAppend(argument.capture());
       final LoggingEvent event = argument.getValue();
       assertEquals(Level.WARN, event.getLevel());
-      assertEquals("tech.tablesaw.io.parquet.TablesawParquetReadOptions", event.getLoggerName());
+      assertEquals("net.tlabs.tablesaw.parquet.TablesawParquetReadOptions", event.getLoggerName());
       assertEquals("Sampling is not used in TablesawParquetReadOptions", event.getMessage());
     } finally {
       Logger.getRootLogger().removeAppender(appender);
