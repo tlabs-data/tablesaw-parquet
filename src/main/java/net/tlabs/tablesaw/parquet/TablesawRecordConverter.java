@@ -35,21 +35,9 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.tools.read.SimpleRecordConverter;
-import tech.tablesaw.api.BooleanColumn;
 import tech.tablesaw.api.ColumnType;
-import tech.tablesaw.api.DateColumn;
-import tech.tablesaw.api.DateTimeColumn;
-import tech.tablesaw.api.DoubleColumn;
-import tech.tablesaw.api.FloatColumn;
-import tech.tablesaw.api.InstantColumn;
-import tech.tablesaw.api.IntColumn;
-import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.Row;
-import tech.tablesaw.api.ShortColumn;
-import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.api.TextColumn;
-import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 
 public class TablesawRecordConverter extends GroupConverter {
@@ -67,12 +55,12 @@ public class TablesawRecordConverter extends GroupConverter {
     @Override
     public void addLong(long value) {
       final long epochSecond = value / SECOND_TO_MILLIS;
-      dateTimeColumns[colIndex].append(
+      proxy.appendDateTime(
+          colIndex,
           LocalDateTime.ofEpochSecond(
               epochSecond,
               (int) ((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO),
               ZoneOffset.UTC));
-      rowColumnsSet[colIndex] = true;
     }
   }
 
@@ -85,8 +73,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void addLong(long value) {
-      instantColumns[colIndex].append(Instant.ofEpochMilli(value));
-      rowColumnsSet[colIndex] = true;
+      proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
     }
 
     @Override
@@ -98,11 +85,11 @@ public class TablesawRecordConverter extends GroupConverter {
       final long nanotime = buf.getLong();
       final int juliaday = buf.getInt();
       final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, juliaday);
-      instantColumns[colIndex].append(
+      proxy.appendInstant(
+          colIndex,
           ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC)
               .toInstant()
               .plus(nanotime, ChronoUnit.NANOS));
-      rowColumnsSet[colIndex] = true;
     }
   }
 
@@ -115,14 +102,12 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void addFloat(final float value) {
-      doubleColumns[colIndex].append(value);
-      rowColumnsSet[colIndex] = true;
+      proxy.appendDouble(colIndex, value);
     }
 
     @Override
     public void addDouble(final double value) {
-      doubleColumns[colIndex].append(value);
-      rowColumnsSet[colIndex] = true;
+      proxy.appendDouble(colIndex, value);
     }
   }
 
@@ -135,14 +120,12 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void addInt(final int value) {
-      timeColumns[colIndex].append(LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
-      rowColumnsSet[colIndex] = true;
+      proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
     }
 
     @Override
     public void addLong(final long value) {
-      timeColumns[colIndex].append(LocalTime.ofNanoOfDay(value));
-      rowColumnsSet[colIndex] = true;
+      proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value));
     }
   }
 
@@ -155,8 +138,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void addBinary(final Binary value) {
-      stringColumns[colIndex].append(value.toStringUsingUTF8());
-      rowColumnsSet[colIndex] = true;
+      proxy.appendString(colIndex, value.toStringUsingUTF8());
     }
   }
 
@@ -169,8 +151,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void addBinary(final Binary value) {
-      stringColumns[colIndex].append(rawBytesToHexString(value.getBytes()));
-      rowColumnsSet[colIndex] = true;
+      proxy.appendString(colIndex, rawBytesToHexString(value.getBytes()));
     }
   }
 
@@ -195,8 +176,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
     @Override
     public void end() {
-      textColumns[col].append(this.record.toString());
-      rowColumnsSet[col] = true;
+      proxy.appendText(col, this.record.toString());
     }
   }
 
@@ -244,48 +224,19 @@ public class TablesawRecordConverter extends GroupConverter {
           /* SKIPPED */
         }
       };
-  private final Table table;
   private final Converter[] converters;
-  private Row currentRow = null;
-  private int currentRownum = -1;
-  private final boolean[] rowColumnsSet;
-  private final BooleanColumn[] booleanColumns;
-  private final ShortColumn[] shortColumns;
-  private final IntColumn[] intColumns;
-  private final LongColumn[] longColumns;
-  private final FloatColumn[] floatColumns;
-  private final DoubleColumn[] doubleColumns;
-  private final DateColumn[] dateColumns;
-  private final TimeColumn[] timeColumns;
-  private final DateTimeColumn[] dateTimeColumns;
-  private final InstantColumn[] instantColumns;
-  private final StringColumn[] stringColumns;
-  private final TextColumn[] textColumns;
+  private final TableProxy proxy;
 
   public TablesawRecordConverter(
       final Table table, final MessageType fileSchema, final TablesawParquetReadOptions options) {
     super();
-    this.table = table;
+    this.proxy = new TableProxy(table);
     this.converters = new Converter[fileSchema.getFieldCount()];
     final List<Column<?>> columns = table.columns();
     final int size = columns.size();
-    rowColumnsSet = new boolean[size];
-    booleanColumns = new BooleanColumn[size];
-    shortColumns = new ShortColumn[size];
-    intColumns = new IntColumn[size];
-    longColumns = new LongColumn[size];
-    floatColumns = new FloatColumn[size];
-    doubleColumns = new DoubleColumn[size];
-    dateColumns = new DateColumn[size];
-    timeColumns = new TimeColumn[size];
-    dateTimeColumns = new DateTimeColumn[size];
-    instantColumns = new InstantColumn[size];
-    stringColumns = new StringColumn[size];
-    textColumns = new TextColumn[size];
     for (int i = 0; i < size; i++) {
       final Column<?> column = columns.get(i);
       final ColumnType columnType = column.type();
-      fillColumnArrays(i, columnType);
       final int fieldIndex = fileSchema.getFieldIndex(column.name());
       final Type type = fileSchema.getType(fieldIndex);
       if (type.isPrimitive()) {
@@ -307,34 +258,6 @@ public class TablesawRecordConverter extends GroupConverter {
     }
   }
 
-  private void fillColumnArrays(final int i, final ColumnType columnType) {
-    if (columnType == ColumnType.BOOLEAN) {
-      booleanColumns[i] = table.booleanColumn(i);
-    } else if (columnType == ColumnType.SHORT) {
-      shortColumns[i] = table.shortColumn(i);
-    } else if (columnType == ColumnType.INTEGER) {
-      intColumns[i] = table.intColumn(i);
-    } else if (columnType == ColumnType.LONG) {
-      longColumns[i] = table.longColumn(i);
-    } else if (columnType == ColumnType.FLOAT) {
-      floatColumns[i] = table.floatColumn(i);
-    } else if (columnType == ColumnType.DOUBLE) {
-      doubleColumns[i] = table.doubleColumn(i);
-    } else if (columnType == ColumnType.LOCAL_TIME) {
-      timeColumns[i] = table.timeColumn(i);
-    } else if (columnType == ColumnType.LOCAL_DATE) {
-      dateColumns[i] = table.dateColumn(i);
-    } else if (columnType == ColumnType.LOCAL_DATE_TIME) {
-      dateTimeColumns[i] = table.dateTimeColumn(i);
-    } else if (columnType == ColumnType.INSTANT) {
-      instantColumns[i] = table.instantColumn(i);
-    } else if (columnType == ColumnType.STRING) {
-      stringColumns[i] = table.stringColumn(i);
-    } else if (columnType == ColumnType.TEXT) {
-      textColumns[i] = table.textColumn(i);
-    }
-  }
-
   private Converter createConverter(
       final int colIndex,
       final ColumnType columnType,
@@ -344,8 +267,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addBoolean(final boolean value) {
-          booleanColumns[colIndex].append(value);
-          rowColumnsSet[colIndex] = true;
+          proxy.appendBoolean(colIndex, value);
         }
       };
     }
@@ -353,8 +275,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addInt(final int value) {
-          shortColumns[colIndex].append((short) value);
-          rowColumnsSet[colIndex] = true;
+          proxy.appendShort(colIndex, (short) value);
         }
       };
     }
@@ -362,8 +283,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addInt(final int value) {
-          intColumns[colIndex].append(value);
-          rowColumnsSet[colIndex] = true;
+          proxy.appendInt(colIndex, value);
         }
       };
     }
@@ -371,8 +291,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addLong(final long value) {
-          longColumns[colIndex].append(value);
-          rowColumnsSet[colIndex] = true;
+          proxy.appendLong(colIndex, value);
         }
       };
     }
@@ -380,8 +299,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addFloat(final float value) {
-          floatColumns[colIndex].append(value);
-          rowColumnsSet[colIndex] = true;
+          proxy.appendFloat(colIndex, value);
         }
       };
     }
@@ -403,8 +321,7 @@ public class TablesawRecordConverter extends GroupConverter {
                           final BigDecimal bigd =
                               new BigDecimal(
                                   new BigInteger(value.getBytes()), decimalLogicalType.getScale());
-                          doubleColumns[colIndex].append(bigd.doubleValue());
-                          rowColumnsSet[colIndex] = true;
+                          proxy.appendDouble(colIndex, bigd.doubleValue());
                         }
                       });
                 }
@@ -445,10 +362,10 @@ public class TablesawRecordConverter extends GroupConverter {
                               BINARY_INSTANT_LENGTH_MESSAGE);
                           final ByteBuffer buf = value.toByteBuffer();
                           buf.order(ByteOrder.LITTLE_ENDIAN);
-                          stringColumns[colIndex].append(
+                          proxy.appendString(
+                              colIndex,
                               Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
                                   + Duration.ofMillis(buf.getInt()).toString().substring(1));
-                          rowColumnsSet[colIndex] = true;
                         }
                       });
                 }
@@ -459,8 +376,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addBinary(final Binary value) {
-          textColumns[colIndex].append(value.toStringUsingUTF8());
-          rowColumnsSet[colIndex] = true;
+          proxy.appendText(colIndex, value.toStringUsingUTF8());
         }
       };
     }
@@ -482,24 +398,22 @@ public class TablesawRecordConverter extends GroupConverter {
                           switch (timestampLogicalType.getUnit()) {
                             case MICROS:
                               final long millisFromMicro = value / MILLIS_TO_MICRO;
-                              instantColumns[colIndex].append(
+                              proxy.appendInstant(
+                                  colIndex,
                                   Instant.ofEpochMilli(millisFromMicro)
                                       .plus(
                                           value - millisFromMicro * MILLIS_TO_MICRO,
                                           ChronoUnit.MICROS));
-                              rowColumnsSet[colIndex] = true;
                               break;
                             case MILLIS:
-                              instantColumns[colIndex].append(Instant.ofEpochMilli(value));
-                              rowColumnsSet[colIndex] = true;
+                              proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
                               break;
                             case NANOS:
                               final long millisFromNanos = value / MILLIS_TO_NANO;
-                              instantColumns[colIndex].set(
-                                  currentRownum,
+                              proxy.appendInstant(
+                                  colIndex,
                                   Instant.ofEpochMilli(millisFromNanos)
                                       .plusNanos(value - millisFromNanos * MILLIS_TO_NANO));
-                              rowColumnsSet[colIndex] = true;
                               break;
                             default:
                               throw new UnsupportedOperationException(
@@ -518,11 +432,11 @@ public class TablesawRecordConverter extends GroupConverter {
                           final int julianday = buf.getInt();
                           final LocalDate date =
                               LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
-                          instantColumns[colIndex].append(
+                          proxy.appendInstant(
+                              colIndex,
                               ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC)
                                   .toInstant()
                                   .plus(nanoday, ChronoUnit.NANOS));
-                          rowColumnsSet[colIndex] = true;
                         }
                       });
                 }
@@ -533,8 +447,7 @@ public class TablesawRecordConverter extends GroupConverter {
       return new PrimitiveConverter() {
         @Override
         public void addInt(int value) {
-          dateColumns[colIndex].append(LocalDate.ofEpochDay(value));
-          rowColumnsSet[colIndex] = true;
+          proxy.appendDate(colIndex, LocalDate.ofEpochDay(value));
         }
       };
     }
@@ -554,13 +467,11 @@ public class TablesawRecordConverter extends GroupConverter {
                         public void addLong(long value) {
                           switch (timeLogicalType.getUnit()) {
                             case MICROS:
-                              timeColumns[colIndex].append(
-                                  LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
-                              rowColumnsSet[colIndex] = true;
+                              proxy.appendTime(
+                                  colIndex, LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
                               break;
                             case NANOS:
-                              timeColumns[colIndex].append(LocalTime.ofNanoOfDay(value));
-                              rowColumnsSet[colIndex] = true;
+                              proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value));
                               break;
                             default:
                               throw new UnsupportedOperationException(
@@ -590,7 +501,8 @@ public class TablesawRecordConverter extends GroupConverter {
                           switch (timestampLogicalType.getUnit()) {
                             case MICROS:
                               final long epochSecondFromMicros = value / SECOND_TO_MICROS;
-                              dateTimeColumns[colIndex].append(
+                              proxy.appendDateTime(
+                                  colIndex,
                                   LocalDateTime.ofEpochSecond(
                                       epochSecondFromMicros,
                                       (int)
@@ -598,27 +510,26 @@ public class TablesawRecordConverter extends GroupConverter {
                                               - (epochSecondFromMicros * SECOND_TO_MICROS)
                                                   * MICRO_TO_NANO),
                                       ZoneOffset.UTC));
-                              rowColumnsSet[colIndex] = true;
                               break;
                             case MILLIS:
                               final long epochSecondFromMillis = value / SECOND_TO_MILLIS;
-                              dateTimeColumns[colIndex].append(
+                              proxy.appendDateTime(
+                                  colIndex,
                                   LocalDateTime.ofEpochSecond(
                                       epochSecondFromMillis,
                                       (int)
                                           ((value - (epochSecondFromMillis * SECOND_TO_MILLIS))
                                               * MILLIS_TO_NANO),
                                       ZoneOffset.UTC));
-                              rowColumnsSet[colIndex] = true;
                               break;
                             case NANOS:
                               final long epochSecondFromNanos = value / SECOND_TO_NANOS;
-                              dateTimeColumns[colIndex].append(
+                              proxy.appendDateTime(
+                                  colIndex,
                                   LocalDateTime.ofEpochSecond(
                                       epochSecondFromNanos,
                                       (int) (value - (epochSecondFromNanos * SECOND_TO_NANOS)),
                                       ZoneOffset.UTC));
-                              rowColumnsSet[colIndex] = true;
                               break;
                             default:
                               throw new UnsupportedOperationException(
@@ -648,26 +559,15 @@ public class TablesawRecordConverter extends GroupConverter {
 
   @Override
   public void start() {
-    currentRownum++;
+    proxy.startRow();
   }
 
   @Override
   public void end() {
-    for (int i = 0; i < rowColumnsSet.length; i++) {
-      if (!rowColumnsSet[i]) {
-        table.column(i).appendMissing();
-      } else {
-        rowColumnsSet[i] = false;
-      }
-    }
+    proxy.endRow();
   }
 
   public Row getCurrentRow() {
-    if (this.currentRow == null) {
-      this.currentRow = table.row(currentRownum);
-    } else {
-      currentRow.at(currentRownum);
-    }
-    return currentRow;
+    return proxy.getCurrentRow();
   }
 }
