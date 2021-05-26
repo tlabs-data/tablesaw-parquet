@@ -55,8 +55,8 @@ class TestDefaultReadFastparquet extends AbstractTableParameterizedTest {
         Arguments.of(9, 1, 1.0d, "double"),
         Arguments.of(10, 0, 0.0d, "double"),
         Arguments.of(10, 1, null, "double"),
-        Arguments.of(11, 0, Instant.parse("2021-04-23T00:00:00Z"), "LocalDateTime"),
-        Arguments.of(11, 1, Instant.parse("2021-04-23T00:00:01Z"), "LocalDateTime"),
+        Arguments.of(11, 0, Instant.parse("2021-04-23T00:00:00Z"), "Instant"),
+        Arguments.of(11, 1, Instant.parse("2021-04-23T00:00:01Z"), "Instant"),
         Arguments.of(12, 0, "string1", "String"),
         Arguments.of(12, 1, "string2", "String"));
   }
