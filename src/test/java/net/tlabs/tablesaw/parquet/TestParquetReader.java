@@ -1,4 +1,4 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -6,13 +6,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.Builder;
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.ManageGroupsAs;
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.Source;
-import tech.tablesaw.io.parquet.TablesawParquetReadOptions.Builder;
-import tech.tablesaw.io.parquet.TablesawParquetReadOptions.ManageGroupsAs;
-import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 class TestParquetReader {
 

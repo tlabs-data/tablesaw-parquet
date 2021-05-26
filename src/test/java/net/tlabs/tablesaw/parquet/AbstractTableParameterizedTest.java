@@ -1,4 +1,4 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

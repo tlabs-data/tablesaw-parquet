@@ -1,9 +1,10 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
@@ -36,7 +37,6 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
-import tech.tablesaw.io.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
 public class TablesawReadSupport extends ReadSupport<Row> {
 

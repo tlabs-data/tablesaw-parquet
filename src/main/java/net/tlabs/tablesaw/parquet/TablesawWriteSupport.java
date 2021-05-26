@@ -1,4 +1,4 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import java.time.ZoneOffset;
 import java.util.ArrayList;

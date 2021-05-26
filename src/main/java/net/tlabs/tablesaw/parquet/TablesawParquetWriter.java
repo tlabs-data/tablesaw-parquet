@@ -1,4 +1,4 @@
-package tech.tablesaw.io.parquet;
+package net.tlabs.tablesaw.parquet;
 
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
