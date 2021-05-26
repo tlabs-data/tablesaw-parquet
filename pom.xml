@@ -55,6 +55,7 @@
 		<tablesaw.version>0.38.2</tablesaw.version>
 		<parquet.version>1.12.0</parquet.version>
 		<hadoop.version>2.10.1</hadoop.version>
+		<junit.version>5.5.2</junit.version>
 		<!-- Sonar Cloud integration -->
 		<sonar.projectKey>tlabs-data_tablesaw-parquet</sonar.projectKey>
 		<sonar.organization>tlabs-data</sonar.organization>
@@ -337,10 +338,16 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>5.5.2</version>
+			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+			<version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
 		  <groupId>org.mockito</groupId>
 		  <artifactId>mockito-core</artifactId>
 		  <version>3.7.7</version>
