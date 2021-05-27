@@ -44,6 +44,8 @@ public class TablesawRecordConverter extends GroupConverter {
 
   private static final int BINARY_INSTANT_LENGTH_VALUE = 12;
   private static final String BINARY_INSTANT_LENGTH_MESSAGE = "Must be 12 bytes";
+  private static final int BINARY_INTERVAL_LENGTH_VALUE = 12;
+  private static final String BINARY_INTERVAL_LENGTH_MESSAGE = "Must be 12 bytes";
 
   private final class DefaultDateTimePrimitiveConverter extends PrimitiveConverter {
     private final int colIndex;
@@ -83,8 +85,8 @@ public class TablesawRecordConverter extends GroupConverter {
       final ByteBuffer buf = value.toByteBuffer();
       buf.order(ByteOrder.LITTLE_ENDIAN);
       final long nanotime = buf.getLong();
-      final int juliaday = buf.getInt();
-      final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, juliaday);
+      final int julianday = buf.getInt();
+      final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
       proxy.appendInstant(
           colIndex,
           ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC)
@@ -358,8 +360,8 @@ public class TablesawRecordConverter extends GroupConverter {
                         @Override
                         public void addBinary(final Binary value) {
                           Preconditions.checkArgument(
-                              value.length() == BINARY_INSTANT_LENGTH_VALUE,
-                              BINARY_INSTANT_LENGTH_MESSAGE);
+                              value.length() == BINARY_INTERVAL_LENGTH_VALUE,
+                              BINARY_INTERVAL_LENGTH_MESSAGE);
                           final ByteBuffer buf = value.toByteBuffer();
                           buf.order(ByteOrder.LITTLE_ENDIAN);
                           proxy.appendString(
