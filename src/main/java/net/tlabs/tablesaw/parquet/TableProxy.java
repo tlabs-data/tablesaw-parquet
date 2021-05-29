@@ -227,4 +227,8 @@ final class TableProxy {
   long getDateTimeToEpochMilli(final int colIndex, final int rowIndex) {
     return dateTimeColumns[colIndex].get(rowIndex).toInstant(ZoneOffset.UTC).toEpochMilli();
   }
+
+  Column<?> column(final int colIndex) {
+    return table.column(colIndex);
+  }
 }
