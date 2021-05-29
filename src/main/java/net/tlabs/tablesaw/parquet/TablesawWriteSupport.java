@@ -24,7 +24,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
   private static final String WRITE_SUPPORT_NAME = "tech.tablesaw";
   private static final Map<ColumnType, PrimitiveTypeName> PRIMITIVE_MAPPING;
   private static final Map<ColumnType, LogicalTypeAnnotation> ANNOTATION_MAPPING;
-  private final Table table;
   private final TableProxy proxy;
   private final MessageType schema;
   private RecordConsumer recordConsumer;
@@ -58,7 +57,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
 
   public TablesawWriteSupport(final Table table) {
     super();
-    this.table = table;
     this.schema = internalCreateSchema(table);
     this.proxy = new TableProxy(table);
   }
@@ -98,41 +96,41 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     final int rowNumber = row.getRowNumber();
     recordConsumer.startMessage();
     final int nbfields = schema.getFieldCount();
-    for (int i = 0; i < nbfields; i++) {
-      final Column<?> column = table.column(i);
+    for (int colIndex = 0; colIndex < nbfields; colIndex++) {
+      final Column<?> column = proxy.column(colIndex);
       if (!column.isMissing(rowNumber)) {
         final String fieldName = column.name();
         final ColumnType type = column.type();
-        recordConsumer.startField(fieldName, i);
+        recordConsumer.startField(fieldName, colIndex);
         if (type == ColumnType.BOOLEAN) {
-          recordConsumer.addBoolean(proxy.getBoolean(i, rowNumber));
+          recordConsumer.addBoolean(proxy.getBoolean(colIndex, rowNumber));
         } else if (type == ColumnType.SHORT) {
-          recordConsumer.addInteger(proxy.getShort(i, rowNumber));
+          recordConsumer.addInteger(proxy.getShort(colIndex, rowNumber));
         } else if (type == ColumnType.INTEGER) {
-          recordConsumer.addInteger(proxy.getInt(i, rowNumber));
+          recordConsumer.addInteger(proxy.getInt(colIndex, rowNumber));
         } else if (type == ColumnType.LONG) {
-          recordConsumer.addLong(proxy.getLong(i, rowNumber));
+          recordConsumer.addLong(proxy.getLong(colIndex, rowNumber));
         } else if (type == ColumnType.FLOAT) {
-          recordConsumer.addFloat(proxy.getFloat(i, rowNumber));
+          recordConsumer.addFloat(proxy.getFloat(colIndex, rowNumber));
         } else if (type == ColumnType.DOUBLE) {
-          recordConsumer.addDouble(proxy.getDouble(i, rowNumber));
+          recordConsumer.addDouble(proxy.getDouble(colIndex, rowNumber));
         } else if (type == ColumnType.STRING) {
-          recordConsumer.addBinary(Binary.fromString(proxy.getString(i, rowNumber)));
+          recordConsumer.addBinary(Binary.fromString(proxy.getString(colIndex, rowNumber)));
         } else if (type == ColumnType.TEXT) {
-          recordConsumer.addBinary(Binary.fromString(proxy.getText(i, rowNumber)));
+          recordConsumer.addBinary(Binary.fromString(proxy.getText(colIndex, rowNumber)));
         } else if (type == ColumnType.LOCAL_DATE) {
-          recordConsumer.addInteger(proxy.getDateToEpochDay(i, rowNumber));
+          recordConsumer.addInteger(proxy.getDateToEpochDay(colIndex, rowNumber));
         } else if (type == ColumnType.LOCAL_TIME) {
-          recordConsumer.addLong(proxy.getTimeToNanoOfDay(i, rowNumber));
+          recordConsumer.addLong(proxy.getTimeToNanoOfDay(colIndex, rowNumber));
         } else if (type == ColumnType.LOCAL_DATE_TIME) {
-          recordConsumer.addLong(proxy.getDateTimeToEpochMilli(i, rowNumber));
+          recordConsumer.addLong(proxy.getDateTimeToEpochMilli(colIndex, rowNumber));
         } else if (type == ColumnType.INSTANT) {
-          recordConsumer.addLong(proxy.getInstantToEpochMilli(i, rowNumber));
+          recordConsumer.addLong(proxy.getInstantToEpochMilli(colIndex, rowNumber));
         } else {
           // This should not happen
           throw new UnsupportedOperationException("Unsupported ColumnType: " + type);
         }
-        recordConsumer.endField(fieldName, i);
+        recordConsumer.endField(fieldName, colIndex);
       }
     }
     recordConsumer.endMessage();
