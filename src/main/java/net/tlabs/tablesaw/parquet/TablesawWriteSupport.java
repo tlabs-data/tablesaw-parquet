@@ -1,9 +1,8 @@
 package net.tlabs.tablesaw.parquet;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.api.Binary;
@@ -21,11 +20,12 @@ import tech.tablesaw.columns.Column;
 
 public class TablesawWriteSupport extends WriteSupport<Row> {
 
-  private static final String WRITE_SUPPORT_NAME = "tech.tablesaw";
+  private static final String WRITE_SUPPORT_NAME = "net.tlabs.tablesaw.parquet";
   private static final Map<ColumnType, PrimitiveTypeName> PRIMITIVE_MAPPING;
   private static final Map<ColumnType, LogicalTypeAnnotation> ANNOTATION_MAPPING;
   private final TableProxy proxy;
   private final MessageType schema;
+  private final int nbfields;
   private RecordConsumer recordConsumer;
 
   static {
@@ -57,8 +57,9 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
 
   public TablesawWriteSupport(final Table table) {
     super();
-    this.schema = internalCreateSchema(table);
     this.proxy = new TableProxy(table);
+    this.schema = internalCreateSchema(table);
+    this.nbfields = schema.getFieldCount();
   }
 
   public static MessageType createSchema(final Table table) {
@@ -66,12 +67,12 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
   }
 
   private static MessageType internalCreateSchema(final Table table) {
-    final List<Type> fields = new ArrayList<>(table.columnCount());
-    for (final Column<?> column : table.columns()) {
-      fields.add(createType(column));
-    }
-    final String name = table.name();
-    return new MessageType(name == null ? "message" : name, fields);
+    final String tableName = table.name();
+    return new MessageType(
+        tableName == null ? "message" : tableName,
+        table.columns().stream()
+            .map(TablesawWriteSupport::createType)
+            .collect(Collectors.toList()));
   }
 
   private static Type createType(final Column<?> column) {
@@ -95,7 +96,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
   public void write(final Row row) {
     final int rowNumber = row.getRowNumber();
     recordConsumer.startMessage();
-    final int nbfields = schema.getFieldCount();
     for (int colIndex = 0; colIndex < nbfields; colIndex++) {
       final Column<?> column = proxy.column(colIndex);
       if (!column.isMissing(rowNumber)) {
