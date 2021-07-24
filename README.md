@@ -11,6 +11,66 @@ Tablesaw parquet I/O
 
 __tablesaw-parquet__  is a [parquet](https://github.com/apache/parquet-mr) reader and writer for the [Tablesaw](https://github.com/jtablesaw/tablesaw) project.
 
-## Status
+## Versioning
 
-__tablesaw-parquet__  is currently under development.
+__tablesaw__  and  __tablesaw-parquet__  have different release schedules and versioning schemes. New  __tablesaw-parquet__  features will be available for the most recent *and* for the previous released version of  __tablesaw__ . Older tablesaw releases will not get updates.
+
+The first supported  __tablesaw__  version is  __v0.38.2__ .
+
+__tablesaw-parquet__  follows the [semantic versioning](https://semver.org/) scheme.
+
+## Getting started
+
+Add tablesaw-core and tablesaw-parquet to your project as follows:
+
+__maven:__
+
+```xml
+<properties>
+    <tablesaw.version>TABLESAW_VERSION</tablesaw.version>
+    <tablesaw-parquet.version>TABLESAW-PARQUET_VERSION</tablesaw-parquet.version>
+</properties>
+<dependencies>
+  <dependency>
+    <groupId>tech.tablesaw</groupId>
+    <artifactId>tablesaw-core</artifactId>
+    <version>${tablesaw.version}</version>
+  </dependency>
+  <dependency>
+    <groupId>net.tlabs-data</groupId>
+    <artifactId>tablesaw_${tablesaw.version}-parquet</artifactId>
+    <version>${tablesaw-parquet.version}</version>
+  </dependency>
+<dependencies>
+```
+
+__gradle:__
+
+```
+TODO
+```
+
+Read your parquet file as a  __tablesaw__  Table using the following idiom:
+
+```java
+Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(FILENAME).build());
+```
+
+## Data type conversion
+
+
+
+## Features
+
+### Implemented features
+
+
+
+### Implemented but not tested features
+
+### Not implemented features
+
+### Roadmap
+
+## Contributing
+
