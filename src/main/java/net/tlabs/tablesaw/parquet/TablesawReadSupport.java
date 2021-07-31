@@ -29,6 +29,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.api.RecordMaterializer;
+import org.apache.parquet.schema.LogicalTypeAnnotation.BsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
@@ -205,6 +206,11 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                                 DecimalLogicalTypeAnnotation decimalLogicalType) {
                               return Optional.of(DoubleColumn.create(name));
                             }
+
+							@Override
+							public Optional<Column<?>> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
+								return null;
+							}
                           }))
               .orElseGet(
                   () ->
