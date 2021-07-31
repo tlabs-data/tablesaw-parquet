@@ -78,14 +78,14 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 |----------------------|----------------------|-------|
 | STRING  | StringColumn |  |
 | ENUM | StringColumn |  |
-| UUID | StringColumn | *Not formatted as a UUID*  __Not tested__  |
+| UUID | StringColumn | *Not formatted as a UUID.*  __Not tested__  |
 | Signed Integers | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | Unsigned Integers  | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | DECIMAL | DoubleColumn |  |
 | DATE | DateColumn |  |
 | TIME | TimeColumn |  |
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
-| INTERVAL | StringColumn | ISO String representation of the interval  __Not tested__  |
+| INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
 | JSON | TextColumn |  |
 | BSON |  __Not read__  |  __Not tested__  |
 | Nested Types | TextColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
@@ -108,7 +108,7 @@ Keep in mind that all tablesaw columns storing time (TimeColumn, DateTimeColumn 
 | DoubleColumn | DOUBLE |  |
 | StringColumn | BINARY (STRING) |  |
 | TextColumn | BINARY (STRING) |  |
-| TimeColumn | INT64 (TIME: NANOS, not UTC) | *Will likely change to INT32 MILLIS in a future release* |
+| TimeColumn | INT64 (TIME: NANOS, not UTC) | *Will change to INT32 MILLIS in a future release* |
 | DateColumn | INT32 (DATE) |  |
 | DateTimeColumn | INT64 (TIMESTAMP: MILLIS, not UTC) |  |
 | InstantColumn | INT64 (TIMESTAMP: MILLIS, UTC) |  |
@@ -165,4 +165,4 @@ We also accept pull requests with code or documentation improvements. We prefer 
 
 ## Code of conduct
 
-We do not yet have an official code of conduct. In the meantime, be nice to each others (and to the developers).
+We do not yet have an official code of conduct. In the meantime, be nice to the developers and to each others.
