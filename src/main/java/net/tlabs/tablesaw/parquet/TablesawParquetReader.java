@@ -29,22 +29,11 @@ import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataReader;
-import tech.tablesaw.io.ReaderRegistry;
 import tech.tablesaw.io.Source;
 
 public class TablesawParquetReader implements DataReader<TablesawParquetReadOptions> {
 
   private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReader.class);
-
-  private static final TablesawParquetReader INSTANCE = new TablesawParquetReader();
-
-  static {
-    register(Table.defaultReaderRegistry);
-  }
-
-  public static void register(final ReaderRegistry registry) {
-    registry.registerOptions(TablesawParquetReadOptions.class, INSTANCE);
-  }
 
   @Override
   public Table read(final Source source) throws IOException {
