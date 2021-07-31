@@ -178,6 +178,16 @@ public class TablesawReadSupport extends ReadSupport<Row> {
           }
           return StringColumn.create(name);
         case BINARY:
+        	// Filtering out BSON
+        	if(Optional.ofNullable(field.getLogicalTypeAnnotation())
+        		.flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
+					@Override
+					public Optional<Boolean> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
+						return Optional.of(Boolean.TRUE);
+					}
+        		})).isPresent()) {
+        		return null;
+        	  }
           return Optional.ofNullable(field.getLogicalTypeAnnotation())
               .flatMap(
                   a ->
@@ -206,11 +216,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                                 DecimalLogicalTypeAnnotation decimalLogicalType) {
                               return Optional.of(DoubleColumn.create(name));
                             }
-
-							@Override
-							public Optional<Column<?>> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
-								return null;
-							}
                           }))
               .orElseGet(
                   () ->
