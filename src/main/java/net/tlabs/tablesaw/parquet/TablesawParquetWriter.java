@@ -33,21 +33,10 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataWriter;
 import tech.tablesaw.io.Destination;
-import tech.tablesaw.io.WriterRegistry;
 
 public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOptions> {
 
   private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
-
-  private static final TablesawParquetWriter INSTANCE = new TablesawParquetWriter();
-
-  static {
-    register(Table.defaultWriterRegistry);
-  }
-
-  public static void register(final WriterRegistry registry) {
-    registry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
-  }
 
   @Override
   public void write(final Table table, final Destination dest) throws IOException {
