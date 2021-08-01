@@ -36,8 +36,6 @@ import tech.tablesaw.io.Source;
 
 class TestParquetReader {
 
-    private static final TablesawParquetReader PARQUET_READER = TablesawParquetReader.getInstance();
-
     private static final String PARQUET_TESTING_FOLDER = "target/test/data/parquet-testing-master/data/";
 
     private static final String APACHE_ALL_TYPES_DICT = "alltypes_dictionary.parquet";
@@ -52,6 +50,8 @@ class TestParquetReader {
     private static final String APACHE_FIXED_LENGTH_DECIMAL_LEGACY = "fixed_length_decimal_legacy.parquet";
     private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
     private static final String APACHE_NULLS_SNAPPY = "nulls.snappy.parquet";
+
+    private static final TablesawParquetReader PARQUET_READER = TablesawParquetReader.getInstance();
 
     private void validateTable(final Table table, int cols, int rows, String source) {
         assertNotNull(table, source + " is null");

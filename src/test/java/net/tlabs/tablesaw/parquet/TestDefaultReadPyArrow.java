@@ -34,7 +34,8 @@ class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
 
     @SuppressWarnings("unused")
     private static Stream<Arguments> columnTypeParameters() {
-        return Stream.of(Arguments.of(0, ColumnType.BOOLEAN, "boolean"), Arguments.of(1, ColumnType.INTEGER, "uint8"),
+        return Stream.of(
+            Arguments.of(0, ColumnType.BOOLEAN, "boolean"), Arguments.of(1, ColumnType.INTEGER, "uint8"),
             Arguments.of(2, ColumnType.INTEGER, "int8"), Arguments.of(3, ColumnType.INTEGER, "uint16"),
             Arguments.of(4, ColumnType.INTEGER, "int16"), Arguments.of(5, ColumnType.INTEGER, "uint32"),
             Arguments.of(6, ColumnType.INTEGER, "int32"), Arguments.of(7, ColumnType.LONG, "uint64"),
@@ -46,7 +47,8 @@ class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
 
     @SuppressWarnings("unused")
     private static Stream<Arguments> columnValueParameters() {
-        return Stream.of(Arguments.of(0, 0, true, "boolean"), Arguments.of(0, 1, false, "boolean"),
+        return Stream.of(
+            Arguments.of(0, 0, true, "boolean"), Arguments.of(0, 1, false, "boolean"),
             Arguments.of(1, 0, 0, "integer"), Arguments.of(1, 1, 127, "integer"), Arguments.of(2, 0, -127, "integer"),
             Arguments.of(2, 1, 1, "integer"), Arguments.of(3, 0, 0, "integer"), Arguments.of(3, 1, 32767, "integer"),
             Arguments.of(4, 0, 0, "integer"), Arguments.of(4, 1, -32767, "integer"), Arguments.of(5, 0, 0, "integer"),

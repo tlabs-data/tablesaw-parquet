@@ -34,7 +34,8 @@ class TestMinimizedReadFastparquet extends AbstractTableParameterizedTest {
 
     @SuppressWarnings("unused")
     private static Stream<Arguments> columnTypeParameters() {
-        return Stream.of(Arguments.of(0, ColumnType.BOOLEAN, "boolean"), Arguments.of(1, ColumnType.SHORT, "uint8"),
+        return Stream.of(
+            Arguments.of(0, ColumnType.BOOLEAN, "boolean"), Arguments.of(1, ColumnType.SHORT, "uint8"),
             Arguments.of(2, ColumnType.SHORT, "int8"), Arguments.of(3, ColumnType.SHORT, "uint16"),
             Arguments.of(4, ColumnType.SHORT, "int16"), Arguments.of(5, ColumnType.INTEGER, "uint32"),
             Arguments.of(6, ColumnType.INTEGER, "int32"), Arguments.of(7, ColumnType.LONG, "uint64"),
@@ -45,7 +46,8 @@ class TestMinimizedReadFastparquet extends AbstractTableParameterizedTest {
 
     @SuppressWarnings("unused")
     private static Stream<Arguments> columnValueParameters() {
-        return Stream.of(Arguments.of(0, 0, true, "boolean"), Arguments.of(0, 1, false, "boolean"),
+        return Stream.of(
+            Arguments.of(0, 0, true, "boolean"), Arguments.of(0, 1, false, "boolean"),
             Arguments.of(1, 0, (short) 0, "short"), Arguments.of(1, 1, (short) 127, "short"),
             Arguments.of(2, 0, (short) -127, "short"), Arguments.of(2, 1, (short) 1, "short"),
             Arguments.of(3, 0, (short) 0, "short"), Arguments.of(3, 1, (short) 32767, "short"),
