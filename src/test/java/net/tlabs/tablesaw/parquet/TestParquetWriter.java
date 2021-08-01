@@ -229,7 +229,8 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadAllColumnTypes() throws IOException {
-        final Table orig = Table.create(BooleanColumn.create("boolean", true, false),
+        final Table orig = Table.create(
+            BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
@@ -247,7 +248,8 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadDefaultTypes() throws IOException {
-        final Table orig = Table.create(BooleanColumn.create("boolean", true, false),
+        final Table orig = Table.create(
+            BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
@@ -268,7 +270,8 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadEmptyColumnTypeList() throws IOException {
-        final Table orig = Table.create(BooleanColumn.create("boolean", true, false),
+        final Table orig = Table.create(
+            BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
@@ -290,7 +293,8 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadNoShorts() throws IOException {
-        final Table orig = Table.create(BooleanColumn.create("boolean", true, false),
+        final Table orig = Table.create(
+            BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
@@ -313,7 +317,8 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadNoFloat() throws IOException {
-        final Table orig = Table.create(BooleanColumn.create("boolean", true, false),
+        final Table orig = Table.create(
+            BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
