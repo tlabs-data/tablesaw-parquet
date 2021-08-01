@@ -33,51 +33,52 @@ import tech.tablesaw.io.Source;
 
 public class TablesawParquetReader implements DataReader<TablesawParquetReadOptions> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReader.class);
 
-	private static final TablesawParquetReader INSTANCE = new TablesawParquetReader();
+    private static final TablesawParquetReader INSTANCE = new TablesawParquetReader();
 
-	public static void register() {
-		Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, INSTANCE);
-		Table.defaultReaderRegistry.registerExtension("parquet", INSTANCE);
-	}
+    public static void register() {
+        Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, INSTANCE);
+        Table.defaultReaderRegistry.registerExtension("parquet", INSTANCE);
+    }
 
-	/**
-	 * Get the TablesawParquetReader singleton instance
-	 * @return the TablesawParquetReader singleton instance
-	 */
-	public static TablesawParquetReader getInstance() {
-		return INSTANCE;
-	}
+    /**
+     * Get the TablesawParquetReader singleton instance
+     * 
+     * @return the TablesawParquetReader singleton instance
+     */
+    public static TablesawParquetReader getInstance() {
+        return INSTANCE;
+    }
 
-	private TablesawParquetReader() {
-		super();
-	}
+    private TablesawParquetReader() {
+        super();
+    }
 
-	@Override
-	public Table read(final Source source) throws IOException {
-		final File file = source.file();
-		if (file != null) {
-			return read(TablesawParquetReadOptions.builder(file).build());
-		}
-		throw new UnsupportedOperationException(
-				"Can only work with file based source, please use the read(TablesawParquetReadOptions) method for additional possibilities");
-	}
+    @Override
+    public Table read(final Source source) throws IOException {
+        final File file = source.file();
+        if (file != null) {
+            return read(TablesawParquetReadOptions.builder(file).build());
+        }
+        throw new UnsupportedOperationException(
+            "Can only work with file based source, please use the read(TablesawParquetReadOptions) method for additional possibilities");
+    }
 
-	@Override
-	public Table read(final TablesawParquetReadOptions options) throws IOException {
-		final long start = System.currentTimeMillis();
-		final String inputPath = options.getInputPath();
-		final Path path = new Path(inputPath);
-		final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-		try (final ParquetReader<Row> reader = ParquetReader.<Row>builder(readSupport, path).build()) {
-			int i = 0;
-			while (reader.read() != null) {
-				i++;
-			}
-			final long end = System.currentTimeMillis();
-			LOG.debug("Finished reading {} rows from {} in {} ms", i, inputPath, (end - start));
-		}
-		return readSupport.getTable();
-	}
+    @Override
+    public Table read(final TablesawParquetReadOptions options) throws IOException {
+        final long start = System.currentTimeMillis();
+        final String inputPath = options.getInputPath();
+        final Path path = new Path(inputPath);
+        final TablesawReadSupport readSupport = new TablesawReadSupport(options);
+        try (final ParquetReader<Row> reader = ParquetReader.<Row>builder(readSupport, path).build()) {
+            int i = 0;
+            while (reader.read() != null) {
+                i++;
+            }
+            final long end = System.currentTimeMillis();
+            LOG.debug("Finished reading {} rows from {} in {} ms", i, inputPath, (end - start));
+        }
+        return readSupport.getTable();
+    }
 }

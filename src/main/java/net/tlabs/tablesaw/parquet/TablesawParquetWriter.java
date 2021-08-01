@@ -36,66 +36,67 @@ import tech.tablesaw.io.Destination;
 
 public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOptions> {
 
-	private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
 
-	private static final TablesawParquetWriter INSTANCE = new TablesawParquetWriter();
+    private static final TablesawParquetWriter INSTANCE = new TablesawParquetWriter();
 
-	public static void register() {
-		Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
-	}
+    public static void register() {
+        Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
+    }
 
-	/**
-	 * Get the TablesawParquetWriter singleton instance
-	 * @return the TablesawParquetWriter singleton instance
-	 */
-	public static TablesawParquetWriter getInstance() {
-		return INSTANCE;
-	}
+    /**
+     * Get the TablesawParquetWriter singleton instance
+     * 
+     * @return the TablesawParquetWriter singleton instance
+     */
+    public static TablesawParquetWriter getInstance() {
+        return INSTANCE;
+    }
 
-	private TablesawParquetWriter() {
-		super();
-	}
+    private TablesawParquetWriter() {
+        super();
+    }
 
-	@Override
-	public void write(final Table table, final Destination dest) throws IOException {
-		throw new UnsupportedOperationException(
-				"The use of Destination is not supported, please use the write(Table, TablesawParquetWriteOptions) method");
-	}
+    @Override
+    public void write(final Table table, final Destination dest) throws IOException {
+        throw new UnsupportedOperationException(
+            "The use of Destination is not supported, please use the write(Table, TablesawParquetWriteOptions) method");
+    }
 
-	@Override
-	public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
-		try (final ParquetWriter<Row> writer = new Builder(new Path(options.outputFile), table)
-				.withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
-				.withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE).build()) {
-			final long start = System.currentTimeMillis();
-			Row row = new Row(table);
-			while (row.hasNext()) {
-				row = row.next();
-				writer.write(row);
-			}
-			final long end = System.currentTimeMillis();
-			LOG.debug("Finished writing {} rows to {} in {} ms", row.getRowNumber() + 1, options.outputFile,
-					(end - start));
-		}
-	}
+    @Override
+    public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
+        try (final ParquetWriter<Row> writer = new Builder(new Path(options.outputFile), table)
+            .withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
+            .withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE).build()) {
+            final long start = System.currentTimeMillis();
+            Row row = new Row(table);
+            while (row.hasNext()) {
+                row = row.next();
+                writer.write(row);
+            }
+            final long end = System.currentTimeMillis();
+            LOG.debug("Finished writing {} rows to {} in {} ms", row.getRowNumber() + 1, options.outputFile,
+                (end - start));
+        }
+    }
 
-	private class Builder extends ParquetWriter.Builder<Row, Builder> {
+    private class Builder extends ParquetWriter.Builder<Row, Builder> {
 
-		private final Table table;
+        private final Table table;
 
-		protected Builder(final Path path, final Table table) {
-			super(path);
-			this.table = table;
-		}
+        protected Builder(final Path path, final Table table) {
+            super(path);
+            this.table = table;
+        }
 
-		@Override
-		protected Builder self() {
-			return this;
-		}
+        @Override
+        protected Builder self() {
+            return this;
+        }
 
-		@Override
-		protected WriteSupport<Row> getWriteSupport(final Configuration conf) {
-			return new TablesawWriteSupport(this.table);
-		}
-	}
+        @Override
+        protected WriteSupport<Row> getWriteSupport(final Configuration conf) {
+            return new TablesawWriteSupport(this.table);
+        }
+    }
 }
