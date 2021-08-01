@@ -28,21 +28,21 @@ import tech.tablesaw.api.Table;
 
 public class TablesawRecordMaterializer extends RecordMaterializer<Row> {
 
-  private final TablesawRecordConverter root;
+	private final TablesawRecordConverter root;
 
-  public TablesawRecordMaterializer(
-      final Table table, final MessageType fileSchema, final TablesawParquetReadOptions options) {
-    super();
-    this.root = new TablesawRecordConverter(table, fileSchema, options);
-  }
+	public TablesawRecordMaterializer(final Table table, final MessageType fileSchema,
+			final TablesawParquetReadOptions options) {
+		super();
+		this.root = new TablesawRecordConverter(table, fileSchema, options);
+	}
 
-  @Override
-  public Row getCurrentRecord() {
-    return root.getCurrentRow();
-  }
+	@Override
+	public Row getCurrentRecord() {
+		return root.getCurrentRow();
+	}
 
-  @Override
-  public GroupConverter getRootConverter() {
-    return root;
-  }
+	@Override
+	public GroupConverter getRootConverter() {
+		return root;
+	}
 }
