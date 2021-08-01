@@ -52,423 +52,290 @@ import tech.tablesaw.io.Destination;
 
 class TestParquetWriter {
 
-  private static final String PARQUET_TESTING_FOLDER =
-      "target/test/data/parquet-testing-master/data/";
+	private static final String PARQUET_TESTING_FOLDER = "target/test/data/parquet-testing-master/data/";
 
-  private static final String APACHE_ALL_TYPES_DICT = "alltypes_dictionary.parquet";
-  private static final String APACHE_ALL_TYPES_PLAIN = "alltypes_plain.parquet";
-  private static final String APACHE_ALL_TYPES_SNAPPY = "alltypes_plain.snappy.parquet";
-  private static final String APACHE_FIXED_LENGTH_DECIMAL = "fixed_length_decimal.parquet";
-  private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
-  private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
-  private static final String OUTPUT_FILE = "target/test/results/out.parquet";
+	private static final String APACHE_ALL_TYPES_DICT = "alltypes_dictionary.parquet";
+	private static final String APACHE_ALL_TYPES_PLAIN = "alltypes_plain.parquet";
+	private static final String APACHE_ALL_TYPES_SNAPPY = "alltypes_plain.snappy.parquet";
+	private static final String APACHE_FIXED_LENGTH_DECIMAL = "fixed_length_decimal.parquet";
+	private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
+	private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
+	private static final String OUTPUT_FILE = "target/test/results/out.parquet";
 
-  public static void assertTableEquals(
-      final Table expected, final Table actual, final String header) {
-    final int numberOfColumns = actual.columnCount();
-    assertEquals(
-        expected.columnCount(),
-        numberOfColumns,
-        header + " tables should have same number of columns");
-    for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
-      final Column<?> actualColumn = actual.column(columnIndex);
-      final Column<?> expectedColumn = expected.column(columnIndex);
-      assertEquals(expectedColumn.name(), actualColumn.name(), "Wrong column name");
-      // No good way to distinguish between string and text after writing
-      if (actualColumn instanceof StringColumn) {
-        assertTrue(
-            expectedColumn instanceof StringColumn || expectedColumn instanceof TextColumn,
-            "Column transformed to StringColumns");
-      } else {
-        assertEquals(expectedColumn.type(), actualColumn.type(), "Column type different");
-      }
-    }
-    final int numberOfRows = actual.rowCount();
-    assertEquals(
-        expected.rowCount(), numberOfRows, header + " tables should have same number of rows");
-    for (int rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
-      for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
-        assertEquals(
-            expected.get(rowIndex, columnIndex),
-            actual.get(rowIndex, columnIndex),
-            header + " cells[" + rowIndex + ", " + columnIndex + "] do not match");
-      }
-    }
-  }
+	private static final TablesawParquetWriter PARQUET_WRITER = TablesawParquetWriter.getInstance();
+	private static final TablesawParquetReader PARQUET_READER = TablesawParquetReader.getInstance();
 
-  @Test
-  void testReadWriteAllTypeDict() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
-  }
+	public static void assertTableEquals(final Table expected, final Table actual, final String header) {
+		final int numberOfColumns = actual.columnCount();
+		assertEquals(expected.columnCount(), numberOfColumns, header + " tables should have same number of columns");
+		for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
+			final Column<?> actualColumn = actual.column(columnIndex);
+			final Column<?> expectedColumn = expected.column(columnIndex);
+			assertEquals(expectedColumn.name(), actualColumn.name(), "Wrong column name");
+			// No good way to distinguish between string and text after writing
+			if (actualColumn instanceof StringColumn) {
+				assertTrue(expectedColumn instanceof StringColumn || expectedColumn instanceof TextColumn,
+						"Column transformed to StringColumns");
+			} else {
+				assertEquals(expectedColumn.type(), actualColumn.type(), "Column type different");
+			}
+		}
+		final int numberOfRows = actual.rowCount();
+		assertEquals(expected.rowCount(), numberOfRows, header + " tables should have same number of rows");
+		for (int rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
+			for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
+				assertEquals(expected.get(rowIndex, columnIndex), actual.get(rowIndex, columnIndex),
+						header + " cells[" + rowIndex + ", " + columnIndex + "] do not match");
+			}
+		}
+	}
 
-  @Test
-  void testReadWriteAllTypeDictMinimized() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
-                    .minimizeColumnSizes()
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).minimizeColumnSizes().build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
-  }
+	@Test
+	void testReadWriteAllTypeDict() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+	}
 
-  @Test
-  void testReadWriteAllTypeDictToFile() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE)).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
-  }
+	@Test
+	void testReadWriteAllTypeDictMinimized() throws IOException {
+		final Table orig = PARQUET_READER.read(TablesawParquetReadOptions
+				.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).minimizeColumnSizes().build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).minimizeColumnSizes().build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+	}
 
-  @Test
-  void testReadWriteAllTypePlain() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " reloaded");
-  }
+	@Test
+	void testReadWriteAllTypeDictToFile() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE)).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+	}
 
-  @Test
-  void testReadWriteAllTypeSnappy() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_SNAPPY + " reloaded");
-  }
+	@Test
+	void testReadWriteAllTypePlain() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " reloaded");
+	}
 
-  @Test
-  void testInt96AsTimestamp() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .withConvertInt96ToTimestamp(true)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " with Int96 as Timestamp reloaded");
-  }
+	@Test
+	void testReadWriteAllTypeSnappy() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_SNAPPY + " reloaded");
+	}
 
-  @Test
-  void testFixedLengthDecimal() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(
-                        PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_FIXED_LENGTH_DECIMAL + " reloaded");
-  }
+	@Test
+	void testInt96AsTimestamp() throws IOException {
+		final Table orig = PARQUET_READER.read(TablesawParquetReadOptions
+				.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).withConvertInt96ToTimestamp(true).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " with Int96 as Timestamp reloaded");
+	}
 
-  @Test
-  void testBinaryDecimal() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(
-                        PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_BYTE_ARRAY_DECIMAL + " reloaded");
-  }
+	@Test
+	void testFixedLengthDecimal() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_FIXED_LENGTH_DECIMAL + " reloaded");
+	}
 
-  @Test
-  void testDatapageV2() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_DATAPAGEV2 + " reloaded");
-  }
+	@Test
+	void testBinaryDecimal() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_BYTE_ARRAY_DECIMAL + " reloaded");
+	}
 
-  @Test
-  void testOverwriteOption() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .build());
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    assertThrows(
-        FileAlreadyExistsException.class,
-        () ->
-            new TablesawParquetWriter()
-                .write(
-                    orig,
-                    TablesawParquetWriteOptions.builder(OUTPUT_FILE).withOverwrite(false).build()));
-  }
+	@Test
+	void testDatapageV2() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_DATAPAGEV2 + " reloaded");
+	}
 
-  @Test
-  void testGZIPCompressor() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .build());
-    new TablesawParquetWriter()
-        .write(
-            orig,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
-                .withCompressionCode(CompressionCodec.GZIP)
-                .build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
-  }
+	@Test
+	void testOverwriteOption() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		assertThrows(FileAlreadyExistsException.class, () -> PARQUET_WRITER.write(orig,
+				TablesawParquetWriteOptions.builder(OUTPUT_FILE).withOverwrite(false).build()));
+	}
 
-  @Test
-  void testPLAINCompressor() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .build());
-    new TablesawParquetWriter()
-        .write(
-            orig,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
-                .withCompressionCode(CompressionCodec.UNCOMPRESSED)
-                .build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " plain reloaded");
-  }
+	@Test
+	void testGZIPCompressor() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+		PARQUET_WRITER.write(orig,
+				TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.GZIP).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
+	}
 
-  @Test
-  void testSNAPPYCompressor() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .build());
-    new TablesawParquetWriter()
-        .write(
-            orig,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
-                .withCompressionCode(CompressionCodec.SNAPPY)
-                .build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " snappy reloaded");
-  }
+	@Test
+	void testPLAINCompressor() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+				.withCompressionCode(CompressionCodec.UNCOMPRESSED).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " plain reloaded");
+	}
 
-  @Test
-  void testZSTDCompressor() throws IOException {
-    final Table orig =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-                    .build());
-    new TablesawParquetWriter()
-        .write(
-            orig,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE)
-                .withCompressionCode(CompressionCodec.ZSTD)
-                .build());
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " zstd reloaded");
-  }
+	@Test
+	void testSNAPPYCompressor() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+		PARQUET_WRITER.write(orig,
+				TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.SNAPPY).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " snappy reloaded");
+	}
 
-  @Test
-  void testDestinationWriteException() {
-    assertThrows(
-        UnsupportedOperationException.class,
-        () -> new TablesawParquetWriter().write(null, (Destination) null),
-        "Wrong exception on writing to destination");
-  }
+	@Test
+	void testZSTDCompressor() throws IOException {
+		final Table orig = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+		PARQUET_WRITER.write(orig,
+				TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.ZSTD).build());
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " zstd reloaded");
+	}
 
-  @Test
-  void testWriteReadAllColumnTypes() throws IOException {
-    final Table orig =
-        Table.create(
-            BooleanColumn.create("boolean", true, false),
-            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
-            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
-            InstantColumn.create("instant", Instant.now(), Instant.now()),
-            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2),
-            IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l),
-            FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
-            StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+	@Test
+	void testDestinationWriteException() {
+		assertThrows(UnsupportedOperationException.class, () -> PARQUET_WRITER.write(null, (Destination) null),
+				"Wrong exception on writing to destination");
+	}
 
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-    final Table dest =
-        new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).minimizeColumnSizes().build());
-    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
-  }
+	@Test
+	void testWriteReadAllColumnTypes() throws IOException {
+		final Table orig = Table.create(
+				BooleanColumn.create("boolean", true, false),
+				DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+				DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+				InstantColumn.create("instant", Instant.now(), Instant.now()),
+				TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+				ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
+				LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
+				DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+				TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-  @Test
-  void testWriteReadDefaultTypes() throws IOException {
-    final Table orig =
-        Table.create(
-            BooleanColumn.create("boolean", true, false),
-            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
-            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
-            InstantColumn.create("instant", Instant.now(), Instant.now()),
-            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2),
-            IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l),
-            FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
-            StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+		final Table dest = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).minimizeColumnSizes().build());
+		assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+	}
 
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+	@Test
+	void testWriteReadDefaultTypes() throws IOException {
+		final Table orig = Table.create(
+				BooleanColumn.create("boolean", true, false),
+				DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+				DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+				InstantColumn.create("instant", Instant.now(), Instant.now()),
+				TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+				ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
+				LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
+				DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+				TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-    orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
-    orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
-    final Table dest =
-        new TablesawParquetReader().read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
-  }
+		orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
+		orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
 
-  @Test
-  void testWriteReadEmptyColumnTypeList() throws IOException {
-    final Table orig =
-        Table.create(
-            BooleanColumn.create("boolean", true, false),
-            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
-            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
-            InstantColumn.create("instant", Instant.now(), Instant.now()),
-            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2),
-            IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l),
-            FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
-            StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+		final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+		assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+	}
 
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+	@Test
+	void testWriteReadEmptyColumnTypeList() throws IOException {
+		final Table orig = Table.create(
+				BooleanColumn.create("boolean", true, false),
+				DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+				DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+				InstantColumn.create("instant", Instant.now(), Instant.now()),
+				TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+				ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
+				LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
+				DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+				TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-    orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
-    orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
-    final Table dest =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(OUTPUT_FILE)
-                    .columnTypesToDetect(new ArrayList<>())
-                    .build());
-    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
-  }
+		orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
+		orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
 
-  @Test
-  void testWriteReadNoShorts() throws IOException {
-    final Table orig =
-        Table.create(
-            BooleanColumn.create("boolean", true, false),
-            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
-            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
-            InstantColumn.create("instant", Instant.now(), Instant.now()),
-            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2),
-            IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l),
-            FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
-            StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+		final Table dest = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(new ArrayList<>()).build());
+		assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+	}
 
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+	@Test
+	void testWriteReadNoShorts() throws IOException {
+		final Table orig = Table.create(
+				BooleanColumn.create("boolean", true, false),
+				DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+				DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+				InstantColumn.create("instant", Instant.now(), Instant.now()),
+				TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+				ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
+				LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
+				DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+				TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-    orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
-    final List<ColumnType> types = new ArrayList<>();
-    types.add(ColumnType.FLOAT);
-    final Table dest =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
-    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
-  }
+		orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
 
-  @Test
-  void testWriteReadNoFloat() throws IOException {
-    final Table orig =
-        Table.create(
-            BooleanColumn.create("boolean", true, false),
-            DateColumn.create("date", LocalDate.now(), LocalDate.now()),
-            DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
-            InstantColumn.create("instant", Instant.now(), Instant.now()),
-            TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2),
-            IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l),
-            FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
-            StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+		final List<ColumnType> types = new ArrayList<>();
+		types.add(ColumnType.FLOAT);
+		final Table dest = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
+		assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+	}
 
-    new TablesawParquetWriter()
-        .write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+	@Test
+	void testWriteReadNoFloat() throws IOException {
+		final Table orig = Table.create(
+				BooleanColumn.create("boolean", true, false),
+				DateColumn.create("date", LocalDate.now(), LocalDate.now()),
+				DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
+				InstantColumn.create("instant", Instant.now(), Instant.now()),
+				TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
+				ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
+				LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
+				DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+				TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-    orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
+		PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
-    final List<ColumnType> types = new ArrayList<>();
-    types.add(ColumnType.SHORT);
-    final Table dest =
-        new TablesawParquetReader()
-            .read(
-                TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
-    assertTableEquals(orig, dest, "All ColumnTypes reloaded");
-  }
+		orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
+
+		final List<ColumnType> types = new ArrayList<>();
+		types.add(ColumnType.SHORT);
+		final Table dest = PARQUET_READER
+				.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
+		assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+	}
 }
