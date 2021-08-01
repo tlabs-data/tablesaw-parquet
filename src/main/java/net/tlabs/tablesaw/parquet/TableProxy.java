@@ -69,6 +69,7 @@ final class TableProxy {
 	TableProxy(final Table table) {
 		super();
 		this.table = table;
+		this.currentRownum = table.rowCount() - 1;
 		final List<Column<?>> columns = table.columns();
 		final int size = columns.size();
 		rowColumnsSet = new boolean[size];
