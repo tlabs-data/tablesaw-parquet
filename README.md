@@ -21,6 +21,8 @@ __tablesaw-parquet__  follows the [semantic versioning](https://semver.org/) sch
 
 ## Getting started
 
+#### Adding the tablesaw-parquet package to your project
+
 Add tablesaw-core and tablesaw-parquet to your project as follows:
 
 __maven:__
@@ -59,11 +61,37 @@ dependencies {
 }
 ```
 
-Read and write your parquet file as a  __tablesaw__  Table using the following idiom:
+#### Reading and writing parquet files
+
+Read and write your parquet files using the following patterns:
 
 ```java
-Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(FILENAME).build());
-new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder(FILENAME).build());
+Table table = TablesawParquetReader.getInstance().read(TablesawParquetReadOptions.builder(FILENAME).build());
+TablesawParquetWriter.getInstance().write(table, TablesawParquetWriteOptions.builder(FILENAME).build());
+```
+
+Alternatively, you can manually register the parquet reader and writer to use *some* of the  __tablesaw__  classic patterns:
+
+```java
+TablesawParquet.register();
+
+Table table = Table.read().file(FILENAME);
+table = Table.read().file(new File(FILENAME));
+table = Table.read().usingOptions(TablesawParquetReadOptions.builder(FILENAME));
+
+table.write().usingOptions(TablesawParquetWriteOptions.builder(FILENAME).build());
+```
+
+The file extension must be  __".parquet"__  when using Table.read().file().
+
+__Note that read and write methods not mentioned above are not supported and will throw a RuntimeException.__
+
+You can still read data from an URL using the following pattern:
+
+```java
+TablesawParquet.register();
+
+Table.read().usingOptions(TablesawParquetReadOptions.builder(URL));
 ```
 
 ## Data type conversion
