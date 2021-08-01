@@ -50,10 +50,11 @@ __gradle:__
 TODO
 ```
 
-Read your parquet file as a  __tablesaw__  Table using the following idiom:
+Read and write your parquet file as a  __tablesaw__  Table using the following idiom:
 
 ```java
 Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(FILENAME).build());
+new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder(FILENAME).build());
 ```
 
 ## Data type conversion
