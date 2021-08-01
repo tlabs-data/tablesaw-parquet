@@ -16,16 +16,14 @@ public class TablesawParquet {
 	}
 
 	/**
-	 * Register the TablesawParquetReader
-	 * in the Tablesaw registries.
+	 * Register the TablesawParquetReader in the Tablesaw registry.
 	 */
 	public static void registerReader() {
 		TablesawParquetReader.register();
 	}
 
 	/**
-	 * Register the TablesawParquetWriter
-	 * in the Tablesaw registries.
+	 * Register the TablesawParquetWriter in the Tablesaw registry.
 	 */
 	public static void registerWriter() {
 		TablesawParquetWriter.register();
