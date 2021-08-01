@@ -38,6 +38,16 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
   private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
 
+  private static final TablesawParquetWriter INSTANCE = new TablesawParquetWriter();
+
+  public static void register() {
+	  Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
+  }
+  
+  public TablesawParquetWriter() {
+	  super();
+  }
+  
   @Override
   public void write(final Table table, final Destination dest) throws IOException {
     throw new UnsupportedOperationException(

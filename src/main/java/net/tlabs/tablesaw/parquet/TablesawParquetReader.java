@@ -35,6 +35,21 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 
   private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReader.class);
 
+  private static final TablesawParquetReader INSTANCE = new TablesawParquetReader();
+
+  public static void register() {
+	  Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, INSTANCE);
+	  Table.defaultReaderRegistry.registerExtension("parquet", INSTANCE);
+  }
+  
+  public static TablesawParquetReader getInstance() {
+	  return INSTANCE;
+  }
+  
+  public TablesawParquetReader() {
+	  super();
+  }
+  
   @Override
   public Table read(final Source source) throws IOException {
     final File file = source.file();
