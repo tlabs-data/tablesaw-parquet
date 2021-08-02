@@ -9,7 +9,7 @@ Tablesaw parquet I/O
 
 ## Overview
 
-__tablesaw-parquet__  is a [parquet](https://parquet.apache.org/) reader and writer for the [Tablesaw](https://github.com/jtablesaw/tablesaw) project implemented using [parquet-mr](https://github.com/apache/parquet-mr).
+__tablesaw-parquet__  is an [Apache Parquet](https://parquet.apache.org/) reader and writer for the [Tablesaw](https://github.com/jtablesaw/tablesaw) project implemented using [parquet-mr](https://github.com/apache/parquet-mr).
 
 ## Versioning
 
@@ -27,8 +27,8 @@ __maven:__
 
 ```xml
 <properties>
-    <tablesaw.version>TABLESAW_VERSION</tablesaw.version>
-    <tablesaw-parquet.version>TABLESAW-PARQUET_VERSION</tablesaw-parquet.version>
+    <tablesaw.version>0.38.2</tablesaw.version>
+    <tablesaw-parquet.version>0.7.0-SNAPSHOT</tablesaw-parquet.version>
 </properties>
 <dependencies>
   <dependency>
@@ -47,7 +47,19 @@ __maven:__
 __gradle:__
 
 ```
-TODO
+...
+
+ext {
+    tablesawVersion = "0.38.2"
+    tablesawParquetVersion = "0.7.0-SNAPSHOT"
+}
+
+dependencies {
+    implementation("tech.tablesaw:tablesaw-core:${tablesawVersion}")
+    implementation("net.tlabs-data:tablesaw_${tablesawVersion}-parquet:${tablesawParquetVersion}")
+}
+
+...
 ```
 
 Read and write your parquet file as a  __tablesaw__  Table using the following idiom:
@@ -91,7 +103,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | BSON |  __Not read__  |  __Not tested__  |
 | Nested Types | TextColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
 
-Parquet also handles repeated fields (multiple values for the same field), we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a TextColumn. The same *withManageGroupsAs* option is used to change this behavior.
+Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a TextColumn. The same *withManageGroupsAs* option is used to change this behavior.
 
 Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, UUID, BSON).
 
