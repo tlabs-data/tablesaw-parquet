@@ -47,7 +47,7 @@ __maven:__
 
 __gradle:__
 
-```json
+```groovy
 ext {
     tablesawVersion = "0.38.2"
     tablesawParquetVersion = "0.7.0"
