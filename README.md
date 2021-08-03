@@ -28,7 +28,7 @@ __maven:__
 ```xml
 <properties>
     <tablesaw.version>0.38.2</tablesaw.version>
-    <tablesaw-parquet.version>0.7.0-SNAPSHOT</tablesaw-parquet.version>
+    <tablesaw-parquet.version>0.7.0</tablesaw-parquet.version>
 </properties>
 <dependencies>
   <dependency>
@@ -51,7 +51,7 @@ __gradle:__
 
 ext {
     tablesawVersion = "0.38.2"
-    tablesawParquetVersion = "0.7.0-SNAPSHOT"
+    tablesawParquetVersion = "0.7.0"
 }
 
 dependencies {
