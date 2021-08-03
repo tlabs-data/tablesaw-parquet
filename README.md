@@ -30,6 +30,7 @@ __maven:__
     <tablesaw.version>0.38.2</tablesaw.version>
     <tablesaw-parquet.version>0.7.0</tablesaw-parquet.version>
 </properties>
+
 <dependencies>
   <dependency>
     <groupId>tech.tablesaw</groupId>
@@ -46,9 +47,7 @@ __maven:__
 
 __gradle:__
 
-```
-...
-
+```json
 ext {
     tablesawVersion = "0.38.2"
     tablesawParquetVersion = "0.7.0"
@@ -58,8 +57,6 @@ dependencies {
     implementation("tech.tablesaw:tablesaw-core:${tablesawVersion}")
     implementation("net.tlabs-data:tablesaw_${tablesawVersion}-parquet:${tablesawParquetVersion}")
 }
-
-...
 ```
 
 Read and write your parquet file as a  __tablesaw__  Table using the following idiom:
