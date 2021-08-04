@@ -86,7 +86,9 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     private static MessageType internalCreateSchema(final Table table) {
         final String tableName = table.name();
         return new MessageType(tableName == null ? "message" : tableName,
-            table.columns().stream().map(TablesawWriteSupport::createType).collect(Collectors.toList()));
+            table.columns().stream()
+            .map(TablesawWriteSupport::createType)
+            .collect(Collectors.toList()));
     }
 
     private static Type createType(final Column<?> column) {

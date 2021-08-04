@@ -203,14 +203,13 @@ public class TablesawParquetReadOptions extends ReadOptions {
         }
 
         /**
-         * This option can be used to select whether to use: ShortColumn or IntColumn
-         * for parquet short and byte columns FloatColumn or DoubleColumn for parquet
-         * float columns If the list does not contain ColumnType.SHORT, an IntColumn
-         * will be used for parquet short and byte columns If the list does not contain
-         * ColumnType.FLOAT, a DoubleColumn will be used for parquet float columns
+         * This option can be used to select whether to use:
+         * ShortColumn or IntColumn for parquet short and byte columns.
+         * FloatColumn or DoubleColumn for parquet float columns.
+         * If the list does not contain ColumnType.SHORT, an IntColumn will be used for parquet short and byte columns.
+         * If the list does not contain ColumnType.FLOAT, a DoubleColumn will be used for parquet float columns.
          *
-         * @param columnTypesToDetect only checked for presence of ColumnType.SHORT and
-         *                            ColumnType.FLOAT
+         * @param columnTypesToDetect only checked for presence of ColumnType.SHORT and ColumnType.FLOAT
          * @return this builder
          */
         @Override
@@ -236,8 +235,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         /**
          * Option to read parquet INT96 values as TimeStamp. False by default.
          *
-         * @param convertInt96ToTimestamp set to true to read parquet INT96 values as
-         *                                TimeStamp, false to read as String
+         * @param convertInt96ToTimestamp set to true to read parquet INT96 values as TimeStamp, false to read as String.
          * @return this builder
          */
         public Builder withConvertInt96ToTimestamp(final boolean convertInt96ToTimestamp) {
@@ -246,10 +244,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
         }
 
         /**
-         * Option for managing unnanotated parquet Binary. With
-         * UnnanotatedBinaryAs.STRING, these binaries are converted to UTF-8 Strings.
-         * With UnnanotatedBinaryAs.HEXSTRING, these binaries are converted to
-         * hexadecimal Strings. With UnnanotatedBinaryAs.SKIP, these fields are skipped
+         * Option for managing unnanotated parquet Binary.
+         * With UnnanotatedBinaryAs.STRING, these binaries are converted to UTF-8 Strings.
+         * With UnnanotatedBinaryAs.HEXSTRING, these binaries are converted to hexadecimal Strings.
+         * With UnnanotatedBinaryAs.SKIP, these fields are skipped.
          *
          * @param unnanotatedBinaryAs the UnnanotatedBinaryAs option
          * @return this builder
@@ -260,10 +258,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
         }
 
         /**
-         * Option for managing parquet groups (incl. repeats). With ManageGroupsAs.TEXT,
-         * groups are converted to String columns (default behavior). With
-         * ManageGroupsAs.SKIP, groups are ignored With ManageGroupsAs.ERROR, reading a
-         * parquet file containing groups will throw an exception
+         * Option for managing parquet groups (incl. repeats).
+         * With ManageGroupsAs.TEXT, groups are converted to String columns (default behavior).
+         * With ManageGroupsAs.SKIP, groups are ignored.
+         * With ManageGroupsAs.ERROR, reading a parquet file containing groups will throw an exception.
          *
          * @param manageGroupsAs the ManageGroupsAs option
          * @return this builder

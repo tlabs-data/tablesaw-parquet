@@ -40,6 +40,10 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
     private static final TablesawParquetWriter INSTANCE = new TablesawParquetWriter();
 
+    /**
+     * Register the TablesawParquetWriter in the default tablesaw registry.
+     * Writer is only associated with its options.
+     */
     public static void register() {
         Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
     }
@@ -66,8 +70,9 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
     @Override
     public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
         try (final ParquetWriter<Row> writer = new Builder(new Path(options.outputFile), table)
-            .withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
-            .withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE).build()) {
+                .withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
+                .withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE)
+                .build()) {
             final long start = System.currentTimeMillis();
             Row row = new Row(table);
             while (row.hasNext()) {
