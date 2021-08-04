@@ -31,7 +31,7 @@ public class TablesawRecordMaterializer extends RecordMaterializer<Row> {
     private final TablesawRecordConverter root;
 
     public TablesawRecordMaterializer(final Table table, final MessageType fileSchema,
-        final TablesawParquetReadOptions options) {
+            final TablesawParquetReadOptions options) {
         super();
         this.root = new TablesawRecordConverter(table, fileSchema, options);
     }

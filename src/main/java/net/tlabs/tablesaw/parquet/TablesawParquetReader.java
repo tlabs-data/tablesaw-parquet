@@ -37,6 +37,10 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 
     private static final TablesawParquetReader INSTANCE = new TablesawParquetReader();
 
+    /**
+     * Registers the TablesawParquetReader in the default tablesaw registry.
+     * Reader is associated with its options and the '.parquet' extension.
+     */
     public static void register() {
         Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, INSTANCE);
         Table.defaultReaderRegistry.registerExtension("parquet", INSTANCE);

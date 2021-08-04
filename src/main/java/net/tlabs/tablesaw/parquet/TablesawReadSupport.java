@@ -75,14 +75,17 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
     @Override
     public RecordMaterializer<Row> prepareForRead(final Configuration configuration,
-        final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
+            final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
         this.table = createTable(fileSchema, this.options);
         this.table.setName(this.options.tableName());
         return new TablesawRecordMaterializer(this.table, fileSchema, this.options);
     }
 
     private Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
-        return Table.create(schema.getFields().stream().map(f -> createColumn(f, options)).filter(Objects::nonNull)
+        return Table.create(
+            schema.getFields().stream()
+            .map(f -> createColumn(f, options))
+            .filter(Objects::nonNull)
             .collect(Collectors.toList()));
     }
 
@@ -112,7 +115,8 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                                 }
                                 return Optional.of(IntColumn.create(name));
                             }
-                        })).orElseGet(() -> IntColumn.create(name));
+                        }))
+                        .orElseGet(() -> IntColumn.create(name));
                 case INT64:
                     return Optional.ofNullable(field.getLogicalTypeAnnotation())
                         .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
@@ -128,7 +132,8 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                                 }
                                 return Optional.of(DateTimeColumn.create(name));
                             }
-                        })).orElseGet(() -> LongColumn.create(name));
+                        }))
+                        .orElseGet(() -> LongColumn.create(name));
                 case FLOAT:
                     return options.isFloatColumnTypeUsed() ? FloatColumn.create(name) : DoubleColumn.create(name);
                 case DOUBLE:
@@ -140,8 +145,10 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                             public Optional<Column<?>> visit(DecimalLogicalTypeAnnotation decimalLogicalType) {
                                 return Optional.of(DoubleColumn.create(name));
                             }
-                        })).orElseGet(() -> options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.SKIP ? null
-                            : StringColumn.create(name));
+                        }))
+                        .orElseGet(() ->
+                            options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.SKIP ?
+                                null : StringColumn.create(name));
                 case INT96:
                     if (options.isConvertInt96ToTimestamp()) {
                         return InstantColumn.create(name);
@@ -150,12 +157,12 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 case BINARY:
                     // Filtering out BSON
                     if (Optional.ofNullable(field.getLogicalTypeAnnotation())
-                        .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
-                            @Override
-                            public Optional<Boolean> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
-                                return Optional.of(Boolean.TRUE);
-                            }
-                        })).isPresent()) {
+                            .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
+                                @Override
+                                public Optional<Boolean> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
+                                    return Optional.of(Boolean.TRUE);
+                                }
+                            })).isPresent()) {
                         return null;
                     }
                     return Optional.ofNullable(field.getLogicalTypeAnnotation())
@@ -179,8 +186,10 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                             public Optional<Column<?>> visit(DecimalLogicalTypeAnnotation decimalLogicalType) {
                                 return Optional.of(DoubleColumn.create(name));
                             }
-                        })).orElseGet(() -> options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP ? null
-                            : StringColumn.create(name));
+                        }))
+                        .orElseGet(() -> 
+                            options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP ?
+                                null : StringColumn.create(name));
             }
         }
         // Groups or repeated primitives are treated the same

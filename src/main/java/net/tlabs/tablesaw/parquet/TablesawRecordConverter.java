@@ -341,7 +341,8 @@ public class TablesawRecordConverter extends GroupConverter {
                         });
                     }
                 }))
-                .orElseGet(() -> schemaType.asPrimitiveType().getPrimitiveTypeName() != PrimitiveTypeName.INT96
+                .orElseGet(() ->
+                    schemaType.asPrimitiveType().getPrimitiveTypeName() != PrimitiveTypeName.INT96
                     && options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.STRING
                         ? new StringPrimitiveConverter(colIndex)
                         : new HexStringPrimitiveConverter(colIndex));
@@ -396,7 +397,8 @@ public class TablesawRecordConverter extends GroupConverter {
                             }
                         });
                     }
-                })).orElseGet(() -> new DefaultInstantPrimitiveConverter(colIndex));
+                }))
+                .orElseGet(() -> new DefaultInstantPrimitiveConverter(colIndex));
         }
         if (columnType == ColumnType.LOCAL_DATE) {
             return new PrimitiveConverter() {
@@ -428,7 +430,8 @@ public class TablesawRecordConverter extends GroupConverter {
                             }
                         });
                     }
-                })).orElseGet(() -> new DefaultTimePrimitiveConverter(colIndex));
+                }))
+                .orElseGet(() -> new DefaultTimePrimitiveConverter(colIndex));
         }
         if (columnType == ColumnType.LOCAL_DATE_TIME) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
@@ -448,16 +451,17 @@ public class TablesawRecordConverter extends GroupConverter {
                                         break;
                                     case MILLIS:
                                         final long epochSecondFromMillis = value / SECOND_TO_MILLIS;
-                                        proxy.appendDateTime(colIndex,
-                                            LocalDateTime.ofEpochSecond(epochSecondFromMillis,
-                                                (int) ((value - (epochSecondFromMillis * SECOND_TO_MILLIS))
-                                                    * MILLIS_TO_NANO),
-                                                ZoneOffset.UTC));
+                                        proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(
+                                            epochSecondFromMillis,
+                                            (int) ((value - (epochSecondFromMillis * SECOND_TO_MILLIS)) * MILLIS_TO_NANO),
+                                            ZoneOffset.UTC));
                                         break;
                                     case NANOS:
                                         final long epochSecondFromNanos = value / SECOND_TO_NANOS;
-                                        proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(epochSecondFromNanos,
-                                            (int) (value - (epochSecondFromNanos * SECOND_TO_NANOS)), ZoneOffset.UTC));
+                                        proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(
+                                            epochSecondFromNanos,
+                                            (int) (value - (epochSecondFromNanos * SECOND_TO_NANOS)),
+                                            ZoneOffset.UTC));
                                         break;
                                     default:
                                         throw new UnsupportedOperationException(
@@ -466,7 +470,8 @@ public class TablesawRecordConverter extends GroupConverter {
                             }
                         });
                     }
-                })).orElseGet(() -> new DefaultDateTimePrimitiveConverter(colIndex));
+                }))
+                .orElseGet(() -> new DefaultDateTimePrimitiveConverter(colIndex));
         }
         return null;
     }
