@@ -64,7 +64,7 @@ final class TableProxy {
     private final TextColumn[] textColumns;
 
     private Row currentRow = null;
-    private int currentRownum = -1;
+    private int currentRownum;
 
     TableProxy(final Table table) {
         super();
