@@ -124,7 +124,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | TIME | TimeColumn |  |
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
 | INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
-| JSON | TextColumn |  |
+| JSON | TextColumn |  __Not tested__  |
 | BSON |  __Not read__  |  __Not tested__  |
 | Nested Types | TextColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
 
