@@ -66,8 +66,8 @@ dependencies {
 Read and write your parquet files using the following patterns:
 
 ```java
-Table table = TablesawParquetReader.getInstance().read(TablesawParquetReadOptions.builder(FILENAME).build());
-TablesawParquetWriter.getInstance().write(table, TablesawParquetWriteOptions.builder(FILENAME).build());
+Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(FILENAME).build());
+new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder(FILENAME).build());
 ```
 
 Alternatively, you can manually register the parquet reader and writer to use *some* of the  __tablesaw__  classic patterns:

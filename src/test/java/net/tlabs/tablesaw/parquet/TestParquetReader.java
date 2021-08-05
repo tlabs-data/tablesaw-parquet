@@ -51,7 +51,7 @@ class TestParquetReader {
     private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
     private static final String APACHE_NULLS_SNAPPY = "nulls.snappy.parquet";
 
-    private static final TablesawParquetReader PARQUET_READER = TablesawParquetReader.getInstance();
+    private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
     private void validateTable(final Table table, int cols, int rows, String source) {
         assertNotNull(table, source + " is null");
