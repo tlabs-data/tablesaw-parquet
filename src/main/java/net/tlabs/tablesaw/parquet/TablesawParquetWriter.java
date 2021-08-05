@@ -38,26 +38,15 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
     private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
 
-    private static final TablesawParquetWriter INSTANCE = new TablesawParquetWriter();
-
     /**
      * Register the TablesawParquetWriter in the default tablesaw registry.
      * Writer is only associated with its options.
      */
     public static void register() {
-        Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, INSTANCE);
+        Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, new TablesawParquetWriter());
     }
 
-    /**
-     * Get the TablesawParquetWriter singleton instance
-     * 
-     * @return the TablesawParquetWriter singleton instance
-     */
-    public static TablesawParquetWriter getInstance() {
-        return INSTANCE;
-    }
-
-    private TablesawParquetWriter() {
+    public TablesawParquetWriter() {
         super();
     }
 

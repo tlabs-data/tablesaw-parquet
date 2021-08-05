@@ -62,8 +62,8 @@ class TestParquetWriter {
     private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
     private static final String OUTPUT_FILE = "target/test/results/out.parquet";
 
-    private static final TablesawParquetWriter PARQUET_WRITER = TablesawParquetWriter.getInstance();
-    private static final TablesawParquetReader PARQUET_READER = TablesawParquetReader.getInstance();
+    private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
+    private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
     public static void assertTableEquals(final Table expected, final Table actual, final String header) {
         final int numberOfColumns = actual.columnCount();

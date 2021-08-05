@@ -85,7 +85,7 @@ class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
 
     @BeforeAll
     static void beforeAll() throws IOException {
-        table = TablesawParquetReader.getInstance()
+        table = new TablesawParquetReader()
             .read(TablesawParquetReadOptions.builder(new File(PANDAS_PYARROW)).build());
         assertEquals("pandas_pyarrow.parquet", table.name(), "Wrong table name");
     }
