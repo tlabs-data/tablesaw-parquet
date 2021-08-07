@@ -81,7 +81,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         return new TablesawRecordMaterializer(this.table, fileSchema, this.options);
     }
 
-    private Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
+    private static Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
         return Table.create(
             schema.getFields().stream()
             .map(f -> createColumn(f, options))
@@ -89,7 +89,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             .collect(Collectors.toList()));
     }
 
-    private Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
+    private static Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
         final String name = field.getName();
         if (field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
             switch (field.asPrimitiveType().getPrimitiveTypeName()) {
