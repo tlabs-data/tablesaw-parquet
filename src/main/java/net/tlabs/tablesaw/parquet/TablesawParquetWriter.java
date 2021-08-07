@@ -66,7 +66,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
         }
     }
 
-    private static class Builder extends ParquetWriter.Builder<Row, Builder> {
+    protected static class Builder extends ParquetWriter.Builder<Row, Builder> {
 
         private final Table table;
 
