@@ -1,5 +1,7 @@
 package net.tlabs.tablesaw.parquet;
 
+import tech.tablesaw.api.Table;
+
 /*-
  * #%L
  * Tablesaw-Parquet
@@ -37,16 +39,20 @@ public class TablesawParquet {
 
     /**
      * Register the TablesawParquetReader in the Tablesaw registry.
+     * Reader is associated with its options and the '.parquet' extension.
      */
     public static void registerReader() {
-        TablesawParquetReader.register();
+        final TablesawParquetReader registeredInstance = new TablesawParquetReader();
+        Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, registeredInstance);
+        Table.defaultReaderRegistry.registerExtension("parquet", registeredInstance);
     }
 
     /**
      * Register the TablesawParquetWriter in the Tablesaw registry.
+     * Writer is only associated with its options.
      */
     public static void registerWriter() {
-        TablesawParquetWriter.register();
+        Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, new TablesawParquetWriter());
     }
 
 }
