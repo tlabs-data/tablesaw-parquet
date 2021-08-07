@@ -38,14 +38,6 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
     private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
 
-    /**
-     * Register the TablesawParquetWriter in the default tablesaw registry.
-     * Writer is only associated with its options.
-     */
-    public static void register() {
-        Table.defaultWriterRegistry.registerOptions(TablesawParquetWriteOptions.class, new TablesawParquetWriter());
-    }
-
     public TablesawParquetWriter() {
         super();
     }

@@ -35,16 +35,6 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
 
     private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReader.class);
 
-    /**
-     * Registers the TablesawParquetReader in the default tablesaw registry.
-     * Reader is associated with its options and the '.parquet' extension.
-     */
-    public static void register() {
-        final TablesawParquetReader registeredInstance = new TablesawParquetReader();
-        Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, registeredInstance);
-        Table.defaultReaderRegistry.registerExtension("parquet", registeredInstance);
-    }
-
     public TablesawParquetReader() {
         super();
     }
