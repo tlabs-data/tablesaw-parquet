@@ -196,7 +196,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
         /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
         @Override
-        public Builder missingValueIndicator(final String missingValueIndicator) {
+        public Builder missingValueIndicator(final String... missingValueIndicator) {
             LOG.warn("Missing value indicator is not used in TablesawParquetReadOptions");
             super.missingValueIndicator(missingValueIndicator);
             return this;
