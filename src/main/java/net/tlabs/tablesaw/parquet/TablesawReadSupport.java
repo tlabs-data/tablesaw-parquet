@@ -188,7 +188,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                             }
                         }))
                         .orElseGet(() -> 
-                            options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP ?
+                            options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.SKIP ?
                                 null : StringColumn.create(name));
             }
         }
