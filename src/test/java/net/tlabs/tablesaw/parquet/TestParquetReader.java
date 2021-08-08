@@ -135,7 +135,7 @@ class TestParquetReader {
             2);
     }
 
-    private Table validateAllTypesDefault(final String sourceName, final Builder builder, final int rows)
+    private void validateAllTypesDefault(final String sourceName, final Builder builder, final int rows)
         throws IOException {
         final Table table = PARQUET_READER.read(builder.build());
         validateTable(table, 11, rows, sourceName);
@@ -150,7 +150,6 @@ class TestParquetReader {
         assertEquals(ColumnType.STRING, table.column(8).type(), sourceName + "[" + "date_string_col" + "] wrong type");
         assertEquals(ColumnType.STRING, table.column(9).type(), sourceName + "[" + "string_col" + "] wrong type");
         assertEquals(ColumnType.STRING, table.column(10).type(), sourceName + "[" + "timestamp_col" + "] wrong type");
-        return table;
     }
 
     @Test
