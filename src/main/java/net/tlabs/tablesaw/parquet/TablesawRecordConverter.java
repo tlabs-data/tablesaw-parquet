@@ -168,7 +168,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private final class GroupSkipConverter extends SimpleRecordConverter {
+    private static final class GroupSkipConverter extends SimpleRecordConverter {
         private GroupSkipConverter(final GroupType schema) {
             super(schema);
         }
@@ -193,17 +193,17 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private static final long SECOND_TO_MILLIS = 1_000l;
+    private static final long SECOND_TO_MILLIS = 1_000L;
 
-    private static final long SECOND_TO_MICROS = 1_000_000l;
+    private static final long SECOND_TO_MICROS = 1_000_000L;
 
-    private static final long SECOND_TO_NANOS = 1_000_000_000l;
+    private static final long SECOND_TO_NANOS = 1_000_000_000L;
 
-    private static final long MICRO_TO_NANO = 1_000l;
+    private static final long MICRO_TO_NANO = 1_000L;
 
-    private static final long MILLIS_TO_MICRO = 1_000l;
+    private static final long MILLIS_TO_MICRO = 1_000L;
 
-    private static final long MILLIS_TO_NANO = 1_000_000l;
+    private static final long MILLIS_TO_NANO = 1_000_000L;
 
     private static final Converter PRIMITIVE_SKIP_CONVERTER = new PrimitiveConverter() {
         @Override
@@ -238,8 +238,7 @@ public class TablesawRecordConverter extends GroupConverter {
             if (type.isPrimitive()) {
                 converters[fieldIndex] = createConverter(i, columnType, type, options);
             } else {
-                final int col = i;
-                converters[fieldIndex] = new GroupAsTextConverter(type.asGroupType(), col);
+                converters[fieldIndex] = new GroupAsTextConverter(type.asGroupType(), i);
             }
         }
         for (int i = 0; i < converters.length; i++) {
