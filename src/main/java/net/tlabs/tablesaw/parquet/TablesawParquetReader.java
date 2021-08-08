@@ -55,7 +55,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         final String inputPath = options.getInputPath();
         final Path path = new Path(inputPath);
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-        try (final ParquetReader<Row> reader = ParquetReader.<Row>builder(readSupport, path).build()) {
+        try (final ParquetReader<Row> reader = ParquetReader.builder(readSupport, path).build()) {
             int i = 0;
             while (reader.read() != null) {
                 i++;
