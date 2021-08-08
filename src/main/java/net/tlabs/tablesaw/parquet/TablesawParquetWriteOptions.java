@@ -30,9 +30,9 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         UNCOMPRESSED, SNAPPY, GZIP, ZSTD
     }
 
-    protected final String outputFile;
-    protected final CompressionCodec compressionCodec;
-    protected final boolean overwrite;
+    private final String outputFile;
+    private final CompressionCodec compressionCodec;
+    private final boolean overwrite;
 
     public static Builder builder(final File file) {
         return new Builder(file.getAbsolutePath());
@@ -49,11 +49,23 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         this.overwrite = builder.overwrite;
     }
 
+    public String getOutputFile() {
+        return outputFile;
+    }
+
+    public CompressionCodec getCompressionCodec() {
+        return compressionCodec;
+    }
+
+    public boolean isOverwrite() {
+        return overwrite;
+    }
+
     public static class Builder extends WriteOptions.Builder {
 
-        protected final String outputFile;
-        protected CompressionCodec compressionCodec = CompressionCodec.SNAPPY;
-        protected boolean overwrite = true;
+        private final String outputFile;
+        private CompressionCodec compressionCodec = CompressionCodec.SNAPPY;
+        private boolean overwrite = true;
 
         public Builder(final String outputFile) {
             super((Writer) null);

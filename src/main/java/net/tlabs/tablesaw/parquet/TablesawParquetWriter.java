@@ -50,9 +50,9 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
     @Override
     public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
-        try (final ParquetWriter<Row> writer = new Builder(new Path(options.outputFile), table)
-                .withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
-                .withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE)
+        try (final ParquetWriter<Row> writer = new Builder(new Path(options.getOutputFile()), table)
+                .withCompressionCodec(CompressionCodecName.fromConf(options.getCompressionCodec().name()))
+                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
                 .build()) {
             final long start = System.currentTimeMillis();
             Row row = new Row(table);
@@ -62,7 +62,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
             }
             final long end = System.currentTimeMillis();
             LOG.debug("Finished writing {} rows to {} in {} ms",
-                row.getRowNumber() + 1, options.outputFile, (end - start));
+                row.getRowNumber() + 1, options.getOutputFile(), (end - start));
         }
     }
 
