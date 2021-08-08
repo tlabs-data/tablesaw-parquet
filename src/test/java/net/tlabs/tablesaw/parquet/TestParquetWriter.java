@@ -235,9 +235,12 @@ class TestParquetWriter {
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
             TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+            ShortColumn.create("short", (short) 0, (short) 2), 
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0L, 500_000_000_000L),
+            FloatColumn.create("float", Float.NaN, 2.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), 
+            StringColumn.create("string", "", "abdce"),
             TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -254,9 +257,12 @@ class TestParquetWriter {
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
             TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0L, 500_000_000_000L),
+            FloatColumn.create("float", Float.NaN, 2.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
             TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -276,9 +282,12 @@ class TestParquetWriter {
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
             TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0L, 500_000_000_000L),
+            FloatColumn.create("float", Float.NaN, 2.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
             TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -299,9 +308,12 @@ class TestParquetWriter {
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
             TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0L, 500_000_000_000L),
+            FloatColumn.create("float", Float.NaN, 2.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
+            StringColumn.create("string", "", "abdce"),
             TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -323,9 +335,12 @@ class TestParquetWriter {
             DateTimeColumn.create("datetime", LocalDateTime.now(), LocalDateTime.now()),
             InstantColumn.create("instant", Instant.now(), Instant.now()),
             TimeColumn.create("time", LocalTime.now(), LocalTime.NOON),
-            ShortColumn.create("short", (short) 0, (short) 2), IntColumn.create("integer", 1, 255),
-            LongColumn.create("long", 0l, 500_000_000_000l), FloatColumn.create("float", Float.NaN, 2.14159f),
-            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), StringColumn.create("string", "", "abdce"),
+            ShortColumn.create("short", (short) 0, (short) 2),
+            IntColumn.create("integer", 1, 255),
+            LongColumn.create("long", 0L, 500_000_000_000L),
+            FloatColumn.create("float", Float.NaN, 2.14159f),
+            DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), 
+            StringColumn.create("string", "", "abdce"),
             TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
