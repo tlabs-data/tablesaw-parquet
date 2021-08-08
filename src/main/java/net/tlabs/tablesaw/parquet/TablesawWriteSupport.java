@@ -38,7 +38,7 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
-public class TablesawWriteSupport extends WriteSupport<Row> {
+final class TablesawWriteSupport extends WriteSupport<Row> {
 
     private static final String WRITE_SUPPORT_NAME = "net.tlabs.tablesaw.parquet";
     private static final Map<ColumnType, PrimitiveTypeName> PRIMITIVE_MAPPING;
@@ -75,15 +75,11 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     public TablesawWriteSupport(final Table table) {
         super();
         this.proxy = new TableProxy(table);
-        this.schema = internalCreateSchema(table);
+        this.schema = createSchema(table);
         this.nbfields = schema.getFieldCount();
     }
 
     public static MessageType createSchema(final Table table) {
-        return internalCreateSchema(table);
-    }
-
-    private static MessageType internalCreateSchema(final Table table) {
         final String tableName = table.name();
         return new MessageType(tableName == null ? "message" : tableName,
             table.columns().stream()

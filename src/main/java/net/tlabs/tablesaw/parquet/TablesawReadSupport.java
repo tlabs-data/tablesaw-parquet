@@ -58,7 +58,7 @@ import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 
-public class TablesawReadSupport extends ReadSupport<Row> {
+final class TablesawReadSupport extends ReadSupport<Row> {
 
     private final TablesawParquetReadOptions options;
     private Table table = null;
@@ -188,7 +188,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                             }
                         }))
                         .orElseGet(() -> 
-                            options.unnanotatedBinaryAs == UnnanotatedBinaryAs.SKIP ?
+                            options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.SKIP ?
                                 null : StringColumn.create(name));
             }
         }

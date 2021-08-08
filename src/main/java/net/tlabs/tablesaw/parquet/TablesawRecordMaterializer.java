@@ -26,7 +26,7 @@ import org.apache.parquet.schema.MessageType;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 
-public class TablesawRecordMaterializer extends RecordMaterializer<Row> {
+final class TablesawRecordMaterializer extends RecordMaterializer<Row> {
 
     private final TablesawRecordConverter root;
 

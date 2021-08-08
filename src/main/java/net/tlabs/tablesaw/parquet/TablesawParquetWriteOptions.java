@@ -24,15 +24,15 @@ import java.io.File;
 import java.io.Writer;
 import tech.tablesaw.io.WriteOptions;
 
-public class TablesawParquetWriteOptions extends WriteOptions {
+public final class TablesawParquetWriteOptions extends WriteOptions {
 
     public enum CompressionCodec {
         UNCOMPRESSED, SNAPPY, GZIP, ZSTD
     }
 
-    protected final String outputFile;
-    protected final CompressionCodec compressionCodec;
-    protected final boolean overwrite;
+    private final String outputFile;
+    private final CompressionCodec compressionCodec;
+    private final boolean overwrite;
 
     public static Builder builder(final File file) {
         return new Builder(file.getAbsolutePath());
@@ -42,7 +42,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         return new Builder(outputFile);
     }
 
-    protected TablesawParquetWriteOptions(final Builder builder) {
+    private TablesawParquetWriteOptions(final Builder builder) {
         super(builder);
         this.outputFile = builder.outputFile;
         this.compressionCodec = builder.compressionCodec;
@@ -73,5 +73,17 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         public TablesawParquetWriteOptions build() {
             return new TablesawParquetWriteOptions(this);
         }
+    }
+
+    public String getOutputFile() {
+        return outputFile;
+    }
+
+    public CompressionCodec getCompressionCodec() {
+        return compressionCodec;
+    }
+
+    public boolean isOverwrite() {
+        return overwrite;
     }
 }

@@ -59,7 +59,7 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
-public class TablesawRecordConverter extends GroupConverter {
+final class TablesawRecordConverter extends GroupConverter {
 
     private static final int BINARY_INSTANT_LENGTH_VALUE = 12;
     private static final String BINARY_INSTANT_LENGTH_MESSAGE = "Must be 12 bytes";
@@ -168,7 +168,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private final class GroupSkipConverter extends SimpleRecordConverter {
+    private static final class GroupSkipConverter extends SimpleRecordConverter {
         private GroupSkipConverter(final GroupType schema) {
             super(schema);
         }
@@ -193,17 +193,17 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private static final long SECOND_TO_MILLIS = 1_000l;
+    private static final long SECOND_TO_MILLIS = 1_000L;
 
-    private static final long SECOND_TO_MICROS = 1_000_000l;
+    private static final long SECOND_TO_MICROS = 1_000_000L;
 
-    private static final long SECOND_TO_NANOS = 1_000_000_000l;
+    private static final long SECOND_TO_NANOS = 1_000_000_000L;
 
-    private static final long MICRO_TO_NANO = 1_000l;
+    private static final long MICRO_TO_NANO = 1_000L;
 
-    private static final long MILLIS_TO_MICRO = 1_000l;
+    private static final long MILLIS_TO_MICRO = 1_000L;
 
-    private static final long MILLIS_TO_NANO = 1_000_000l;
+    private static final long MILLIS_TO_NANO = 1_000_000L;
 
     private static final Converter PRIMITIVE_SKIP_CONVERTER = new PrimitiveConverter() {
         @Override
@@ -238,8 +238,7 @@ public class TablesawRecordConverter extends GroupConverter {
             if (type.isPrimitive()) {
                 converters[fieldIndex] = createConverter(i, columnType, type, options);
             } else {
-                final int col = i;
-                converters[fieldIndex] = new GroupAsTextConverter(type.asGroupType(), col);
+                converters[fieldIndex] = new GroupAsTextConverter(type.asGroupType(), i);
             }
         }
         for (int i = 0; i < converters.length; i++) {
@@ -385,15 +384,12 @@ public class TablesawRecordConverter extends GroupConverter {
 
                             @Override
                             public void addBinary(final Binary value) {
-                                Preconditions.checkArgument(value.length() == BINARY_INSTANT_LENGTH_VALUE,
-                                    BINARY_INSTANT_LENGTH_MESSAGE);
+                                Preconditions.checkArgument(value.length() == BINARY_INSTANT_LENGTH_VALUE, BINARY_INSTANT_LENGTH_MESSAGE);
                                 final ByteBuffer buf = value.toByteBuffer();
                                 buf.order(ByteOrder.LITTLE_ENDIAN);
-                                final long nanoday = buf.getLong();
-                                final int julianday = buf.getInt();
-                                final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
+                                final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, buf.getInt());
                                 proxy.appendInstant(colIndex, ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC)
-                                    .toInstant().plus(nanoday, ChronoUnit.NANOS));
+                                    .toInstant().plus(buf.getLong(), ChronoUnit.NANOS));
                             }
                         });
                     }

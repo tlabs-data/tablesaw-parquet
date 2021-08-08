@@ -91,7 +91,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testTableFromOtherSource() throws IOException {
+    void testTableFromOtherSource() {
         assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(Source.fromString("A,B,C,D,E")),
             "Wrong exception reading from non-file source");
     }
@@ -135,7 +135,7 @@ class TestParquetReader {
             2);
     }
 
-    private Table validateAllTypesDefault(final String sourceName, final Builder builder, final int rows)
+    private void validateAllTypesDefault(final String sourceName, final Builder builder, final int rows)
         throws IOException {
         final Table table = PARQUET_READER.read(builder.build());
         validateTable(table, 11, rows, sourceName);
@@ -150,7 +150,6 @@ class TestParquetReader {
         assertEquals(ColumnType.STRING, table.column(8).type(), sourceName + "[" + "date_string_col" + "] wrong type");
         assertEquals(ColumnType.STRING, table.column(9).type(), sourceName + "[" + "string_col" + "] wrong type");
         assertEquals(ColumnType.STRING, table.column(10).type(), sourceName + "[" + "timestamp_col" + "] wrong type");
-        return table;
     }
 
     @Test
@@ -245,7 +244,7 @@ class TestParquetReader {
     }
 
     @Test()
-    void testDataPageV2Error() throws IOException {
+    void testDataPageV2Error() {
         assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).withManageGroupAs(ManageGroupsAs.ERROR).build()));
     }
@@ -279,8 +278,8 @@ class TestParquetReader {
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT64_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_INT64_DECIMAL);
         assertEquals(ColumnType.LONG, table.column(0).type(), APACHE_INT64_DECIMAL + "[" + "value" + "] wrong type");
-        assertEquals(100l, table.longColumn(0).getLong(0), APACHE_INT64_DECIMAL + "[" + "value" + ",0] wrong value");
-        assertEquals(2400l, table.longColumn(0).getLong(23), APACHE_INT64_DECIMAL + "[" + "value" + ",23] wrong value");
+        assertEquals(100L, table.longColumn(0).getLong(0), APACHE_INT64_DECIMAL + "[" + "value" + ",0] wrong value");
+        assertEquals(2400L, table.longColumn(0).getLong(23), APACHE_INT64_DECIMAL + "[" + "value" + ",23] wrong value");
     }
 
     @Test

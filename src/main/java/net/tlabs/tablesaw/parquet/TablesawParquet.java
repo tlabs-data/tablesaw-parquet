@@ -22,7 +22,7 @@ import tech.tablesaw.api.Table;
  * #L%
  */
 
-public class TablesawParquet {
+public final class TablesawParquet {
 
     private TablesawParquet() {
         super();

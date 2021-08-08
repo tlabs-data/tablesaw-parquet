@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
-public class TablesawParquetReadOptions extends ReadOptions {
+public final class TablesawParquetReadOptions extends ReadOptions {
 
     public enum ManageGroupsAs {
         TEXT, SKIP, ERROR
@@ -42,14 +42,14 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
     private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetReadOptions.class);
 
-    protected boolean convertInt96ToTimestamp;
-    protected UnnanotatedBinaryAs unnanotatedBinaryAs;
-    protected boolean shortColumnTypeUsed;
-    protected boolean floatColumnTypeUsed;
-    protected ManageGroupsAs manageGroupsAs;
-    protected String inputPath;
+    private final boolean convertInt96ToTimestamp;
+    private final UnnanotatedBinaryAs unnanotatedBinaryAs;
+    private final boolean shortColumnTypeUsed;
+    private final boolean floatColumnTypeUsed;
+    private final ManageGroupsAs manageGroupsAs;
+    private final String inputPath;
 
-    protected TablesawParquetReadOptions(final Builder builder) {
+    private TablesawParquetReadOptions(final Builder builder) {
         super(builder);
         convertInt96ToTimestamp = builder.convertInt96ToTimestamp;
         unnanotatedBinaryAs = builder.unnanotatedBinaryAs;
@@ -97,10 +97,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
     }
 
     public static class Builder extends ReadOptions.Builder {
-        protected boolean convertInt96ToTimestamp = false;
-        protected UnnanotatedBinaryAs unnanotatedBinaryAs = UnnanotatedBinaryAs.STRING;
-        protected ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
-        protected String inputPath;
+        private boolean convertInt96ToTimestamp = false;
+        private UnnanotatedBinaryAs unnanotatedBinaryAs = UnnanotatedBinaryAs.STRING;
+        private ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
+
+        private final String inputPath;
 
         protected Builder(final String inputPath) {
             super();

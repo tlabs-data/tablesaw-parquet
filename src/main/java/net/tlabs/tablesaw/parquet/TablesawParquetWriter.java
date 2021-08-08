@@ -34,7 +34,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataWriter;
 import tech.tablesaw.io.Destination;
 
-public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOptions> {
+public final class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOptions> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TablesawParquetWriter.class);
 
@@ -43,16 +43,16 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
     }
 
     @Override
-    public void write(final Table table, final Destination dest) throws IOException {
+    public void write(final Table table, final Destination dest) {
         throw new UnsupportedOperationException(
             "The use of Destination is not supported, please use the write(Table, TablesawParquetWriteOptions) method");
     }
 
     @Override
     public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
-        try (final ParquetWriter<Row> writer = new Builder(new Path(options.outputFile), table)
-                .withCompressionCodec(CompressionCodecName.fromConf(options.compressionCodec.name()))
-                .withWriteMode(options.overwrite ? Mode.OVERWRITE : Mode.CREATE)
+        try (final ParquetWriter<Row> writer = new Builder(new Path(options.getOutputFile()), table)
+                .withCompressionCodec(CompressionCodecName.fromConf(options.getCompressionCodec().name()))
+                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
                 .build()) {
             final long start = System.currentTimeMillis();
             Row row = new Row(table);
@@ -61,16 +61,19 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
                 writer.write(row);
             }
             final long end = System.currentTimeMillis();
-            LOG.debug("Finished writing {} rows to {} in {} ms",
-                row.getRowNumber() + 1, options.outputFile, (end - start));
+            LOG.debug(
+                    "Finished writing {} rows to {} in {} ms",
+                    row.getRowNumber() + 1,
+                    options.getOutputFile(),
+                    (end - start));
         }
     }
 
-    protected static class Builder extends ParquetWriter.Builder<Row, Builder> {
+    protected static final class Builder extends ParquetWriter.Builder<Row, Builder> {
 
         private final Table table;
 
-        protected Builder(final Path path, final Table table) {
+        private Builder(final Path path, final Table table) {
             super(path);
             this.table = table;
         }
