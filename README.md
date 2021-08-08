@@ -98,7 +98,7 @@ Table.read().usingOptions(TablesawParquetReadOptions.builder(URL));
 
 #### When reading a parquet file (parquet to tablesaw)
 
-Non-annotated [parquet data types](https://github.com/apache/parquet-format) are converted to  __tablesaw__  column types as follow:
+Non-annotated [parquet data types](https://github.com/apache/parquet-format) are converted to  __tablesaw__  column types as follows:
 
 | Parquet type | Tablesaw column type | Notes |
 |--------------|----------------------|-------|
@@ -110,7 +110,7 @@ Non-annotated [parquet data types](https://github.com/apache/parquet-format) are
 | DOUBLE | DoubleColumn |  |
 | BYTE_ARRAY | StringColumn | Managed by the *withUnnanotatedBinaryAs* option |
 
-Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/master/LogicalTypes.md) are converted to  __tablesaw__  column types as follow:
+Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/master/LogicalTypes.md) are converted to  __tablesaw__  column types as follows:
 
 | Parquet logical type | Tablesaw column type | Notes |
 |----------------------|----------------------|-------|
@@ -195,7 +195,7 @@ Note that we currently do not run the tests on Windows (see this [github issue](
 
 Users are welcome to contribute to this project.
 
-Bugs or problems with the library should be reported on [github](https://github.com/tlabs-data/tablesaw-parquet/issues). If you report an issue you have when reading a parquet file, please attach a sample test file so we can reproduce and correct the issue. Feature requests are also welcome, but there is no guarantee we will be able to implement them quickly...
+Bugs or problems with the library should be reported on [github](https://github.com/tlabs-data/tablesaw-parquet/issues). If you report an issue you have when reading a parquet file, please attach a sample test file, so we can reproduce and correct the issue. Feature requests are also welcome, but there is no guarantee we will be able to implement them quickly...
 
 Users are also welcome to contribute (small) test parquet files from different sources or with different column types than the ones currently tested. In this case please provide a quick description of the file content and origin. If you are able to provide a pull request with the tests implemented all the better.
 
