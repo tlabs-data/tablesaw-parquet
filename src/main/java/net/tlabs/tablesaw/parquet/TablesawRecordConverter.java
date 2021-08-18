@@ -292,22 +292,6 @@ public class TablesawRecordConverter extends GroupConverter {
 
     private Converter createConverter(final int colIndex, final ColumnType columnType, final Type schemaType,
         final TablesawParquetReadOptions options) {
-        if (columnType == ColumnType.BOOLEAN) {
-            return new PrimitiveConverter() {
-                @Override
-                public void addBoolean(final boolean value) {
-                    proxy.appendBoolean(colIndex, value);
-                }
-            };
-        }
-        if (columnType == ColumnType.SHORT) {
-            return new PrimitiveConverter() {
-                @Override
-                public void addInt(final int value) {
-                    proxy.appendShort(colIndex, (short) value);
-                }
-            };
-        }
         if (columnType == ColumnType.INTEGER) {
             return new PrimitiveConverter() {
                 @Override
@@ -324,6 +308,24 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
+        if (columnType == ColumnType.DOUBLE) {
+            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
+                .flatMap(a -> doubleFromBinaryConverter(colIndex, a))
+                .orElseGet(() -> new DefaultDoublePrimitiveConverter(colIndex));
+        }
+        if (columnType == ColumnType.BOOLEAN) {
+            return new PrimitiveConverter() {
+                @Override
+                public void addBoolean(final boolean value) {
+                    proxy.appendBoolean(colIndex, value);
+                }
+            };
+        }
+        if (columnType == ColumnType.STRING) {
+            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
+                .flatMap(a -> annotatedStringConverter(colIndex, a))
+                .orElseGet(() -> createUnannotatedStringConverter(colIndex, schemaType, options));
+        }
         if (columnType == ColumnType.FLOAT) {
             return new PrimitiveConverter() {
                 @Override
@@ -332,28 +334,15 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.DOUBLE) {
-            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> doubleFromBinaryConverter(colIndex, a))
-                .orElseGet(() -> new DefaultDoublePrimitiveConverter(colIndex));
-        }
-        if (columnType == ColumnType.STRING) {
-            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> annotatedStringConverter(colIndex, a))
-                .orElseGet(() -> createUnannotatedStringConverter(colIndex, schemaType, options));
-        }
-        if (columnType == ColumnType.TEXT) {
-            return new PrimitiveConverter() {
-                @Override
-                public void addBinary(final Binary value) {
-                    proxy.appendText(colIndex, value.toStringUsingUTF8());
-                }
-            };
-        }
         if (columnType == ColumnType.INSTANT) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> annotatedInstantConverter(colIndex, a))
                 .orElseGet(() -> new MillisInstantPrimitiveConverter(colIndex));
+        }
+        if (columnType == ColumnType.LOCAL_DATE_TIME) {
+            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
+                .flatMap(a -> annotatedDateTimeConverter(colIndex, a))
+                .orElseGet(() -> new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
         }
         if (columnType == ColumnType.LOCAL_DATE) {
             return new PrimitiveConverter() {
@@ -368,10 +357,21 @@ public class TablesawRecordConverter extends GroupConverter {
                 .flatMap(a -> annotatedTimeConverter(colIndex, a))
                 .orElseGet(() -> new TimePrimitiveConverter(colIndex, 1L));
         }
-        if (columnType == ColumnType.LOCAL_DATE_TIME) {
-            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> annotatedDateTimeConverter(colIndex, a))
-                .orElseGet(() -> new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
+        if (columnType == ColumnType.SHORT) {
+            return new PrimitiveConverter() {
+                @Override
+                public void addInt(final int value) {
+                    proxy.appendShort(colIndex, (short) value);
+                }
+            };
+        }
+        if (columnType == ColumnType.TEXT) {
+            return new PrimitiveConverter() {
+                @Override
+                public void addBinary(final Binary value) {
+                    proxy.appendText(colIndex, value.toStringUsingUTF8());
+                }
+            };
         }
         return null;
     }
