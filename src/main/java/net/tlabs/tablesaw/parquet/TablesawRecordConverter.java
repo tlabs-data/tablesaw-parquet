@@ -66,33 +66,35 @@ public class TablesawRecordConverter extends GroupConverter {
     private static final int BINARY_INTERVAL_LENGTH_VALUE = 12;
     private static final String BINARY_INTERVAL_LENGTH_MESSAGE = "Must be 12 bytes";
 
-    private final class DefaultDateTimePrimitiveConverter extends PrimitiveConverter {
+    private final class DateTimePrimitiveConverter extends PrimitiveConverter {
         private final int colIndex;
+        private final long secondFactor;
+        private final long nanoFactor;
 
-        private DefaultDateTimePrimitiveConverter(int colIndex) {
+        private DateTimePrimitiveConverter(final int colIndex, final long secondFactor, final long nanoFactor) {
+            super();
             this.colIndex = colIndex;
+            this.secondFactor = secondFactor;
+            this.nanoFactor = nanoFactor;
         }
 
         @Override
-        public void addLong(long value) {
-            final long epochSecond = value / SECOND_TO_MILLIS;
+        public void addLong(final long value) {
+            final long epochSecond = value / secondFactor;
             proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(epochSecond,
-                (int) ((value - (epochSecond * SECOND_TO_MILLIS)) * MILLIS_TO_NANO), ZoneOffset.UTC));
+                (int) ((value - (epochSecond * secondFactor)) * nanoFactor), ZoneOffset.UTC));
         }
+        
     }
+    
+    private abstract class InstantPrimitiveConverter extends PrimitiveConverter {
+        protected final int colIndex;
 
-    private final class DefaultInstantPrimitiveConverter extends PrimitiveConverter {
-        private final int colIndex;
-
-        private DefaultInstantPrimitiveConverter(int colIndex) {
+        private InstantPrimitiveConverter(final int colIndex) {
+            super();
             this.colIndex = colIndex;
         }
-
-        @Override
-        public void addLong(long value) {
-            proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
-        }
-
+        
         @Override
         public void addBinary(final Binary value) {
             Preconditions.checkArgument(value.length() == BINARY_INSTANT_LENGTH_VALUE, BINARY_INSTANT_LENGTH_MESSAGE);
@@ -105,11 +107,40 @@ public class TablesawRecordConverter extends GroupConverter {
                 ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant().plus(nanotime, ChronoUnit.NANOS));
         }
     }
+    
+    private final class MillisInstantPrimitiveConverter extends InstantPrimitiveConverter {
+        private MillisInstantPrimitiveConverter(final int colIndex) {
+            super(colIndex);
+        }
+
+        @Override
+        public void addLong(final long value) {
+            proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
+        }
+    }
+    
+    private final class SubMillisInstantPrimitiveConverter extends InstantPrimitiveConverter {
+        private final long factor;
+        private final ChronoUnit chronoUnit;
+
+        private SubMillisInstantPrimitiveConverter(final int colIndex, final long factor, final ChronoUnit unit) {
+            super(colIndex);
+            this.factor = factor;
+            this.chronoUnit = unit;
+        }
+
+        @Override
+        public void addLong(final long value) {
+            final long millisFromValue = value / factor;
+            proxy.appendInstant(colIndex, Instant.ofEpochMilli(millisFromValue)
+                .plus(value - millisFromValue * factor, chronoUnit));
+        }
+    }
 
     private final class DefaultDoublePrimitiveConverter extends PrimitiveConverter {
         private final int colIndex;
 
-        private DefaultDoublePrimitiveConverter(int colIndex) {
+        private DefaultDoublePrimitiveConverter(final int colIndex) {
             this.colIndex = colIndex;
         }
 
@@ -124,24 +155,29 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private final class DefaultTimePrimitiveConverter extends PrimitiveConverter {
+    private final class TimePrimitiveConverter  extends PrimitiveConverter {
         private final int colIndex;
+        private final long longValueFactor;
 
-        private DefaultTimePrimitiveConverter(final int colIndex) {
+        private TimePrimitiveConverter(final int colIndex, final long longValueFactor) {
+            super();
             this.colIndex = colIndex;
+            this.longValueFactor = longValueFactor;
         }
-
+        
         @Override
         public void addInt(final int value) {
-            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(MILLIS_TO_NANO * value));
+            // INT32 is always in MILLIS
+            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(MILLIS_TO_NANOS * value));
         }
-
+        
         @Override
         public void addLong(final long value) {
-            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value));
+            // INT64 is either MICROS or NANOS
+            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value * longValueFactor));
         }
     }
-
+    
     private final class StringPrimitiveConverter extends PrimitiveConverter {
         private final int colIndex;
 
@@ -199,11 +235,11 @@ public class TablesawRecordConverter extends GroupConverter {
 
     private static final long SECOND_TO_NANOS = 1_000_000_000L;
 
-    private static final long MICRO_TO_NANO = 1_000L;
+    private static final long MICROS_TO_NANOS = 1_000L;
 
     private static final long MILLIS_TO_MICRO = 1_000L;
 
-    private static final long MILLIS_TO_NANO = 1_000_000L;
+    private static final long MILLIS_TO_NANOS = 1_000_000L;
 
     private static final Converter PRIMITIVE_SKIP_CONVERTER = new PrimitiveConverter() {
         @Override
@@ -340,11 +376,7 @@ public class TablesawRecordConverter extends GroupConverter {
                         });
                     }
                 }))
-                .orElseGet(() ->
-                    schemaType.asPrimitiveType().getPrimitiveTypeName() != PrimitiveTypeName.INT96
-                    && options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.STRING
-                        ? new StringPrimitiveConverter(colIndex)
-                        : new HexStringPrimitiveConverter(colIndex));
+                .orElseGet(() -> createStringColumnConverter(colIndex, schemaType, options));
         }
         if (columnType == ColumnType.TEXT) {
             return new PrimitiveConverter() {
@@ -359,50 +391,27 @@ public class TablesawRecordConverter extends GroupConverter {
                 .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
                     @Override
                     public Optional<Converter> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
-                        return Optional.of(new PrimitiveConverter() {
-                            @Override
-                            public void addLong(long value) {
-                                switch (timestampLogicalType.getUnit()) {
-                                    case MICROS:
-                                        final long millisFromMicro = value / MILLIS_TO_MICRO;
-                                        proxy.appendInstant(colIndex, Instant.ofEpochMilli(millisFromMicro)
-                                            .plus(value - millisFromMicro * MILLIS_TO_MICRO, ChronoUnit.MICROS));
-                                        break;
-                                    case MILLIS:
-                                        proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
-                                        break;
-                                    case NANOS:
-                                        final long millisFromNanos = value / MILLIS_TO_NANO;
-                                        proxy.appendInstant(colIndex, Instant.ofEpochMilli(millisFromNanos)
-                                            .plusNanos(value - millisFromNanos * MILLIS_TO_NANO));
-                                        break;
-                                    default:
-                                        throw new UnsupportedOperationException(
-                                            "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in Timestamp");
-                                }
-                            }
-
-                            @Override
-                            public void addBinary(final Binary value) {
-                                Preconditions.checkArgument(value.length() == BINARY_INSTANT_LENGTH_VALUE,
-                                    BINARY_INSTANT_LENGTH_MESSAGE);
-                                final ByteBuffer buf = value.toByteBuffer();
-                                buf.order(ByteOrder.LITTLE_ENDIAN);
-                                final long nanoday = buf.getLong();
-                                final int julianday = buf.getInt();
-                                final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
-                                proxy.appendInstant(colIndex, ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC)
-                                    .toInstant().plus(nanoday, ChronoUnit.NANOS));
-                            }
-                        });
+                        switch (timestampLogicalType.getUnit()) {
+                            case MILLIS:
+                                return Optional.of(new MillisInstantPrimitiveConverter(colIndex));
+                            case MICROS:
+                                return Optional.of(
+                                    new SubMillisInstantPrimitiveConverter(colIndex, MILLIS_TO_MICRO, ChronoUnit.MICROS));
+                            case NANOS:
+                                return Optional.of(
+                                    new SubMillisInstantPrimitiveConverter(colIndex, MILLIS_TO_NANOS, ChronoUnit.NANOS));
+                            default:
+                                throw new UnsupportedOperationException(
+                                    "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in Timestamp");
+                        }
                     }
                 }))
-                .orElseGet(() -> new DefaultInstantPrimitiveConverter(colIndex));
+                .orElseGet(() -> new MillisInstantPrimitiveConverter(colIndex));
         }
         if (columnType == ColumnType.LOCAL_DATE) {
             return new PrimitiveConverter() {
                 @Override
-                public void addInt(int value) {
+                public void addInt(final int value) {
                     proxy.appendDate(colIndex, LocalDate.ofEpochDay(value));
                 }
             };
@@ -412,67 +421,52 @@ public class TablesawRecordConverter extends GroupConverter {
                 .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
                     @Override
                     public Optional<Converter> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
-                        return Optional.of(new PrimitiveConverter() {
-                            @Override
-                            public void addLong(long value) {
-                                switch (timeLogicalType.getUnit()) {
-                                    case MICROS:
-                                        proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value * MICRO_TO_NANO));
-                                        break;
-                                    case NANOS:
-                                        proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value));
-                                        break;
-                                    default:
-                                        throw new UnsupportedOperationException(
-                                            "This should never happen: TimeUnit is neither MICROS or NANOS in Int64 Time");
-                                }
-                            }
-                        });
+                        switch (timeLogicalType.getUnit()) {
+                            case MICROS:
+                                return Optional.of(new TimePrimitiveConverter(colIndex, MICROS_TO_NANOS));
+                            case NANOS:
+                                return Optional.of(new TimePrimitiveConverter(colIndex, 1L));
+                            default:
+                                throw new UnsupportedOperationException(
+                                    "This should never happen: TimeUnit is neither MICROS or NANOS in Int64 Time");
+                        }
                     }
                 }))
-                .orElseGet(() -> new DefaultTimePrimitiveConverter(colIndex));
+                .orElseGet(() -> new TimePrimitiveConverter(colIndex, 1L));
         }
         if (columnType == ColumnType.LOCAL_DATE_TIME) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
                     @Override
                     public Optional<Converter> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
-                        return Optional.of(new PrimitiveConverter() {
-                            @Override
-                            public void addLong(long value) {
-                                switch (timestampLogicalType.getUnit()) {
-                                    case MICROS:
-                                        final long epochSecondFromMicros = value / SECOND_TO_MICROS;
-                                        proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(
-                                            epochSecondFromMicros,
-                                            (int) (value - (epochSecondFromMicros * SECOND_TO_MICROS) * MICRO_TO_NANO),
-                                            ZoneOffset.UTC));
-                                        break;
-                                    case MILLIS:
-                                        final long epochSecondFromMillis = value / SECOND_TO_MILLIS;
-                                        proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(
-                                            epochSecondFromMillis,
-                                            (int) ((value - (epochSecondFromMillis * SECOND_TO_MILLIS)) * MILLIS_TO_NANO),
-                                            ZoneOffset.UTC));
-                                        break;
-                                    case NANOS:
-                                        final long epochSecondFromNanos = value / SECOND_TO_NANOS;
-                                        proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(
-                                            epochSecondFromNanos,
-                                            (int) (value - (epochSecondFromNanos * SECOND_TO_NANOS)),
-                                            ZoneOffset.UTC));
-                                        break;
-                                    default:
-                                        throw new UnsupportedOperationException(
-                                            "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in DateTime");
-                                }
-                            }
-                        });
+                        switch (timestampLogicalType.getUnit()) {
+                            case MILLIS:
+                                return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
+                            case MICROS:
+                                return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_MICROS, MICROS_TO_NANOS));
+                            case NANOS:
+                                return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_NANOS, 1L));
+                            default:
+                                throw new UnsupportedOperationException(
+                                    "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in DateTime");
+                        }
                     }
                 }))
-                .orElseGet(() -> new DefaultDateTimePrimitiveConverter(colIndex));
+                .orElseGet(() -> new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
         }
         return null;
+    }
+
+    private Converter createStringColumnConverter(final int colIndex, final Type schemaType,
+            final TablesawParquetReadOptions options) {
+        // INT96 as hex strings
+        if (schemaType.asPrimitiveType().getPrimitiveTypeName() == PrimitiveTypeName.INT96) {
+            return new HexStringPrimitiveConverter(colIndex);
+        }
+        // Unannotated STRING depends on option
+        // UnannotatedBinaryAs.SKIP case already treated
+        return options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.STRING ?
+            new StringPrimitiveConverter(colIndex) : new HexStringPrimitiveConverter(colIndex);
     }
 
     private static String rawBytesToHexString(final byte[] bytes) {
