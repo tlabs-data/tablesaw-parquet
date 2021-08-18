@@ -55,17 +55,17 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
                 .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
                 .build()) {
             final long start = System.currentTimeMillis();
-            Row row = new Row(table);
-            while (row.hasNext()) {
-                row = row.next();
+            int rowCount = 0;
+            for(final Row row : table) {
                 writer.write(row);
+                rowCount++;
             }
             final long end = System.currentTimeMillis();
             LOG.debug("Finished writing {} rows to {} in {} ms",
-                row.getRowNumber() + 1, options.getOutputFile(), (end - start));
+                rowCount, options.getOutputFile(), (end - start));
         }
     }
-
+    
     protected static class Builder extends ParquetWriter.Builder<Row, Builder> {
 
         private final Table table;
