@@ -114,7 +114,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
 
         @Override
-        public void addLong(long value) {
+        public void addLong(final long value) {
             proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
         }
     }
@@ -130,7 +130,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
 
         @Override
-        public void addLong(long value) {
+        public void addLong(final long value) {
             final long millisFromValue = value / factor;
             proxy.appendInstant(colIndex, Instant.ofEpochMilli(millisFromValue)
                 .plus(value - millisFromValue * factor, chronoUnit));
@@ -140,7 +140,7 @@ public class TablesawRecordConverter extends GroupConverter {
     private final class DefaultDoublePrimitiveConverter extends PrimitiveConverter {
         private final int colIndex;
 
-        private DefaultDoublePrimitiveConverter(int colIndex) {
+        private DefaultDoublePrimitiveConverter(final int colIndex) {
             this.colIndex = colIndex;
         }
 
@@ -411,7 +411,7 @@ public class TablesawRecordConverter extends GroupConverter {
         if (columnType == ColumnType.LOCAL_DATE) {
             return new PrimitiveConverter() {
                 @Override
-                public void addInt(int value) {
+                public void addInt(final int value) {
                     proxy.appendDate(colIndex, LocalDate.ofEpochDay(value));
                 }
             };
