@@ -108,46 +108,53 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
 
     @Override
     public void write(final Row row) {
-        final int rowNumber = row.getRowNumber();
         recordConsumer.startMessage();
+        recordRow(row);
+        recordConsumer.endMessage();
+    }
+
+    private void recordRow(final Row row) {
+        final int rowNumber = row.getRowNumber();
         for (int colIndex = 0; colIndex < nbfields; colIndex++) {
             final Column<?> column = proxy.column(colIndex);
             if (!column.isMissing(rowNumber)) {
                 final String fieldName = column.name();
-                final ColumnType type = column.type();
                 recordConsumer.startField(fieldName, colIndex);
-                if (type == ColumnType.BOOLEAN) {
-                    recordConsumer.addBoolean(proxy.getBoolean(colIndex, rowNumber));
-                } else if (type == ColumnType.SHORT) {
-                    recordConsumer.addInteger(proxy.getShort(colIndex, rowNumber));
-                } else if (type == ColumnType.INTEGER) {
-                    recordConsumer.addInteger(proxy.getInt(colIndex, rowNumber));
-                } else if (type == ColumnType.LONG) {
-                    recordConsumer.addLong(proxy.getLong(colIndex, rowNumber));
-                } else if (type == ColumnType.FLOAT) {
-                    recordConsumer.addFloat(proxy.getFloat(colIndex, rowNumber));
-                } else if (type == ColumnType.DOUBLE) {
-                    recordConsumer.addDouble(proxy.getDouble(colIndex, rowNumber));
-                } else if (type == ColumnType.STRING) {
-                    recordConsumer.addBinary(Binary.fromString(proxy.getString(colIndex, rowNumber)));
-                } else if (type == ColumnType.TEXT) {
-                    recordConsumer.addBinary(Binary.fromString(proxy.getText(colIndex, rowNumber)));
-                } else if (type == ColumnType.LOCAL_DATE) {
-                    recordConsumer.addInteger(proxy.getDateToEpochDay(colIndex, rowNumber));
-                } else if (type == ColumnType.LOCAL_TIME) {
-                    recordConsumer.addLong(proxy.getTimeToNanoOfDay(colIndex, rowNumber));
-                } else if (type == ColumnType.LOCAL_DATE_TIME) {
-                    recordConsumer.addLong(proxy.getDateTimeToEpochMilli(colIndex, rowNumber));
-                } else if (type == ColumnType.INSTANT) {
-                    recordConsumer.addLong(proxy.getInstantToEpochMilli(colIndex, rowNumber));
-                } else {
-                    // This should not happen
-                    throw new UnsupportedOperationException("Unsupported ColumnType: " + type);
-                }
+                recordField(rowNumber, colIndex, column.type());
                 recordConsumer.endField(fieldName, colIndex);
             }
         }
-        recordConsumer.endMessage();
+    }
+
+    private void recordField(final int rowNumber, final int colIndex, final ColumnType type) {
+        if (type == ColumnType.BOOLEAN) {
+            recordConsumer.addBoolean(proxy.getBoolean(colIndex, rowNumber));
+        } else if (type == ColumnType.SHORT) {
+            recordConsumer.addInteger(proxy.getShort(colIndex, rowNumber));
+        } else if (type == ColumnType.INTEGER) {
+            recordConsumer.addInteger(proxy.getInt(colIndex, rowNumber));
+        } else if (type == ColumnType.LONG) {
+            recordConsumer.addLong(proxy.getLong(colIndex, rowNumber));
+        } else if (type == ColumnType.FLOAT) {
+            recordConsumer.addFloat(proxy.getFloat(colIndex, rowNumber));
+        } else if (type == ColumnType.DOUBLE) {
+            recordConsumer.addDouble(proxy.getDouble(colIndex, rowNumber));
+        } else if (type == ColumnType.STRING) {
+            recordConsumer.addBinary(Binary.fromString(proxy.getString(colIndex, rowNumber)));
+        } else if (type == ColumnType.TEXT) {
+            recordConsumer.addBinary(Binary.fromString(proxy.getText(colIndex, rowNumber)));
+        } else if (type == ColumnType.LOCAL_DATE) {
+            recordConsumer.addInteger(proxy.getDateToEpochDay(colIndex, rowNumber));
+        } else if (type == ColumnType.LOCAL_TIME) {
+            recordConsumer.addLong(proxy.getTimeToNanoOfDay(colIndex, rowNumber));
+        } else if (type == ColumnType.LOCAL_DATE_TIME) {
+            recordConsumer.addLong(proxy.getDateTimeToEpochMilli(colIndex, rowNumber));
+        } else if (type == ColumnType.INSTANT) {
+            recordConsumer.addLong(proxy.getInstantToEpochMilli(colIndex, rowNumber));
+        } else {
+            // This should not happen
+            throw new UnsupportedOperationException("Unsupported ColumnType: " + type);
+        }
     }
 
     @Override
