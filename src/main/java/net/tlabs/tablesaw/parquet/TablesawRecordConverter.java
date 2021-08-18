@@ -130,24 +130,29 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private final class DefaultTimePrimitiveConverter extends PrimitiveConverter {
+    private final class TimePrimitiveConverter  extends PrimitiveConverter {
         private final int colIndex;
+        private final long longValueFactor;
 
-        private DefaultTimePrimitiveConverter(final int colIndex) {
+        private TimePrimitiveConverter(final int colIndex, final long longValueFactor) {
+            super();
             this.colIndex = colIndex;
+            this.longValueFactor = longValueFactor;
         }
-
+        
         @Override
         public void addInt(final int value) {
+            // INT32 is always in MILLIS
             proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(MILLIS_TO_NANOS * value));
         }
-
+        
         @Override
         public void addLong(final long value) {
-            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value));
+            // INT64 is either MICROS or NANOS
+            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value * longValueFactor));
         }
     }
-
+    
     private final class StringPrimitiveConverter extends PrimitiveConverter {
         private final int colIndex;
 
@@ -415,28 +420,17 @@ public class TablesawRecordConverter extends GroupConverter {
                     @Override
                     public Optional<Converter> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
                         switch (timeLogicalType.getUnit()) {
-                            
+                            case MICROS:
+                                return Optional.of(new TimePrimitiveConverter(colIndex, MICROS_TO_NANOS));
+                            case NANOS:
+                                return Optional.of(new TimePrimitiveConverter(colIndex, 1L));
+                            default:
+                                throw new UnsupportedOperationException(
+                                    "This should never happen: TimeUnit is neither MICROS or NANOS in Int64 Time");
                         }
-                        
-                        return Optional.of(new PrimitiveConverter() {
-                            @Override
-                            public void addLong(long value) {
-                                switch (timeLogicalType.getUnit()) {
-                                    case MICROS:
-                                        proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value * MICROS_TO_NANOS));
-                                        break;
-                                    case NANOS:
-                                        proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value));
-                                        break;
-                                    default:
-                                        throw new UnsupportedOperationException(
-                                            "This should never happen: TimeUnit is neither MICROS or NANOS in Int64 Time");
-                                }
-                            }
-                        });
                     }
                 }))
-                .orElseGet(() -> new DefaultTimePrimitiveConverter(colIndex));
+                .orElseGet(() -> new TimePrimitiveConverter(colIndex, 1L));
         }
         if (columnType == ColumnType.LOCAL_DATE_TIME) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
