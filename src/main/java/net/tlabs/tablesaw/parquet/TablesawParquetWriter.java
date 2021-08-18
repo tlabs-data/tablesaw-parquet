@@ -55,14 +55,12 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
                 .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
                 .build()) {
             final long start = System.currentTimeMillis();
-            int rowCount = 0;
             for(final Row row : table) {
                 writer.write(row);
-                rowCount++;
             }
             final long end = System.currentTimeMillis();
             LOG.debug("Finished writing {} rows to {} in {} ms",
-                rowCount, options.getOutputFile(), (end - start));
+                table.rowCount(), options.getOutputFile(), (end - start));
         }
     }
     
