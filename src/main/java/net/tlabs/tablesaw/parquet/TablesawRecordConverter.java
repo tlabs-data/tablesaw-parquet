@@ -43,6 +43,7 @@ import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.GroupType;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
@@ -333,50 +334,13 @@ public class TablesawRecordConverter extends GroupConverter {
         }
         if (columnType == ColumnType.DOUBLE) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
-                    @Override
-                    public Optional<Converter> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
-                        return Optional.of(new PrimitiveConverter() {
-                            @Override
-                            public void addBinary(final Binary value) {
-                                final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()),
-                                    decimalLogicalType.getScale());
-                                proxy.appendDouble(colIndex, bigd.doubleValue());
-                            }
-                        });
-                    }
-                })).orElseGet(() -> new DefaultDoublePrimitiveConverter(colIndex));
+                .flatMap(a -> doubleFromBinaryConverter(colIndex, a))
+                .orElseGet(() -> new DefaultDoublePrimitiveConverter(colIndex));
         }
         if (columnType == ColumnType.STRING) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
-                    @Override
-                    public Optional<Converter> visit(final StringLogicalTypeAnnotation stringLogicalType) {
-                        return Optional.of(new StringPrimitiveConverter(colIndex));
-                    }
-
-                    @Override
-                    public Optional<Converter> visit(final EnumLogicalTypeAnnotation enumLogicalType) {
-                        return Optional.of(new StringPrimitiveConverter(colIndex));
-                    }
-
-                    @Override
-                    public Optional<Converter> visit(final IntervalLogicalTypeAnnotation intervalLogicalType) {
-                        return Optional.of(new PrimitiveConverter() {
-                            @Override
-                            public void addBinary(final Binary value) {
-                                Preconditions.checkArgument(value.length() == BINARY_INTERVAL_LENGTH_VALUE,
-                                    BINARY_INTERVAL_LENGTH_MESSAGE);
-                                final ByteBuffer buf = value.toByteBuffer();
-                                buf.order(ByteOrder.LITTLE_ENDIAN);
-                                proxy.appendString(colIndex,
-                                    Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
-                                        + Duration.ofMillis(buf.getInt()).toString().substring(1));
-                            }
-                        });
-                    }
-                }))
-                .orElseGet(() -> createStringColumnConverter(colIndex, schemaType, options));
+                .flatMap(a -> annotatedStringConverter(colIndex, a))
+                .orElseGet(() -> createUnannotatedStringConverter(colIndex, schemaType, options));
         }
         if (columnType == ColumnType.TEXT) {
             return new PrimitiveConverter() {
@@ -388,24 +352,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
         if (columnType == ColumnType.INSTANT) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
-                    @Override
-                    public Optional<Converter> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
-                        switch (timestampLogicalType.getUnit()) {
-                            case MILLIS:
-                                return Optional.of(new MillisInstantPrimitiveConverter(colIndex));
-                            case MICROS:
-                                return Optional.of(
-                                    new SubMillisInstantPrimitiveConverter(colIndex, MILLIS_TO_MICRO, ChronoUnit.MICROS));
-                            case NANOS:
-                                return Optional.of(
-                                    new SubMillisInstantPrimitiveConverter(colIndex, MILLIS_TO_NANOS, ChronoUnit.NANOS));
-                            default:
-                                throw new UnsupportedOperationException(
-                                    "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in Timestamp");
-                        }
-                    }
-                }))
+                .flatMap(a -> annotatedInstantConverter(colIndex, a))
                 .orElseGet(() -> new MillisInstantPrimitiveConverter(colIndex));
         }
         if (columnType == ColumnType.LOCAL_DATE) {
@@ -418,46 +365,120 @@ public class TablesawRecordConverter extends GroupConverter {
         }
         if (columnType == ColumnType.LOCAL_TIME) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
-                    @Override
-                    public Optional<Converter> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
-                        switch (timeLogicalType.getUnit()) {
-                            case MICROS:
-                                return Optional.of(new TimePrimitiveConverter(colIndex, MICROS_TO_NANOS));
-                            case NANOS:
-                                return Optional.of(new TimePrimitiveConverter(colIndex, 1L));
-                            default:
-                                throw new UnsupportedOperationException(
-                                    "This should never happen: TimeUnit is neither MICROS or NANOS in Int64 Time");
-                        }
-                    }
-                }))
+                .flatMap(a -> annotatedTimeConverter(colIndex, a))
                 .orElseGet(() -> new TimePrimitiveConverter(colIndex, 1L));
         }
         if (columnType == ColumnType.LOCAL_DATE_TIME) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Converter>() {
-                    @Override
-                    public Optional<Converter> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
-                        switch (timestampLogicalType.getUnit()) {
-                            case MILLIS:
-                                return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
-                            case MICROS:
-                                return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_MICROS, MICROS_TO_NANOS));
-                            case NANOS:
-                                return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_NANOS, 1L));
-                            default:
-                                throw new UnsupportedOperationException(
-                                    "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in DateTime");
-                        }
-                    }
-                }))
+                .flatMap(a -> annotatedDateTimeConverter(colIndex, a))
                 .orElseGet(() -> new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
         }
         return null;
     }
 
-    private Converter createStringColumnConverter(final int colIndex, final Type schemaType,
+    private Optional<Converter> annotatedDateTimeConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
+            @Override
+            public Optional<Converter> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
+                switch (timestampLogicalType.getUnit()) {
+                    case MILLIS:
+                        return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
+                    case MICROS:
+                        return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_MICROS, MICROS_TO_NANOS));
+                    case NANOS:
+                        return Optional.of(new DateTimePrimitiveConverter(colIndex, SECOND_TO_NANOS, 1L));
+                    default:
+                        throw new UnsupportedOperationException(
+                            "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in DateTime");
+                }
+            }
+        });
+    }
+
+    private Optional<Converter> annotatedTimeConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
+            @Override
+            public Optional<Converter> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
+                switch (timeLogicalType.getUnit()) {
+                    case MICROS:
+                        return Optional.of(new TimePrimitiveConverter(colIndex, MICROS_TO_NANOS));
+                    case NANOS:
+                        return Optional.of(new TimePrimitiveConverter(colIndex, 1L));
+                    default:
+                        throw new UnsupportedOperationException(
+                            "This should never happen: TimeUnit is neither MICROS or NANOS in Int64 Time");
+                }
+            }
+        });
+    }
+
+    private Optional<Converter> annotatedInstantConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
+            @Override
+            public Optional<Converter> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
+                switch (timestampLogicalType.getUnit()) {
+                    case MILLIS:
+                        return Optional.of(new MillisInstantPrimitiveConverter(colIndex));
+                    case MICROS:
+                        return Optional.of(
+                            new SubMillisInstantPrimitiveConverter(colIndex, MILLIS_TO_MICRO, ChronoUnit.MICROS));
+                    case NANOS:
+                        return Optional.of(
+                            new SubMillisInstantPrimitiveConverter(colIndex, MILLIS_TO_NANOS, ChronoUnit.NANOS));
+                    default:
+                        throw new UnsupportedOperationException(
+                            "This should never happen: TimeUnit is neither MILLIS, MICROS or NANOS in Timestamp");
+                }
+            }
+        });
+    }
+
+    private Optional<Converter> annotatedStringConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
+            @Override
+            public Optional<Converter> visit(final StringLogicalTypeAnnotation stringLogicalType) {
+                return Optional.of(new StringPrimitiveConverter(colIndex));
+            }
+
+            @Override
+            public Optional<Converter> visit(final EnumLogicalTypeAnnotation enumLogicalType) {
+                return Optional.of(new StringPrimitiveConverter(colIndex));
+            }
+
+            @Override
+            public Optional<Converter> visit(final IntervalLogicalTypeAnnotation intervalLogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    @Override
+                    public void addBinary(final Binary value) {
+                        Preconditions.checkArgument(value.length() == BINARY_INTERVAL_LENGTH_VALUE,
+                            BINARY_INTERVAL_LENGTH_MESSAGE);
+                        final ByteBuffer buf = value.toByteBuffer();
+                        buf.order(ByteOrder.LITTLE_ENDIAN);
+                        proxy.appendString(colIndex,
+                            Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
+                                + Duration.ofMillis(buf.getInt()).toString().substring(1));
+                    }
+                });
+            }
+        });
+    }
+
+    private Optional<Converter> doubleFromBinaryConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
+            @Override
+            public Optional<Converter> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    @Override
+                    public void addBinary(final Binary value) {
+                        final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
+                        proxy.appendDouble(colIndex, bigd.doubleValue());
+                    }
+                });
+            }
+        });
+    }
+
+    private Converter createUnannotatedStringConverter(final int colIndex, final Type schemaType,
             final TablesawParquetReadOptions options) {
         // INT96 as hex strings
         if (schemaType.asPrimitiveType().getPrimitiveTypeName() == PrimitiveTypeName.INT96) {
