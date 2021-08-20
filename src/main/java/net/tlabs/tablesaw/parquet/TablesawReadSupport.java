@@ -78,12 +78,11 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
     @Override
     public ReadContext init(final InitContext context) {
-        final List<Type> kept = context.getFileSchema().getFields().stream()
-            .filter(this::acceptField)
-            .filter(this::acceptGroups)
-            .filter(this::acceptPrimitives)
+        final List<Type> keptFields = context.getFileSchema().getFields().stream()
+            .filter(this::acceptFieldName)
+            .filter(this::acceptFieldType)
             .collect(Collectors.toList());
-        return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, kept));
+        return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, keptFields));
     }
 
     @Override
@@ -95,27 +94,28 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         return new TablesawRecordMaterializer(this.table, requestedSchema, this.options);
     }
     
-    private boolean acceptField(final Type type) {
+    private boolean acceptFieldName(final Type type) {
         return this.options.hasColumn(type.getName());
     }
-
-    private boolean acceptGroups(final Type type) {
+    
+    private boolean acceptFieldType(final Type type) {
         if(type.isPrimitive() && !type.isRepetition(Repetition.REPEATED)) {
-            return true;
+            return acceptSimplePrimitives(type);
         }
+        return acceptGroupsAndRepeatedFields(type);
+    }
+
+    private boolean acceptGroupsAndRepeatedFields(final Type type) {
         return this.options.getManageGroupsAs() != ManageGroupsAs.SKIP;
     }
     
-    private boolean acceptPrimitives(final Type type) {
-        if(!type.isPrimitive()) {
-            return true;
-        }
+    private boolean acceptSimplePrimitives(final Type type) {
         switch (type.asPrimitiveType().getPrimitiveTypeName()) {
             case FIXED_LEN_BYTE_ARRAY:
                 if(type.getLogicalTypeAnnotation() == null) {
                     return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
                 }
-                break;
+                return true;
             case BINARY:
                 if(type.getLogicalTypeAnnotation() == null) {
                     return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
@@ -132,7 +132,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             default:
                 return true;
         }
-        return true;
     }
     
     private static Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
