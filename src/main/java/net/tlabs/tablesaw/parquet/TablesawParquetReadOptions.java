@@ -23,6 +23,8 @@ package net.tlabs.tablesaw.parquet;
 import java.io.File;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
@@ -47,6 +49,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     private final boolean shortColumnTypeUsed;
     private final boolean floatColumnTypeUsed;
     private final ManageGroupsAs manageGroupsAs;
+    private final List<String> columns;
     private final String inputPath;
 
     protected TablesawParquetReadOptions(final Builder builder) {
@@ -54,6 +57,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         convertInt96ToTimestamp = builder.convertInt96ToTimestamp;
         unnanotatedBinaryAs = builder.unnanotatedBinaryAs;
         manageGroupsAs = builder.manageGroupsAs;
+        columns = Collections.unmodifiableList(Arrays.asList(builder.columns));
         inputPath = builder.inputPath;
         shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
         floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
@@ -79,6 +83,25 @@ public class TablesawParquetReadOptions extends ReadOptions {
         return manageGroupsAs;
     }
 
+    /**
+     * Returns the list of column names to read.
+     * An empty list means to read all columns. 
+     * @return Immutable list of column names to read.
+     */
+    public List<String> getColumns() {
+        return columns;
+    }
+    
+    /**
+     * Returns whether the given column name must be read.
+     * @param columnName the column name
+     * @return true if the column must be read, false otherwise.
+     */
+    public boolean hasColumn(final String columnName) {
+        if(columns.isEmpty()) return true;
+        return columns.contains(columnName);
+    }
+
     public String getInputPath() {
         return inputPath;
     }
@@ -100,6 +123,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private boolean convertInt96ToTimestamp = false;
         private UnnanotatedBinaryAs unnanotatedBinaryAs = UnnanotatedBinaryAs.STRING;
         private ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
+        private String[] columns = new String[0];
         private final String inputPath;
 
         protected Builder(final String inputPath) {
@@ -268,6 +292,16 @@ public class TablesawParquetReadOptions extends ReadOptions {
          */
         public Builder withManageGroupAs(final ManageGroupsAs manageGroupsAs) {
             this.manageGroupsAs = manageGroupsAs;
+            return this;
+        }
+        
+        /**
+         * Read only a subset of columns, identified by name.
+         * @param columns the column names to read
+         * @return this builder
+         */
+        public Builder withOnlyTheseColumns(final String... columns) {
+            this.columns = columns;
             return this;
         }
     }
