@@ -143,7 +143,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
     private static Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
         final String name = field.getName();
-        if(!options.hasColumn(name)) return null;
         if (field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
             return createSimplePrimitiveColumn(name, field, options);
         }
@@ -153,7 +152,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             case ERROR:
                 throw new UnsupportedOperationException("Column " + name + " is a group");
             case SKIP:
-                return null;
+                throw new IllegalStateException("Skipped field still in schema");
             case TEXT:
                 // CASCADE
             default:
