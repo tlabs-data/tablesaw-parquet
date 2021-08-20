@@ -20,11 +20,11 @@ package net.tlabs.tablesaw.parquet;
  * #L%
  */
 
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
@@ -61,6 +61,9 @@ import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.ManageGroupsAs;
+import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
+
 public class TablesawReadSupport extends ReadSupport<Row> {
 
     private static final Logger LOG = LoggerFactory.getLogger(TablesawReadSupport.class);
@@ -75,22 +78,63 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
     @Override
     public ReadContext init(final InitContext context) {
-        return new ReadContext(context.getFileSchema());
+        final List<Type> kept = context.getFileSchema().getFields().stream()
+            .filter(t -> this.options.hasColumn(t.getName()))
+            .filter(this::acceptGroups)
+            .filter(this::acceptPrimitives)
+            .collect(Collectors.toList());
+        return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, kept));
     }
 
     @Override
     public RecordMaterializer<Row> prepareForRead(final Configuration configuration,
             final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
-        this.table = createTable(fileSchema, this.options);
+        final MessageType requestedSchema = readContext.getRequestedSchema();
+        this.table = createTable(requestedSchema, this.options);
         this.table.setName(this.options.tableName());
-        return new TablesawRecordMaterializer(this.table, fileSchema, this.options);
+        return new TablesawRecordMaterializer(this.table, requestedSchema, this.options);
     }
 
+    private boolean acceptGroups(final Type type) {
+        if(type.isPrimitive() && !type.isRepetition(Repetition.REPEATED)) {
+            return true;
+        }
+        return this.options.getManageGroupsAs() != ManageGroupsAs.SKIP;
+    }
+    
+    private boolean acceptPrimitives(final Type type) {
+        if(!type.isPrimitive()) {
+            return true;
+        }
+        switch (type.asPrimitiveType().getPrimitiveTypeName()) {
+            case FIXED_LEN_BYTE_ARRAY:
+                if(type.getLogicalTypeAnnotation() == null) {
+                    return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
+                }
+                break;
+            case BINARY:
+                if(type.getLogicalTypeAnnotation() == null) {
+                    return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
+                }
+                // Filtering out BSON
+                return Optional.ofNullable(type.getLogicalTypeAnnotation())
+                    .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
+                        @Override
+                        public Optional<Boolean> visit(final BsonLogicalTypeAnnotation bsonLogicalType) {
+                            return Optional.of(Boolean.FALSE);
+                        }
+                    }))
+                    .orElse(Boolean.TRUE);
+            default:
+                return true;
+        }
+        return true;
+    }
+    
     private static Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
         return Table.create(
             schema.getFields().stream()
             .map(f -> createColumn(f, options))
-            .filter(Objects::nonNull)
             .collect(Collectors.toList()));
     }
 
@@ -167,21 +211,11 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                             return Optional.of(DoubleColumn.create(fieldName));
                         }
                     }))
-                    .orElseGet(() -> createUnannotatedBinaryColumn(fieldName, options));
+                    .orElseGet(() -> StringColumn.create(fieldName));
             case INT96:
                 return options.isConvertInt96ToTimestamp() ?
                     InstantColumn.create(fieldName) : StringColumn.create(fieldName);
             case BINARY:
-                // Filtering out BSON
-                if (Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
-                        .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
-                            @Override
-                            public Optional<Boolean> visit(final BsonLogicalTypeAnnotation bsonLogicalType) {
-                                return Optional.of(Boolean.TRUE);
-                            }
-                        })).isPresent()) {
-                    return null;
-                }
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
                     .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
                         @Override
@@ -204,7 +238,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                             return Optional.of(DoubleColumn.create(fieldName));
                         }
                     }))
-                    .orElseGet(() -> createUnannotatedBinaryColumn(fieldName, options));
+                    .orElseGet(() -> StringColumn.create(fieldName));
                 default:
                     LOG.warn("Unknown field type {}, column {} will be skipped", fieldType.getName(), fieldName);
                     return null;
@@ -214,12 +248,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     private static boolean mustUseShortColumn(final IntLogicalTypeAnnotation intLogicalType,
             final TablesawParquetReadOptions options) {
         return options.isShortColumnTypeUsed() && intLogicalType.getBitWidth() < 32;
-    }
-
-    private static Column<?> createUnannotatedBinaryColumn(final String fieldName,
-            final TablesawParquetReadOptions options) {
-        return options.getUnnanotatedBinaryAs() == UnnanotatedBinaryAs.SKIP ?
-            null : StringColumn.create(fieldName);
     }
 
     public Table getTable() {
