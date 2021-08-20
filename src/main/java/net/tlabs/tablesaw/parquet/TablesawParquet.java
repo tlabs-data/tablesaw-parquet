@@ -1,7 +1,5 @@
 package net.tlabs.tablesaw.parquet;
 
-import tech.tablesaw.api.Table;
-
 /*-
  * #%L
  * Tablesaw-Parquet
@@ -21,6 +19,8 @@ import tech.tablesaw.api.Table;
  * limitations under the License.
  * #L%
  */
+
+import tech.tablesaw.api.Table;
 
 public class TablesawParquet {
 
