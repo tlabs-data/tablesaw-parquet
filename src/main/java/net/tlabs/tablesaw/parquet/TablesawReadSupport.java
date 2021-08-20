@@ -79,7 +79,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     @Override
     public ReadContext init(final InitContext context) {
         final List<Type> kept = context.getFileSchema().getFields().stream()
-            .filter(t -> this.options.hasColumn(t.getName()))
+            .filter(this::acceptField)
             .filter(this::acceptGroups)
             .filter(this::acceptPrimitives)
             .collect(Collectors.toList());
@@ -93,6 +93,10 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         this.table = createTable(requestedSchema, this.options);
         this.table.setName(this.options.tableName());
         return new TablesawRecordMaterializer(this.table, requestedSchema, this.options);
+    }
+    
+    private boolean acceptField(final Type type) {
+        return this.options.hasColumn(type.getName());
     }
 
     private boolean acceptGroups(final Type type) {
