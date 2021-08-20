@@ -205,17 +205,6 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
-    private static final class GroupSkipConverter extends SimpleRecordConverter {
-        private GroupSkipConverter(final GroupType schema) {
-            super(schema);
-        }
-
-        @Override
-        public void end() {
-            // do nothing
-        }
-    }
-
     private final class GroupAsTextConverter extends SimpleRecordConverter {
         private final int col;
 
@@ -242,21 +231,6 @@ public class TablesawRecordConverter extends GroupConverter {
 
     private static final long MILLIS_TO_NANOS = 1_000_000L;
 
-    private static final Converter PRIMITIVE_SKIP_CONVERTER = new PrimitiveConverter() {
-        @Override
-        public void addBinary(Binary value) { /* SKIPPED */ }
-        @Override
-        public void addBoolean(boolean value) { /* SKIPPED */ }
-        @Override
-        public void addDouble(double value) { /* SKIPPED */ }
-        @Override
-        public void addFloat(float value) { /* SKIPPED */ }
-        @Override
-        public void addInt(int value) { /* SKIPPED */ }
-        @Override
-        public void addLong(long value) { /* SKIPPED */ }
-    };
-    
     private final Converter[] converters;
     private final TableProxy proxy;
 
@@ -276,16 +250,6 @@ public class TablesawRecordConverter extends GroupConverter {
                 converters[fieldIndex] = createConverter(i, columnType, type, options);
             } else {
                 converters[fieldIndex] = new GroupAsTextConverter(type.asGroupType(), i);
-            }
-        }
-        for (int i = 0; i < converters.length; i++) {
-            if (converters[i] == null) {
-                final Type type = fileSchema.getType(i);
-                if (type.isPrimitive()) {
-                    converters[i] = PRIMITIVE_SKIP_CONVERTER;
-                } else {
-                    converters[i] = new GroupSkipConverter(type.asGroupType());
-                }
             }
         }
     }
