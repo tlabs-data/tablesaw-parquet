@@ -42,9 +42,6 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnot
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import tech.tablesaw.api.BooleanColumn;
 import tech.tablesaw.api.DateColumn;
 import tech.tablesaw.api.DateTimeColumn;
@@ -66,8 +63,6 @@ import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs
 
 public class TablesawReadSupport extends ReadSupport<Row> {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TablesawReadSupport.class);
-    
     private final TablesawParquetReadOptions options;
     private Table table = null;
 
@@ -242,8 +237,8 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                     }))
                     .orElseGet(() -> StringColumn.create(fieldName));
                 default:
-                    LOG.warn("Unknown field type {}, column {} will be skipped", fieldType.getName(), fieldName);
-                    return null;
+                    throw new IllegalStateException("Unknown field type " + fieldType.getName()
+                        + ", column " + fieldName + " will be skipped");
         }
     }
 
