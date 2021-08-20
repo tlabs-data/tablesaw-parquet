@@ -83,4 +83,39 @@ class TestParquetReadOptions {
             Logger.getRootLogger().removeAppender(appender);
         }
     }
+    
+    @Test
+    void testSingleColumn() {
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder("notused")
+            .withOnlyTheseColumns("col1").build();
+        assertEquals(1, options.getColumns().size(), "Wrong columns list size");
+    }
+    
+    @Test
+    void testMultipleColumn() {
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder("notused")
+            .withOnlyTheseColumns("col1", "col2", "col3").build();
+        assertEquals(3, options.getColumns().size(), "Wrong columns list size");
+    }
+    
+    @Test
+    void testColumnArray() {
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder("notused")
+            .withOnlyTheseColumns(new String[] {"col1", "col2", "col3"}).build();
+        assertEquals(3, options.getColumns().size(), "Wrong columns list size");
+    }
+    
+    @Test
+    void testNoColumnFilter() {
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder("notused").build();
+        assertTrue(options.hasColumn("col1"), "Unfiltered column filtered out");
+    }
+    
+    @Test
+    void testColumnFilter() {
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder("notused")
+            .withOnlyTheseColumns("col1").build();
+        assertTrue(options.hasColumn("col1"), "Kept column filtered out");
+        assertFalse(options.hasColumn("col2"), "Filtered column kept");
+    }
 }
