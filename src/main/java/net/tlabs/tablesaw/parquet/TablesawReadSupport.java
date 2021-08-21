@@ -29,6 +29,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.InitContext;
 import org.apache.parquet.hadoop.api.ReadSupport;
 import org.apache.parquet.io.api.RecordMaterializer;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.BsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
@@ -129,11 +130,10 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     }
     
     private static Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
-        final Table createdTable = Table.create(
+        final Table createdTable = Table.create(options.tableName(), 
             schema.getFields().stream()
             .map(f -> createColumn(f, options))
             .collect(Collectors.toList()));
-        createdTable.setName(options.tableName());
         if(!options.getColumns().isEmpty()) {
             return createdTable.reorderColumns(options.getColumns()
                 .toArray(new String[createdTable.columnCount()]));
@@ -152,7 +152,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             case ERROR:
                 throw new UnsupportedOperationException("Column " + name + " is a group");
             case SKIP:
-                throw new IllegalStateException("Skipped field still in schema");
+                throw new IllegalStateException("Skipped group " + name + " still in schema");
             case TEXT:
                 // CASCADE
             default:
@@ -167,39 +167,11 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 return BooleanColumn.create(fieldName);
             case INT32:
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
-                    .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
-                        @Override
-                        public Optional<Column<?>> visit(final DateLogicalTypeAnnotation dateLogicalType) {
-                            return Optional.of(DateColumn.create(fieldName));
-                        }
-
-                        @Override
-                        public Optional<Column<?>> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
-                            return Optional.of(TimeColumn.create(fieldName));
-                        }
-
-                        @Override
-                        public Optional<Column<?>> visit(final IntLogicalTypeAnnotation intLogicalType) {
-                            return Optional.of(mustUseShortColumn(intLogicalType, options) ?
-                                ShortColumn.create(fieldName) : IntColumn.create(fieldName));
-                        }
-
-                    }))
+                    .flatMap(a -> annotatedIntColumn(a, fieldName, options))
                     .orElseGet(() -> IntColumn.create(fieldName));
             case INT64:
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
-                    .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
-                        @Override
-                        public Optional<Column<?>> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
-                            return Optional.of(TimeColumn.create(fieldName));
-                        }
-
-                        @Override
-                        public Optional<Column<?>> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
-                            return Optional.of(timestampLogicalType.isAdjustedToUTC() ?
-                                InstantColumn.create(fieldName) : DateTimeColumn.create(fieldName));
-                        }
-                    }))
+                    .flatMap(a -> annotatedLongColumn(a, fieldName))
                     .orElseGet(() -> LongColumn.create(fieldName));
             case FLOAT:
                 return options.isFloatColumnTypeUsed() ? FloatColumn.create(fieldName) : DoubleColumn.create(fieldName);
@@ -207,44 +179,92 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 return DoubleColumn.create(fieldName);
             case FIXED_LEN_BYTE_ARRAY:
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
-                    .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
-                        @Override
-                        public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
-                            return Optional.of(DoubleColumn.create(fieldName));
-                        }
-                    }))
+                    .flatMap(a -> annotatedFixedLenBinaryColumn(a, fieldName))
                     .orElseGet(() -> StringColumn.create(fieldName));
             case INT96:
                 return options.isConvertInt96ToTimestamp() ?
                     InstantColumn.create(fieldName) : StringColumn.create(fieldName);
             case BINARY:
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
-                    .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
-                        @Override
-                        public Optional<Column<?>> visit(final StringLogicalTypeAnnotation stringLogicalType) {
-                            return Optional.of(StringColumn.create(fieldName));
-                        }
-
-                        @Override
-                        public Optional<Column<?>> visit(final EnumLogicalTypeAnnotation enumLogicalType) {
-                            return Optional.of(StringColumn.create(fieldName));
-                        }
-
-                        @Override
-                        public Optional<Column<?>> visit(final JsonLogicalTypeAnnotation jsonLogicalType) {
-                            return Optional.of(TextColumn.create(fieldName));
-                        }
-
-                        @Override
-                        public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
-                            return Optional.of(DoubleColumn.create(fieldName));
-                        }
-                    }))
+                    .flatMap(a -> annotatedBinaryColumn(a, fieldName))
                     .orElseGet(() -> StringColumn.create(fieldName));
                 default:
                     throw new IllegalStateException("Unknown field type " + fieldType.getName()
-                        + ", column " + fieldName + " will be skipped");
+                        + " for column " + fieldName);
         }
+    }
+
+    private static Optional<Column<?>> annotatedBinaryColumn(final LogicalTypeAnnotation annotation,
+            final String fieldName) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
+            @Override
+            public Optional<Column<?>> visit(final StringLogicalTypeAnnotation stringLogicalType) {
+                return Optional.of(StringColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final EnumLogicalTypeAnnotation enumLogicalType) {
+                return Optional.of(StringColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final JsonLogicalTypeAnnotation jsonLogicalType) {
+                return Optional.of(TextColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
+                return Optional.of(DoubleColumn.create(fieldName));
+            }
+        });
+    }
+
+    private static Optional<Column<?>> annotatedFixedLenBinaryColumn(final LogicalTypeAnnotation annotation,
+            final String fieldName) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
+            @Override
+            public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
+                return Optional.of(DoubleColumn.create(fieldName));
+            }
+        });
+    }
+
+    private static Optional<Column<?>> annotatedLongColumn(final LogicalTypeAnnotation annotation,
+            final String fieldName) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
+            @Override
+            public Optional<Column<?>> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
+                return Optional.of(TimeColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final TimestampLogicalTypeAnnotation timestampLogicalType) {
+                return Optional.of(timestampLogicalType.isAdjustedToUTC() ?
+                    InstantColumn.create(fieldName) : DateTimeColumn.create(fieldName));
+            }
+        });
+    }
+
+    private static Optional<Column<?>> annotatedIntColumn(final LogicalTypeAnnotation annotation,
+            final String fieldName,  final TablesawParquetReadOptions options) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
+            @Override
+            public Optional<Column<?>> visit(final DateLogicalTypeAnnotation dateLogicalType) {
+                return Optional.of(DateColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
+                return Optional.of(TimeColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final IntLogicalTypeAnnotation intLogicalType) {
+                return Optional.of(mustUseShortColumn(intLogicalType, options) ?
+                    ShortColumn.create(fieldName) : IntColumn.create(fieldName));
+            }
+
+        });
     }
 
     private static boolean mustUseShortColumn(final IntLogicalTypeAnnotation intLogicalType,
