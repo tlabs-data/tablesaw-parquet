@@ -130,7 +130,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 
 Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a TextColumn. The same *withManageGroupsAs* option is used to change this behavior.
 
-Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, UUID, BSON).
+Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, UUID, JSON, BSON).
 
 Keep in mind that all tablesaw columns storing time (TimeColumn, DateTimeColumn and InstantColumn) use MILLIS precision, if read from a parquet file with better time precision (MICROS or NANOS) the values will be truncated (in the current tablesaw implementation).
 
@@ -158,6 +158,14 @@ Note that a tablesaw Table written to parquet and read back will have the follow
 
 ## Features
 
+#### Column filtering
+
+Starting from `v0.8.0`, column filtering is possible using the `TablesawParquetReadOptions.withOnlyTheseColumns` method.
+
+The resulting Table will only contain the requested columns, in the order they were specified.
+
+Filtering is done by schema projection in the underlying reader: columns that are not required are not even read from the file. This is highly efficient when reading only a few columns, even from very large parquet files.
+
 #### Column encoding
 
 Physical reading and writing of parquet files is done by [parquet-mr](https://github.com/apache/parquet-mr). The encoding and decoding is managed by this library.
@@ -177,10 +185,6 @@ Parquet files written with tablesaw-parquet contain the statistics needed for pr
 #### Encryption
 
 [Parquet Modular Encryption](https://github.com/apache/parquet-format/blob/encryption/Encryption.md) is not supported.
-
-#### Column filtering
-
-Additional options for filtering columns based on name or type will be added in the future.
 
 ## Compatibility testing
 
