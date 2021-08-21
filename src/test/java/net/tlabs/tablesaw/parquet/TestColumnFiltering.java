@@ -30,5 +30,15 @@ class TestColumnFiltering {
                 .build());
         assertEquals(5, table.columnCount(), "Wrong number of column");
     }
+    
+    @Test
+    void testColumnOrdering() throws IOException {
+        final Table table = new TablesawParquetReader().read(
+            TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY)
+                .withOnlyTheseColumns("float_col", "id")
+                .build());
+        assertEquals("float_col", table.column(0).name());
+        assertEquals("id", table.column(1).name());
+    }
 
 }
