@@ -85,7 +85,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
         final MessageType requestedSchema = readContext.getRequestedSchema();
         this.table = createTable(requestedSchema, this.options);
-        this.table.setName(this.options.tableName());
         return new TablesawRecordMaterializer(this.table, requestedSchema, this.options);
     }
     
@@ -130,10 +129,16 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     }
     
     private static Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
-        return Table.create(
+        final Table createdTable = Table.create(
             schema.getFields().stream()
             .map(f -> createColumn(f, options))
             .collect(Collectors.toList()));
+        createdTable.setName(options.tableName());
+        if(!options.getColumns().isEmpty()) {
+            return createdTable.reorderColumns(options.getColumns()
+                .toArray(new String[createdTable.columnCount()]));
+        }
+        return createdTable;
     }
 
     private static Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
