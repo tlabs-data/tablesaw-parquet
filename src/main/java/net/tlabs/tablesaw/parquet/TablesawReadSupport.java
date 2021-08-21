@@ -97,10 +97,10 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         if(type.isPrimitive() && !type.isRepetition(Repetition.REPEATED)) {
             return acceptSimplePrimitives(type);
         }
-        return acceptGroupsAndRepeatedFields(type);
+        return acceptGroupsAndRepeatedFields();
     }
 
-    private boolean acceptGroupsAndRepeatedFields(final Type type) {
+    private boolean acceptGroupsAndRepeatedFields() {
         return this.options.getManageGroupsAs() != ManageGroupsAs.SKIP;
     }
     
