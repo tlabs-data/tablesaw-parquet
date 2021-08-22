@@ -27,6 +27,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.ColumnType;
@@ -220,7 +224,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
         /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
         @Override
-        public Builder missingValueIndicator(final String missingValueIndicator) {
+        public Builder missingValueIndicator(final String... missingValueIndicator) {
             LOG.warn("Missing value indicator is not used in TablesawParquetReadOptions");
             super.missingValueIndicator(missingValueIndicator);
             return this;
@@ -253,6 +257,42 @@ public class TablesawParquetReadOptions extends ReadOptions {
         public Builder ignoreZeroDecimal(final boolean ignoreZeroDecimal) {
             LOG.warn("ignoreZeroDecimal has no effect in TablesawParquetReadOptions");
             super.ignoreZeroDecimal(ignoreZeroDecimal);
+            return this;
+        }
+
+        @Override
+        public Builder allowDuplicateColumnNames(Boolean allow) {
+            super.allowDuplicateColumnNames(allow);
+            return this;
+        }
+
+        @Override
+        public Builder skipRowsWithInvalidColumnCount(boolean skipRowsWithInvalidColumnCount) {
+            super.skipRowsWithInvalidColumnCount(skipRowsWithInvalidColumnCount);
+            return this;
+        }
+
+        @Override
+        public Builder columnTypes(ColumnType[] columnTypes) {
+            super.columnTypes(columnTypes);
+            return this;
+        }
+
+        @Override
+        public Builder columnTypes(Function<String, ColumnType> columnTypeFunction) {
+            super.columnTypes(columnTypeFunction);
+            return this;
+        }
+
+        @Override
+        public Builder columnTypesPartial(Function<String, Optional<ColumnType>> columnTypeFunction) {
+            super.columnTypesPartial(columnTypeFunction);
+            return this;
+        }
+
+        @Override
+        public Builder columnTypesPartial(Map<String, ColumnType> columnTypeByName) {
+            super.columnTypesPartial(columnTypeByName);
             return this;
         }
 
