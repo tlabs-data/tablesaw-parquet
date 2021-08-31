@@ -1,7 +1,5 @@
 package net.tlabs.tablesaw.parquet;
 
-import java.util.Comparator;
-
 /*-
  * #%L
  * Tablesaw-Parquet
@@ -22,10 +20,12 @@ import java.util.Comparator;
  * #L%
  */
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.InitContext;
@@ -46,6 +46,7 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
 import tech.tablesaw.api.BooleanColumn;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DateColumn;
 import tech.tablesaw.api.DateTimeColumn;
 import tech.tablesaw.api.DoubleColumn;
@@ -60,7 +61,7 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
-
+import tech.tablesaw.io.ReadOptions.ColumnTypeReadOptions;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.ManageGroupsAs;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 
@@ -76,23 +77,32 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
     @Override
     public ReadContext init(final InitContext context) {
-        final List<Type> keptFields = context.getFileSchema().getFields().stream()
-            .filter(this::acceptFieldName)
-            .filter(this::acceptFieldType)
+        final List<Type> initialFields = context.getFileSchema().getFields();
+        // Filter out fields an reorder if needed
+        final List<Integer> projectedFieldsIndices = IntStream.range(0, initialFields.size())
+            .filter(i -> this.acceptFieldName(initialFields.get(i)))
+            .filter(i -> this.acceptFieldType(initialFields.get(i)))
+            // fields have to be sorted before checking the type mapping
+            // because full mapping by idx is done on the filtered fields only
+            // sort is stable for an empty column list
+            .boxed()
+            .sorted(Comparator.comparingInt(i -> options.getColumns().indexOf(initialFields.get(i).getName())))
+            .filter(i -> this.acceptMappedFieldType(i, initialFields.get(i)))
             .collect(Collectors.toList());
-        final List<String> optionColumns = options.getColumns();
-        if (!optionColumns.isEmpty()) {
-            keptFields.sort(Comparator.comparingInt(t -> optionColumns.indexOf(t.getName())));
-        }
-        return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, keptFields));
+        // Create table
+        this.table = Table.create(options.tableName(), projectedFieldsIndices.stream()
+                .map(i -> this.getColumnForType(i, initialFields.get(i)))
+                .collect(Collectors.toList()));
+        // Return projected schema in read context
+        return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, projectedFieldsIndices.stream()
+            .map(initialFields::get)
+            .collect(Collectors.toList())));
     }
 
     @Override
     public RecordMaterializer<Row> prepareForRead(final Configuration configuration,
             final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
-        final MessageType requestedSchema = readContext.getRequestedSchema();
-        this.table = createTable(requestedSchema, this.options);
-        return new TablesawRecordMaterializer(this.table, requestedSchema, this.options);
+        return new TablesawRecordMaterializer(this.table, readContext.getRequestedSchema(), this.options);
     }
     
     private boolean acceptFieldName(final Type type) {
@@ -135,18 +145,26 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         }
     }
     
-    private static Table createTable(final MessageType schema, final TablesawParquetReadOptions options) {
-        final Table createdTable = Table.create(options.tableName(), 
-            schema.getFields().stream()
-            .map(f -> createColumn(f, options))
-            .collect(Collectors.toList()));
-        return createdTable;
+    private boolean acceptMappedFieldType(final int fieldIndex, final Type type) {
+        final ColumnTypeReadOptions columnTypeReadOptions = this.options.columnTypeReadOptions();
+        return columnTypeReadOptions.columnType(fieldIndex, type.getName())
+            .map(t -> t != ColumnType.SKIP)
+            .orElse(!columnTypeReadOptions.hasColumnTypeForAllColumnsIfHavingColumnNames());
     }
 
-    private static Column<?> createColumn(final Type field, final TablesawParquetReadOptions options) {
+    private Column<?> getColumnForType(final int fieldIndex, final Type field) {
         final String name = field.getName();
+        final ColumnTypeReadOptions columnTypeReadOptions = this.options.columnTypeReadOptions();
+        final Optional<ColumnType> columnType = columnTypeReadOptions.columnType(fieldIndex, name);
+        if(columnType.isPresent()) {
+            return columnType.get().create(name);
+        }
+        return getDefaultColumnForType(name, field);
+    }
+    
+    private Column<?> getDefaultColumnForType(final String name, final Type field) {
         if (field.isPrimitive() && !field.isRepetition(Repetition.REPEATED)) {
-            return createSimplePrimitiveColumn(name, field, options);
+            return createSimplePrimitiveColumn(name, field);
         }
         // Groups or repeated primitives are treated the same
         // treatment depends on manageGroupAs option
@@ -162,8 +180,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         }
     }
 
-    private static Column<?> createSimplePrimitiveColumn(final String fieldName, final Type fieldType,
-            final TablesawParquetReadOptions options) {
+    private Column<?> createSimplePrimitiveColumn(final String fieldName, final Type fieldType) {
         switch (fieldType.asPrimitiveType().getPrimitiveTypeName()) {
             case BOOLEAN:
                 return BooleanColumn.create(fieldName);
