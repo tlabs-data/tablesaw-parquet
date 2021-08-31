@@ -267,6 +267,10 @@ public class TablesawRecordConverter extends GroupConverter {
         if (columnType == ColumnType.LONG) {
             return new PrimitiveConverter() {
                 @Override
+                public void addInt(final int value) {
+                    proxy.appendLong(colIndex, value);
+                }
+                @Override
                 public void addLong(final long value) {
                     proxy.appendLong(colIndex, value);
                 }
