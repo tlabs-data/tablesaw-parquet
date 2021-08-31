@@ -1,5 +1,7 @@
 package net.tlabs.tablesaw.parquet;
 
+import java.util.Comparator;
+
 /*-
  * #%L
  * Tablesaw-Parquet
@@ -78,6 +80,10 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             .filter(this::acceptFieldName)
             .filter(this::acceptFieldType)
             .collect(Collectors.toList());
+        final List<String> optionColumns = options.getColumns();
+        if (!optionColumns.isEmpty()) {
+            keptFields.sort(Comparator.comparingInt(t -> optionColumns.indexOf(t.getName())));
+        }
         return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, keptFields));
     }
 
@@ -134,10 +140,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             schema.getFields().stream()
             .map(f -> createColumn(f, options))
             .collect(Collectors.toList()));
-        if(!options.getColumns().isEmpty()) {
-            return createdTable.reorderColumns(options.getColumns()
-                .toArray(new String[createdTable.columnCount()]));
-        }
         return createdTable;
     }
 
@@ -188,9 +190,9 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
                     .flatMap(a -> annotatedBinaryColumn(a, fieldName))
                     .orElseGet(() -> StringColumn.create(fieldName));
-                default:
-                    throw new IllegalStateException("Unknown field type " + fieldType.getName()
-                        + " for column " + fieldName);
+            default:
+                throw new IllegalStateException("Unknown field type " + fieldType.getName()
+                    + " for column " + fieldName);
         }
     }
 
