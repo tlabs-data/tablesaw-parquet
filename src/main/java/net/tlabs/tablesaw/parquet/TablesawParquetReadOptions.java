@@ -272,6 +272,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return this;
         }
 
+        /**
+         * {@inheritDoc}
+         * If used in conjuntion with the {@link #withOnlyTheseColumns(String...)} options,
+         * the provided ColumnType array must contain only the selected columns in the order they were provided.
+         */
         @Override
         public Builder columnTypes(ColumnType[] columnTypes) {
             super.columnTypes(columnTypes);
@@ -337,6 +342,8 @@ public class TablesawParquetReadOptions extends ReadOptions {
         
         /**
          * Read only a subset of columns, identified by name.
+         * If used with the {@link #columnTypes(ColumnType[])} option, the ColumnType array
+         * must contain only the selected columns in the order they were provided.
          * @param columns the column names to read
          * @return this builder
          */

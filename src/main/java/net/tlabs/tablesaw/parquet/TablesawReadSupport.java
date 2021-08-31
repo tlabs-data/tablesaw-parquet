@@ -78,20 +78,27 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     @Override
     public ReadContext init(final InitContext context) {
         final List<Type> initialFields = context.getFileSchema().getFields();
-        // Filter out fields an reorder if needed
-        final List<Integer> projectedFieldsIndices = IntStream.range(0, initialFields.size())
+        // Filter out fields
+        final List<Integer> filteredFieldsIndices = IntStream.range(0, initialFields.size())
             .filter(i -> this.acceptFieldName(initialFields.get(i)))
             .filter(i -> this.acceptFieldType(initialFields.get(i)))
             // fields have to be sorted before checking the type mapping
             // because full mapping by idx is done on the filtered fields only
             // sort is stable for an empty column list
             .boxed()
-            .sorted(Comparator.comparingInt(i -> options.getColumns().indexOf(initialFields.get(i).getName())))
-            .filter(i -> this.acceptMappedFieldType(i, initialFields.get(i)))
+            .sorted(Comparator.comparingInt(i -> options.getColumns()
+                .indexOf(initialFields.get(i).getName())))
+            .collect(Collectors.toList());
+        // mapping by idx uses filtered column index
+        final List<Integer> projectedFieldsIndices = IntStream.range(0, filteredFieldsIndices.size())
+            .filter(i -> this.acceptMappedFieldType(i, initialFields.get(filteredFieldsIndices.get(i))))
+            .map(filteredFieldsIndices::get)
+            .boxed()
             .collect(Collectors.toList());
         // Create table
-        this.table = Table.create(options.tableName(), projectedFieldsIndices.stream()
-                .map(i -> this.getColumnForType(i, initialFields.get(i)))
+        // mapping by idx uses filtered column index
+        this.table = Table.create(options.tableName(), IntStream.range(0, projectedFieldsIndices.size())
+                .mapToObj(i -> this.getColumnForType(i, initialFields.get(projectedFieldsIndices.get(i))))
                 .collect(Collectors.toList()));
         // Return projected schema in read context
         return new ReadContext(new MessageType(PARQUET_READ_SCHEMA, projectedFieldsIndices.stream()
