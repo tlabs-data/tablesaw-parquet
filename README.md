@@ -82,11 +82,11 @@ table = Table.read().usingOptions(TablesawParquetReadOptions.builder(FILENAME));
 table.write().usingOptions(TablesawParquetWriteOptions.builder(FILENAME).build());
 ```
 
-The file extension must be  __".parquet"__  when using Table.read().file().
+The file extension must be  __".parquet"__  when using `Table.read().file()`.
 
 __Note that read and write methods not mentioned above are not supported and will throw a RuntimeException.__
 
-You can still read data from an URL using the following pattern:
+You can still read data from URLs using the following pattern:
 
 ```java
 TablesawParquet.register();
@@ -96,7 +96,7 @@ Table.read().usingOptions(TablesawParquetReadOptions.builder(URL));
 
 ## Data type conversion
 
-#### When reading a parquet file (parquet to tablesaw)
+#### Default conversion when reading a parquet file (parquet to tablesaw)
 
 Non-annotated [parquet data types](https://github.com/apache/parquet-format) are converted to  __tablesaw__  column types as follows:
 
@@ -134,7 +134,21 @@ Due to the lack of parquet files for testing, some logical type conversion are c
 
 Keep in mind that all tablesaw columns storing time (TimeColumn, DateTimeColumn and InstantColumn) use MILLIS precision, if read from a parquet file with better time precision (MICROS or NANOS) the values will be truncated (in the current tablesaw implementation).
 
-#### When writing a parquet file (tablesaw to parquet)
+#### Using `columnTypes` and `columnTypesPartial` options to control conversion
+
+Starting from `v0.9.0`, tablesaw-parquet allows a better control of data conversion and column filtering when reading a parquet file: using one of `TablesawParquetReadOptions` several `columnTypes` and `columnTypesPartial` methods, users can assign compatible tablesaw column types to all or some of the parquet file columns.
+
+Only a limited set of possible conversions is implemented:
+* Widening primitive conversions for integers (e.g. INT32 column can be read as a LongColumn)
+* Widening primitive conversions for floats (e.g. FLOAT32 column can be read as a DoubleColumn)
+* Switching between TextColumn and StringColumn for any textual columns
+* Switching between InstantColumn and DateTimeColumn for timestamps - in this case the UTC annotation is ignored
+
+Other conversions (e.g. converting numbers or dates to StringColumn) are not implemented but can be done using one of the several  __tablesaw__  features for such operations.
+
+Note that the `ColumnType.SKIP` column type can be used with these options to filter out any column from the parquet file.
+
+#### Conversion done when writing a parquet file (tablesaw to parquet)
 
 | Tablesaw column type | Parquet type (logical type) | Notes |
 |----------------------|-----------------------------|-------|
@@ -151,7 +165,7 @@ Keep in mind that all tablesaw columns storing time (TimeColumn, DateTimeColumn 
 | DateTimeColumn | INT64 (TIMESTAMP: MILLIS, not UTC) |  |
 | InstantColumn | INT64 (TIMESTAMP: MILLIS, UTC) |  |
 
-Note that a tablesaw Table written to parquet and read back will have the following changes:
+Note that a tablesaw Table written to parquet and read back with default conversion will have the following changes:
 
 * TextColumns will be read back as StringColumns.
 * If the *minimizeColumnSizes* option is not set (which is the default), Floats will be changed to Doubles and Shorts to Integers.
@@ -163,6 +177,8 @@ Note that a tablesaw Table written to parquet and read back will have the follow
 Starting from `v0.8.0`, column filtering is possible using the `TablesawParquetReadOptions.withOnlyTheseColumns` method.
 
 The resulting Table will only contain the requested columns, in the order they were specified.
+
+Starting from `v0.9.0`, column filtering is also possible using `ColumnType.SKIP` as a column type with one of `TablesawParquetReadOptions` several `columnTypes` and `columnTypesPartial` methods. 
 
 Filtering is done by schema projection in the underlying reader: columns that are not required are not even read from the file. This is highly efficient when reading only a few columns, even from very large parquet files.
 
