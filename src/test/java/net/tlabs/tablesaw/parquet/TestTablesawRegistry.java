@@ -33,6 +33,7 @@ import tech.tablesaw.api.Table;
 class TestTablesawRegistry {
 
     private static final String PANDAS_PYARROW = "target/test-classes/pandas_pyarrow.parquet";
+    private static final String WRONG_PARQUET_FILE = "target/test-classes/thisisnota.parquet";
     private static final String OUTPUT_FILE = "target/test/results/out.parquet";
 
     @BeforeAll
@@ -50,6 +51,11 @@ class TestTablesawRegistry {
     void testRegistryReadFile() throws IOException {
         final Table table = Table.read().file(new File(PANDAS_PYARROW));
         assertNotNull(table, "Read table is null");
+    }
+
+    @Test
+    void testRegistryReadMissingFile() throws IOException {
+        assertThrows(IllegalStateException.class, () -> Table.read().file(new File(WRONG_PARQUET_FILE)));
     }
 
     @Test
