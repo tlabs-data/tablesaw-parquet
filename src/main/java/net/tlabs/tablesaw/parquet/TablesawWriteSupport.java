@@ -33,6 +33,7 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
+
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
@@ -40,13 +41,112 @@ import tech.tablesaw.columns.Column;
 
 public class TablesawWriteSupport extends WriteSupport<Row> {
 
+    private static enum FieldRecorder {
+        BOOLEAN(ColumnType.BOOLEAN) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addBoolean(tableProxy.getBoolean(colIndex, rowNumber));
+            }
+        },
+        SHORT(ColumnType.SHORT) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addInteger(tableProxy.getShort(colIndex, rowNumber));
+            }
+        },
+        INTEGER(ColumnType.INTEGER){
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addInteger(tableProxy.getInt(colIndex, rowNumber));
+            }
+        },
+        LONG(ColumnType.LONG) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addLong(tableProxy.getLong(colIndex, rowNumber));
+            }
+        },
+        FLOAT(ColumnType.FLOAT){
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addFloat(tableProxy.getFloat(colIndex, rowNumber));
+            }
+        },
+        DOUBLE(ColumnType.DOUBLE) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addDouble(tableProxy.getDouble(colIndex, rowNumber));
+            }
+        },
+        STRING(ColumnType.STRING) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addBinary(Binary.fromString(tableProxy.getString(colIndex, rowNumber)));
+            }
+        },
+        TEXT(ColumnType.TEXT) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addBinary(Binary.fromString(tableProxy.getText(colIndex, rowNumber)));
+            }
+        },
+        LOCAL_DATE(ColumnType.LOCAL_DATE) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addInteger(tableProxy.getDateToEpochDay(colIndex, rowNumber));
+            }
+        },
+        LOCAL_TIME(ColumnType.LOCAL_TIME) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addLong(tableProxy.getTimeToNanoOfDay(colIndex, rowNumber));
+            }
+        },
+        LOCAL_DATE_TIME(ColumnType.LOCAL_DATE_TIME) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addLong(tableProxy.getDateTimeToEpochMilli(colIndex, rowNumber));
+            }
+        },
+        INSTANT(ColumnType.INSTANT) {
+            @Override
+            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
+                recordConsumer.addLong(tableProxy.getInstantToEpochMilli(colIndex, rowNumber));
+            }
+        };
+
+        public final ColumnType columnType;
+        
+        private FieldRecorder(final ColumnType columnType) {
+            this.columnType = columnType;
+        }
+        
+        abstract public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                final int colIndex, final int rowNumber);
+        
+    }
+    
     private static final String WRITE_SUPPORT_NAME = "net.tlabs.tablesaw.parquet";
     private static final Map<ColumnType, PrimitiveTypeName> PRIMITIVE_MAPPING;
     private static final Map<ColumnType, LogicalTypeAnnotation> ANNOTATION_MAPPING;
+    private static final Map<ColumnType, FieldRecorder> RECORDER_MAPPING;
     private final TableProxy proxy;
     private final MessageType schema;
     private final int nbfields;
     private RecordConsumer recordConsumer;
+    private FieldRecorder[] fieldRecorders;
 
     static {
         PRIMITIVE_MAPPING = new HashMap<>();
@@ -70,6 +170,19 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         ANNOTATION_MAPPING.put(ColumnType.LOCAL_DATE_TIME, LogicalTypeAnnotation.timestampType(false, TimeUnit.MILLIS));
         ANNOTATION_MAPPING.put(ColumnType.STRING, LogicalTypeAnnotation.stringType());
         ANNOTATION_MAPPING.put(ColumnType.TEXT, LogicalTypeAnnotation.stringType());
+        RECORDER_MAPPING = new HashMap<>();
+        RECORDER_MAPPING.put(ColumnType.BOOLEAN, FieldRecorder.BOOLEAN);
+        RECORDER_MAPPING.put(ColumnType.SHORT, FieldRecorder.SHORT);
+        RECORDER_MAPPING.put(ColumnType.INTEGER, FieldRecorder.INTEGER);
+        RECORDER_MAPPING.put(ColumnType.LONG, FieldRecorder.LONG);
+        RECORDER_MAPPING.put(ColumnType.FLOAT, FieldRecorder.FLOAT);
+        RECORDER_MAPPING.put(ColumnType.DOUBLE, FieldRecorder.DOUBLE);
+        RECORDER_MAPPING.put(ColumnType.LOCAL_DATE, FieldRecorder.LOCAL_DATE);
+        RECORDER_MAPPING.put(ColumnType.LOCAL_TIME, FieldRecorder.LOCAL_TIME);
+        RECORDER_MAPPING.put(ColumnType.LOCAL_DATE_TIME, FieldRecorder.LOCAL_DATE_TIME);
+        RECORDER_MAPPING.put(ColumnType.INSTANT, FieldRecorder.INSTANT);
+        RECORDER_MAPPING.put(ColumnType.STRING, FieldRecorder.STRING);
+        RECORDER_MAPPING.put(ColumnType.TEXT, FieldRecorder.TEXT);
     }
 
     public TablesawWriteSupport(final Table table) {
@@ -77,8 +190,17 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         this.proxy = new TableProxy(table);
         this.schema = internalCreateSchema(table);
         this.nbfields = schema.getFieldCount();
+        this.fieldRecorders = internalCreateRecorders(table);
     }
 
+    private static FieldRecorder[] internalCreateRecorders(final Table table) {
+        return table.columns().stream()
+            .map(Column::type)
+            .map(RECORDER_MAPPING::get)
+            .collect(Collectors.toList())
+            .toArray(new FieldRecorder[0]);
+    }
+    
     public static MessageType createSchema(final Table table) {
         return internalCreateSchema(table);
     }
@@ -120,40 +242,9 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             if (!column.isMissing(rowNumber)) {
                 final String fieldName = column.name();
                 recordConsumer.startField(fieldName, colIndex);
-                recordField(rowNumber, colIndex, column.type());
+                fieldRecorders[colIndex].recordValue(recordConsumer, proxy, colIndex, rowNumber);
                 recordConsumer.endField(fieldName, colIndex);
             }
-        }
-    }
-
-    private void recordField(final int rowNumber, final int colIndex, final ColumnType type) {
-        if (type == ColumnType.BOOLEAN) {
-            recordConsumer.addBoolean(proxy.getBoolean(colIndex, rowNumber));
-        } else if (type == ColumnType.SHORT) {
-            recordConsumer.addInteger(proxy.getShort(colIndex, rowNumber));
-        } else if (type == ColumnType.INTEGER) {
-            recordConsumer.addInteger(proxy.getInt(colIndex, rowNumber));
-        } else if (type == ColumnType.LONG) {
-            recordConsumer.addLong(proxy.getLong(colIndex, rowNumber));
-        } else if (type == ColumnType.FLOAT) {
-            recordConsumer.addFloat(proxy.getFloat(colIndex, rowNumber));
-        } else if (type == ColumnType.DOUBLE) {
-            recordConsumer.addDouble(proxy.getDouble(colIndex, rowNumber));
-        } else if (type == ColumnType.STRING) {
-            recordConsumer.addBinary(Binary.fromString(proxy.getString(colIndex, rowNumber)));
-        } else if (type == ColumnType.TEXT) {
-            recordConsumer.addBinary(Binary.fromString(proxy.getText(colIndex, rowNumber)));
-        } else if (type == ColumnType.LOCAL_DATE) {
-            recordConsumer.addInteger(proxy.getDateToEpochDay(colIndex, rowNumber));
-        } else if (type == ColumnType.LOCAL_TIME) {
-            recordConsumer.addLong(proxy.getTimeToNanoOfDay(colIndex, rowNumber));
-        } else if (type == ColumnType.LOCAL_DATE_TIME) {
-            recordConsumer.addLong(proxy.getDateTimeToEpochMilli(colIndex, rowNumber));
-        } else if (type == ColumnType.INSTANT) {
-            recordConsumer.addLong(proxy.getInstantToEpochMilli(colIndex, rowNumber));
-        } else {
-            // This should not happen
-            throw new UnsupportedOperationException("Unsupported ColumnType: " + type);
         }
     }
 
