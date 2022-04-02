@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataReader;
+import tech.tablesaw.io.RuntimeIOException;
 import tech.tablesaw.io.Source;
 
 public class TablesawParquetReader implements DataReader<TablesawParquetReadOptions> {
@@ -40,7 +41,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     }
 
     @Override
-    public Table read(final Source source) throws IOException {
+    public Table read(final Source source) {
         final File file = source.file();
         if (file != null) {
             return read(TablesawParquetReadOptions.builder(file).build());
@@ -50,7 +51,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     }
 
     @Override
-    public Table read(final TablesawParquetReadOptions options) throws IOException {
+    public Table read(final TablesawParquetReadOptions options) {
         final long start = System.currentTimeMillis();
         final String inputPath = options.getInputPath();
         final Path path = new Path(inputPath);
@@ -62,6 +63,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
             }
             final long end = System.currentTimeMillis();
             LOG.debug("Finished reading {} rows from {} in {} ms", i, inputPath, (end - start));
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
         }
         return readSupport.getTable();
     }
