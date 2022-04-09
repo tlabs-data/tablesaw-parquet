@@ -1,7 +1,7 @@
 Tablesaw parquet I/O
 =======
 
-[![Apache 2.0](https://img.shields.io/github/license/nebula-plugins/nebula-project-plugin.svg)](http://www.apache.org/licenses/LICENSE-2.0)
+[![Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Build Status](https://github.com/tlabs-data/tablesaw-parquet/actions/workflows/main.yml/badge.svg)](https://github.com/tlabs-data/tablesaw-parquet/actions)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=tlabs-data_tablesaw-parquet&metric=coverage)](https://sonarcloud.io/dashboard?id=tlabs-data_tablesaw-parquet)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=tlabs-data_tablesaw-parquet&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=tlabs-data_tablesaw-parquet)
