@@ -52,7 +52,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tablesaw.version>0.43.1</tablesaw.version>
     <parquet.version>1.12.0</parquet.version>
-    <hadoop.version>2.10.1</hadoop.version>
+    <hadoop.version>3.2.3</hadoop.version>
     <junit.version>5.5.2</junit.version>
     <!-- Sonar Cloud integration -->
     <sonar.projectKey>tlabs-data_tablesaw-parquet</sonar.projectKey>
