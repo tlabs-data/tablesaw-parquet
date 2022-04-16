@@ -33,6 +33,7 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataWriter;
 import tech.tablesaw.io.Destination;
+import tech.tablesaw.io.RuntimeIOException;
 
 public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOptions> {
 
@@ -43,13 +44,13 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
     }
 
     @Override
-    public void write(final Table table, final Destination dest) throws IOException {
+    public void write(final Table table, final Destination dest) {
         throw new UnsupportedOperationException(
             "The use of Destination is not supported, please use the write(Table, TablesawParquetWriteOptions) method");
     }
 
     @Override
-    public void write(final Table table, final TablesawParquetWriteOptions options) throws IOException {
+    public void write(final Table table, final TablesawParquetWriteOptions options) {
         try (final ParquetWriter<Row> writer = new Builder(new Path(options.getOutputFile()), table)
                 .withCompressionCodec(CompressionCodecName.fromConf(options.getCompressionCodec().name()))
                 .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
@@ -61,6 +62,8 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
             final long end = System.currentTimeMillis();
             LOG.debug("Finished writing {} rows to {} in {} ms",
                 table.rowCount(), options.getOutputFile(), (end - start));
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
         }
     }
     

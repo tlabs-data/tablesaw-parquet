@@ -49,6 +49,7 @@ import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 import tech.tablesaw.io.Destination;
+import tech.tablesaw.io.RuntimeIOException;
 
 class TestParquetWriter {
 
@@ -177,7 +178,7 @@ class TestParquetWriter {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        assertThrows(FileAlreadyExistsException.class, () -> PARQUET_WRITER.write(orig,
+        assertThrows(RuntimeIOException.class, () -> PARQUET_WRITER.write(orig,
             TablesawParquetWriteOptions.builder(OUTPUT_FILE).withOverwrite(false).build()));
     }
 
