@@ -21,6 +21,7 @@ package net.tlabs.tablesaw.parquet;
  */
 
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -121,6 +122,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
     public static Builder builder(final URL url) {
         final String urlString = url.toString();
         return new Builder(urlString).tableName(urlString);
+    }
+
+    public static Builder builder(final URI uri) {
+        final String uriString = uri.toString();
+        return new Builder(uriString).tableName(uriString);
     }
 
     public static class Builder extends ReadOptions.Builder {
