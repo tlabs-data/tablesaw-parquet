@@ -89,6 +89,13 @@ class TestTablesawRegistry {
     }
 
     @Test
+    void testRegistryReadURIUsingOptions() throws IOException {
+        final Table table = Table.read()
+            .usingOptions(TablesawParquetReadOptions.builder(new File(PANDAS_PYARROW).toURI()));
+        assertNotNull(table, "Read table is null");
+    }
+
+    @Test
     void testRegistryWriteUsingOptions() throws IOException {
         final Table table = Table.read().file(PANDAS_PYARROW);
         table.write().usingOptions(TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
