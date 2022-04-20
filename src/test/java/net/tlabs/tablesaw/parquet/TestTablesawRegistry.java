@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -76,9 +75,9 @@ class TestTablesawRegistry {
     }
 
     @Test
-    void testRegistryReadURL() {
-        assertThrows(UnsupportedOperationException.class,
-            () -> Table.read().url(new File(PANDAS_PYARROW).toURI().toURL()));
+    void testRegistryReadURL() throws IOException {
+        final Table table = Table.read().url(new File(PANDAS_PYARROW).toURI().toURL());
+        assertNotNull(table, "Read table is null");
     }
 
     @Test
