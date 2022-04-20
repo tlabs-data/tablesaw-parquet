@@ -21,11 +21,16 @@ package net.tlabs.tablesaw.parquet;
  */
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import org.apache.commons.io.IOUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.DataReader;
@@ -53,19 +58,44 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     @Override
     public Table read(final TablesawParquetReadOptions options) {
         final long start = System.currentTimeMillis();
-        final String inputPath = options.getInputPath();
-        final Path path = new Path(inputPath);
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-        try (final ParquetReader<Row> reader = ParquetReader.builder(readSupport, path).build()) {
+        try (final ParquetReader<Row> reader = makeReader(options.getInputURI(), readSupport)) {
             int i = 0;
             while (reader.read() != null) {
                 i++;
             }
             final long end = System.currentTimeMillis();
-            LOG.debug("Finished reading {} rows from {} in {} ms", i, inputPath, (end - start));
+            LOG.debug("Finished reading {} rows from {} in {} ms", i, options.getSanitizedinputPath(), (end - start));
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
         return readSupport.getTable();
+    }
+    
+    private ParquetReader<Row> makeReader(final URI uri, final TablesawReadSupport readSupport) throws IOException {
+        final String scheme = uri.getScheme();
+        if(scheme != null) {
+            switch(scheme) {
+                case "http":   // fall through
+                case "https":  // fall through
+                case "ftp":    // fall through
+                case "ftps":   // fall through
+                    try(final InputStream inStream = uri.toURL().openStream()) {
+                        return makeReaderFromStream(readSupport, inStream);
+                    }
+                default:
+                    // fall through
+            }
+        }
+        return ParquetReader.builder(readSupport, new Path(uri)).build();
+    }
+
+    private ParquetReader<Row> makeReaderFromStream(final TablesawReadSupport readSupport, final InputStream inStream) throws IOException {
+        final File tmpFile = File.createTempFile("tablesaw-parquet", "parquet");
+        tmpFile.deleteOnExit();
+        try(final FileOutputStream outStream = new FileOutputStream(tmpFile)) {
+            IOUtils.copyLarge(inStream, outStream);
+            return ParquetReader.builder(readSupport, new Path(tmpFile.toURI())).build();
+        }
     }
 }
