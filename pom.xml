@@ -376,5 +376,11 @@
       <version>3.7.7</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mockftpserver</groupId>
+      <artifactId>MockFtpServer</artifactId>
+      <version>3.0.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
