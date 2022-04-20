@@ -22,6 +22,7 @@ package net.tlabs.tablesaw.parquet;
 
 import java.io.File;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -55,7 +56,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     private final boolean floatColumnTypeUsed;
     private final ManageGroupsAs manageGroupsAs;
     private final List<String> columns;
-    private final String inputPath;
+    private final URI inputURI;
 
     protected TablesawParquetReadOptions(final Builder builder) {
         super(builder);
@@ -63,7 +64,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         unnanotatedBinaryAs = builder.unnanotatedBinaryAs;
         manageGroupsAs = builder.manageGroupsAs;
         columns = Collections.unmodifiableList(Arrays.asList(builder.columns));
-        inputPath = builder.inputPath;
+        inputURI = builder.inputURI;
         shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
         floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
     }
@@ -107,26 +108,64 @@ public class TablesawParquetReadOptions extends ReadOptions {
         return columns.contains(columnName);
     }
 
+    public URI getInputURI() {
+        return inputURI;
+    }
+
+    /**
+     * @deprecated
+     * Can expose credentials in URI/URL. User getSanitizedinputPath() instead.
+     * Will be removed in next version.
+     * @return the input path
+     */
+    @Deprecated
     public String getInputPath() {
-        return inputPath;
+        return inputURI.toString();
+    }
+    
+    public String getSanitizedinputPath() {
+        return sanitize(inputURI);
+    }
+
+    private static String sanitize(final URI uri) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        if(uri.getScheme() != null) {
+            stringBuilder.append(uri.getScheme())
+                .append(":");
+        }
+        if(uri.getHost() != null) {
+            stringBuilder.append("//")
+                .append(uri.getHost());
+            if(uri.getPort() >= 0) {
+                stringBuilder.append(":")
+                    .append(Integer.toString(uri.getPort()));
+            }
+        }
+        stringBuilder.append(uri.getPath());
+        return stringBuilder
+            .toString();
     }
 
     public static Builder builder(final File file) {
-        return new Builder(file.getAbsolutePath()).tableName(file.getName());
+        return new Builder(file.toURI()).tableName(file.getName());
     }
 
     public static Builder builder(final String inputPath) {
-        return new Builder(inputPath).tableName(inputPath);
+        final URI inputURI = URI.create(inputPath);
+        return new Builder(inputURI).tableName(sanitize(inputURI));
     }
 
     public static Builder builder(final URL url) {
-        final String urlString = url.toString();
-        return new Builder(urlString).tableName(urlString);
+        try {
+            final URI inputURI = url.toURI();
+            return new Builder(inputURI).tableName(sanitize(inputURI));
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     public static Builder builder(final URI uri) {
-        final String uriString = uri.toString();
-        return new Builder(uriString).tableName(uriString);
+        return new Builder(uri).tableName(sanitize(uri));
     }
 
     public static class Builder extends ReadOptions.Builder {
@@ -134,11 +173,22 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private UnnanotatedBinaryAs unnanotatedBinaryAs = UnnanotatedBinaryAs.STRING;
         private ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
         private String[] columns = new String[0];
-        private final String inputPath;
+        private final URI inputURI;
 
+        /**
+         * @deprecated
+         * Use the URI based constructor instead. Will be removed in next version.
+         * @param inputPath the input path as a String
+         */
+        @Deprecated
         protected Builder(final String inputPath) {
             super();
-            this.inputPath = inputPath;
+            this.inputURI = URI.create(inputPath);
+        }
+
+        protected Builder(final URI inputURI) {
+            super();
+            this.inputURI = inputURI.normalize();
         }
 
         @Override
