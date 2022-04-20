@@ -51,24 +51,41 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         if (file != null) {
             return read(TablesawParquetReadOptions.builder(file).build());
         }
+        final InputStream inStream = source.inputStream();
+        if(inStream != null) {
+            return readFromStream(inStream);
+        }
         throw new UnsupportedOperationException(
             "Can only work with file based source, please use the read(TablesawParquetReadOptions) method for additional possibilities");
     }
 
     @Override
     public Table read(final TablesawParquetReadOptions options) {
-        final long start = System.currentTimeMillis();
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
         try (final ParquetReader<Row> reader = makeReader(options.getInputURI(), readSupport)) {
-            int i = 0;
-            while (reader.read() != null) {
-                i++;
-            }
-            final long end = System.currentTimeMillis();
-            LOG.debug("Finished reading {} rows from {} in {} ms", i, options.getSanitizedinputPath(), (end - start));
+            return readInternal(reader, readSupport, options.getSanitizedinputPath());
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
+    }
+    
+    private Table readFromStream(final InputStream inStream) {
+        final TablesawReadSupport readSupport = new TablesawReadSupport(TablesawParquetReadOptions.builderForStream().build());
+        try {
+            return readInternal(makeReaderFromStream(inStream, readSupport), readSupport, "stream");
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
+    }
+
+    private Table readInternal(final ParquetReader<Row> reader, final TablesawReadSupport readSupport, final String displayName) throws IOException {
+        final long start = System.currentTimeMillis();
+        int i = 0;
+        while (reader.read() != null) {
+            i++;
+        }
+        final long end = System.currentTimeMillis();
+        LOG.debug("Finished reading {} rows from {} in {} ms", i, displayName, (end - start));
         return readSupport.getTable();
     }
     
@@ -81,7 +98,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
                 case "ftp":    // fall through
                 case "ftps":   // fall through
                     try(final InputStream inStream = uri.toURL().openStream()) {
-                        return makeReaderFromStream(readSupport, inStream);
+                        return makeReaderFromStream(inStream, readSupport);
                     }
                 default:
                     // fall through
@@ -90,7 +107,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         return ParquetReader.builder(readSupport, new Path(uri)).build();
     }
 
-    private ParquetReader<Row> makeReaderFromStream(final TablesawReadSupport readSupport, final InputStream inStream) throws IOException {
+    private ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport) throws IOException {
         final File tmpFile = File.createTempFile("tablesaw-parquet", "parquet");
         tmpFile.deleteOnExit();
         try(final FileOutputStream outStream = new FileOutputStream(tmpFile)) {
