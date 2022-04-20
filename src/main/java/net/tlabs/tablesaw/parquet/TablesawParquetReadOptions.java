@@ -151,14 +151,12 @@ public class TablesawParquetReadOptions extends ReadOptions {
     }
 
     public static Builder builder(final String inputPath) {
-        final URI inputURI = URI.create(inputPath);
-        return new Builder(inputURI).tableName(sanitize(inputURI));
+        return builder(URI.create(inputPath));
     }
 
     public static Builder builder(final URL url) {
         try {
-            final URI inputURI = url.toURI();
-            return new Builder(inputURI).tableName(sanitize(inputURI));
+            return builder(url.toURI());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }
@@ -166,6 +164,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
     public static Builder builder(final URI uri) {
         return new Builder(uri).tableName(sanitize(uri));
+    }
+    
+    static Builder builderForStream() {
+        return new Builder((URI)null);
     }
 
     public static class Builder extends ReadOptions.Builder {
@@ -188,7 +190,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
         protected Builder(final URI inputURI) {
             super();
-            this.inputURI = inputURI.normalize();
+            this.inputURI = inputURI;
         }
 
         @Override
