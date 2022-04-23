@@ -29,8 +29,8 @@ __maven:__
 
 ```xml
 <properties>
-    <tablesaw.version>0.38.2</tablesaw.version>
-    <tablesaw-parquet.version>0.7.0</tablesaw-parquet.version>
+    <tablesaw.version>0.42.0</tablesaw.version>
+    <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
 </properties>
 
 <dependencies>
@@ -51,8 +51,8 @@ __gradle:__
 
 ```groovy
 ext {
-    tablesawVersion = "0.38.2"
-    tablesawParquetVersion = "0.7.0"
+    tablesawVersion = "0.42.0"
+    tablesawParquetVersion = "0.10.0"
 }
 
 dependencies {
@@ -61,16 +61,26 @@ dependencies {
 }
 ```
 
-#### Reading and writing parquet files
+#### Reading and writing local parquet files
 
 Read and write your parquet files using the following patterns:
 
 ```java
+// using the file name
 Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(FILENAME).build());
 new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder(FILENAME).build());
+// using a File object
+Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(FILE).build());
+new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder(FILE).build());
 ```
 
-Alternatively, you can manually register the parquet reader and writer to use *some* of the  __tablesaw__  classic patterns:
+Using a  __tablesaw__  Source object is also supported for reading parquet files using default options:
+
+```java
+Table table = new TablesawParquetReader().read(new Source(FILE));
+```
+
+Alternatively, you can manually register the parquet reader and writer to use  __tablesaw__  classic patterns:
 
 ```java
 TablesawParquet.register();
@@ -84,14 +94,44 @@ table.write().usingOptions(TablesawParquetWriteOptions.builder(FILENAME).build()
 
 The file extension must be  __".parquet"__  when using `Table.read().file()`.
 
-__Note that read and write methods not mentioned above are not supported and will throw a RuntimeException.__
+__Note that all write methods not mentioned above are not supported and will throw a RuntimeException.__
 
-You can still read data from URLs using the following pattern:
+__As parquet is a binary format, reading from character-based input is not supported.__
+
+#### Reading remote parquet files
+
+Reading remote parquet files is supported starting from `v0.10.0`. See [Working with remote files](WORKING_WITH_REMOTE_FILES.md) for tested examples and implementation details.
+
+##### Reading from hadoop-supported file systems:
+
+Parquet files on [hadoop-supported file systems](https://hadoop.apache.org/docs/r3.2.3/) can be read using:
+
+```java
+Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(URI).build());
+```
+
+##### Reading from http(s)/ftp(s):
+
+Parquet files from http or ftp servers can be read using:
+
+```java
+Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(URL).build());
+```
+
+You can also register the parquet reader and use the  __tablesaw__  read method. For this to work, the URL  __must__  end with  __".parquet"__  as there is currently no [parquet MIME type](https://issues.apache.org/jira/browse/PARQUET-1889):
 
 ```java
 TablesawParquet.register();
 
-Table.read().usingOptions(TablesawParquetReadOptions.builder(URL));
+Table.read().url(URL);
+```
+
+##### Reading from user-provided InputStream:
+
+Reading from a user-provided InpustStream is provided as a courtesy and only possible by using:
+
+```java
+Table table = new TablesawParquetReader().read(new Source(INPUTSTREAM));
 ```
 
 ## Data type conversion
@@ -218,6 +258,8 @@ Users are welcome to contribute to this project.
 Bugs or problems with the library should be reported on [github](https://github.com/tlabs-data/tablesaw-parquet/issues). If you report an issue you have when reading a parquet file, please attach a sample test file, so we can reproduce and correct the issue. Feature requests are also welcome, but there is no guarantee we will be able to implement them quickly...
 
 Users are also welcome to contribute (small) test parquet files from different sources or with different column types than the ones currently tested. In this case please provide a quick description of the file content and origin. If you are able to provide a pull request with the tests implemented all the better.
+
+Users are encouraged to report successful (or unsuccessful...) use of the library with remote file systems to complement the current use cases documented.
 
 We also accept pull requests with code or documentation improvements. We prefer pull requests linked to an existing issue, create one if needed. Code quality is important, code efficiency is even more important, and testing is mandatory.
 
