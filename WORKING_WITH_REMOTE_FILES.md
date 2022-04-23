@@ -5,6 +5,8 @@ Using tablesaw-parquet with remote parquet files
 
 Reading remote parquet files is supported starting from `v0.10.0`.
 
+__When using the URI or URL based builder, a sanitized URI (with no credentials and no query parts) is used by default for the table name.__
+
 #### hadoop-supported file systems
 
 Reading parquet files from an hadoop-supported file system is possible by adding the hadoop specific module in your classpath 
@@ -66,6 +68,8 @@ Table table = new TablesawParquetReader().read(new Source(INPUTSTREAM));
 ```
 
 The current implementation downloads the whole stream on the local file system before reading it.
+
+__When reading from a stream, the resulting table has an empty name by default.__
 
 ##### What was tested:
 
