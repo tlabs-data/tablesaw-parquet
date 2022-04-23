@@ -382,5 +382,11 @@
       <version>3.0.0</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.mock-server</groupId>
+      <artifactId>mockserver-netty-no-dependencies</artifactId>
+      <version>5.13.2</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>
