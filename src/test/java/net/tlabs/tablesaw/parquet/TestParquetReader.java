@@ -23,7 +23,9 @@ package net.tlabs.tablesaw.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.Builder;
@@ -91,9 +93,18 @@ class TestParquetReader {
     }
 
     @Test
+    void testTableFromInputStreamSource() throws IOException {
+        try(final InputStream in = new FileInputStream(new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT))) {
+            final Table table = PARQUET_READER.read(new Source(in));
+            assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
+            assertEquals("", table.name(), APACHE_ALL_TYPES_DICT + " wrong name");
+        }
+    }
+
+    @Test
     void testTableFromOtherSource() throws IOException {
         assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(Source.fromString("A,B,C,D,E")),
-            "Wrong exception reading from non-file source");
+            "Wrong exception reading from a Reader source");
     }
 
     @Test
