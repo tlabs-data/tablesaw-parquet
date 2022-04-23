@@ -54,8 +54,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         if(inStream != null) {
             return readFromStream(inStream);
         }
-        throw new UnsupportedOperationException(
-            "Can only work with file based source, please use the read(TablesawParquetReadOptions) method for additional possibilities");
+        throw new UnsupportedOperationException("Reading parquet from a character stream is not supported");
     }
 
     @Override
