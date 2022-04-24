@@ -31,7 +31,6 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.CompressionCodec;
-import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.BooleanColumn;
 import tech.tablesaw.api.ColumnType;
