@@ -25,7 +25,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.slf4j.Logger;
@@ -100,11 +107,23 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     }
 
     private ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport) throws IOException {
-        final File tmpFile = File.createTempFile("tablesaw-parquet", "parquet");
+        final File tmpFile = createSecureTempFile("tablesaw-parquet", "parquet");
         tmpFile.deleteOnExit();
         try(final FileOutputStream outStream = new FileOutputStream(tmpFile)) {
             IOUtils.copyLarge(inStream, outStream);
             return ParquetReader.builder(readSupport, new Path(tmpFile.toURI())).build();
         }
+    }
+
+    private File createSecureTempFile(final String prefix, final String suffix) throws IOException {
+        if(SystemUtils.IS_OS_UNIX) {
+            final FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
+                PosixFilePermissions.fromString("rw-------"));
+            return Files.createTempFile(prefix, suffix, attr).toFile();
+        }
+        final File tmpFile = Files.createTempFile(prefix, suffix).toFile();
+        tmpFile.setReadable(true, true);
+        tmpFile.setWritable(true, true);
+        return tmpFile;
     }
 }
