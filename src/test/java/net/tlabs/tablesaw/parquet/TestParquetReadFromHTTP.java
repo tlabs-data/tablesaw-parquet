@@ -23,7 +23,7 @@ import org.mockserver.model.HttpStatusCode;
 
 import tech.tablesaw.api.Table;
 
-public class TestParquetReadFromHTTP {
+class TestParquetReadFromHTTP {
 
     private static final int HTTP_PORT = 1080;
     private static final String HTTP_PATH = "/download/pandas_pyarrow.parquet";
