@@ -42,7 +42,7 @@ import org.mockftpserver.fake.filesystem.UnixFakeFileSystem;
 
 import tech.tablesaw.api.Table;
 
-public class TestParquetReadFromFTP {
+class TestParquetReadFromFTP {
 
     private static final String PANDAS_PYARROW = "target/test-classes/pandas_pyarrow.parquet";
 
