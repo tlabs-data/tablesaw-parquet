@@ -112,17 +112,6 @@ public class TablesawParquetReadOptions extends ReadOptions {
         return inputURI;
     }
 
-    /**
-     * @deprecated
-     * Can expose credentials in URI/URL. User getSanitizedinputPath() instead.
-     * Will be removed in next version.
-     * @return the input path
-     */
-    @Deprecated
-    public String getInputPath() {
-        return inputURI.toString();
-    }
-    
     public String getSanitizedinputPath() {
         return sanitize(inputURI);
     }
@@ -176,17 +165,6 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
         private String[] columns = new String[0];
         private final URI inputURI;
-
-        /**
-         * @deprecated
-         * Use the URI based constructor instead. Will be removed in next version.
-         * @param inputPath the input path as a String
-         */
-        @Deprecated
-        protected Builder(final String inputPath) {
-            super();
-            this.inputURI = URI.create(inputPath);
-        }
 
         protected Builder(final URI inputURI) {
             super();
