@@ -233,19 +233,20 @@ final class TableProxy {
         return textColumns[colIndex].get(rowIndex);
     }
 
-    int getDateToEpochDay(final int colIndex, final int rowIndex) {
+    int getDateAsEpochDay(final int colIndex, final int rowIndex) {
         return (int) PackedLocalDate.toEpochDay(dateColumns[colIndex].getIntInternal(rowIndex));
     }
 
-    long getTimeToNanoOfDay(final int colIndex, final int rowIndex) {
+    long getTimeAsNanoOfDay(final int colIndex, final int rowIndex) {
+//        return PackedLocalTime.getMillisecondOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
         return PackedLocalTime.toNanoOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
     }
 
-    long getInstantToEpochMilli(final int colIndex, final int rowIndex) {
+    long getInstantAsEpochMilli(final int colIndex, final int rowIndex) {
         return instantColumns[colIndex].get(rowIndex).toEpochMilli();
     }
 
-    long getDateTimeToEpochMilli(final int colIndex, final int rowIndex) {
+    long getDateTimeAsEpochMilli(final int colIndex, final int rowIndex) {
         return dateTimeColumns[colIndex].get(rowIndex).toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 
