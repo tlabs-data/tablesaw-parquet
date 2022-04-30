@@ -41,99 +41,99 @@ import tech.tablesaw.columns.Column;
 
 public class TablesawWriteSupport extends WriteSupport<Row> {
 
-    private static enum FieldRecorder {
+    private enum FieldRecorder {
         BOOLEAN(ColumnType.BOOLEAN) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addBoolean(tableProxy.getBoolean(colIndex, rowNumber));
             }
         },
         SHORT(ColumnType.SHORT) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addInteger(tableProxy.getShort(colIndex, rowNumber));
             }
         },
         INTEGER(ColumnType.INTEGER){
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addInteger(tableProxy.getInt(colIndex, rowNumber));
             }
         },
         LONG(ColumnType.LONG) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addLong(tableProxy.getLong(colIndex, rowNumber));
             }
         },
         FLOAT(ColumnType.FLOAT){
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addFloat(tableProxy.getFloat(colIndex, rowNumber));
             }
         },
         DOUBLE(ColumnType.DOUBLE) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addDouble(tableProxy.getDouble(colIndex, rowNumber));
             }
         },
         STRING(ColumnType.STRING) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addBinary(Binary.fromString(tableProxy.getString(colIndex, rowNumber)));
             }
         },
         TEXT(ColumnType.TEXT) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addBinary(Binary.fromString(tableProxy.getText(colIndex, rowNumber)));
             }
         },
         LOCAL_DATE(ColumnType.LOCAL_DATE) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addInteger(tableProxy.getDateAsEpochDay(colIndex, rowNumber));
             }
         },
         LOCAL_TIME(ColumnType.LOCAL_TIME) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addInteger(tableProxy.getTimeAsMilliOfDay(colIndex, rowNumber));
             }
         },
         LOCAL_DATE_TIME(ColumnType.LOCAL_DATE_TIME) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addLong(tableProxy.getDateTimeAsEpochMilli(colIndex, rowNumber));
             }
         },
         INSTANT(ColumnType.INSTANT) {
             @Override
-            public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addLong(tableProxy.getInstantAsEpochMilli(colIndex, rowNumber));
             }
         };
 
-        public final ColumnType columnType;
+        final ColumnType columnType;
         
         private FieldRecorder(final ColumnType columnType) {
             this.columnType = columnType;
         }
         
-        abstract public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+        abstract void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                 final int colIndex, final int rowNumber);
         
     }
