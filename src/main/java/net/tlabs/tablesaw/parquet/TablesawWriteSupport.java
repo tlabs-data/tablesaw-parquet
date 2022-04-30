@@ -102,28 +102,28 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             @Override
             public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
-                recordConsumer.addInteger(tableProxy.getDateToEpochDay(colIndex, rowNumber));
+                recordConsumer.addInteger(tableProxy.getDateAsEpochDay(colIndex, rowNumber));
             }
         },
         LOCAL_TIME(ColumnType.LOCAL_TIME) {
             @Override
             public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
-                recordConsumer.addLong(tableProxy.getTimeToNanoOfDay(colIndex, rowNumber));
+                recordConsumer.addLong(tableProxy.getTimeAsNanoOfDay(colIndex, rowNumber));
             }
         },
         LOCAL_DATE_TIME(ColumnType.LOCAL_DATE_TIME) {
             @Override
             public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
-                recordConsumer.addLong(tableProxy.getDateTimeToEpochMilli(colIndex, rowNumber));
+                recordConsumer.addLong(tableProxy.getDateTimeAsEpochMilli(colIndex, rowNumber));
             }
         },
         INSTANT(ColumnType.INSTANT) {
             @Override
             public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
-                recordConsumer.addLong(tableProxy.getInstantToEpochMilli(colIndex, rowNumber));
+                recordConsumer.addLong(tableProxy.getInstantAsEpochMilli(colIndex, rowNumber));
             }
         };
 
