@@ -109,7 +109,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             @Override
             public void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
-                recordConsumer.addLong(tableProxy.getTimeAsNanoOfDay(colIndex, rowNumber));
+                recordConsumer.addInteger(tableProxy.getTimeAsMilliOfDay(colIndex, rowNumber));
             }
         },
         LOCAL_DATE_TIME(ColumnType.LOCAL_DATE_TIME) {
@@ -158,14 +158,14 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         PRIMITIVE_MAPPING.put(ColumnType.LONG, PrimitiveTypeName.INT64);
         PRIMITIVE_MAPPING.put(ColumnType.INSTANT, PrimitiveTypeName.INT64);
         PRIMITIVE_MAPPING.put(ColumnType.LOCAL_DATE, PrimitiveTypeName.INT32);
-        PRIMITIVE_MAPPING.put(ColumnType.LOCAL_TIME, PrimitiveTypeName.INT64);
+        PRIMITIVE_MAPPING.put(ColumnType.LOCAL_TIME, PrimitiveTypeName.INT32);
         PRIMITIVE_MAPPING.put(ColumnType.LOCAL_DATE_TIME, PrimitiveTypeName.INT64);
         PRIMITIVE_MAPPING.put(ColumnType.STRING, PrimitiveTypeName.BINARY);
         PRIMITIVE_MAPPING.put(ColumnType.TEXT, PrimitiveTypeName.BINARY);
         ANNOTATION_MAPPING = new HashMap<>();
         ANNOTATION_MAPPING.put(ColumnType.SHORT, LogicalTypeAnnotation.intType(16, true));
         ANNOTATION_MAPPING.put(ColumnType.LOCAL_DATE, LogicalTypeAnnotation.dateType());
-        ANNOTATION_MAPPING.put(ColumnType.LOCAL_TIME, LogicalTypeAnnotation.timeType(false, TimeUnit.NANOS));
+        ANNOTATION_MAPPING.put(ColumnType.LOCAL_TIME, LogicalTypeAnnotation.timeType(false, TimeUnit.MILLIS));
         ANNOTATION_MAPPING.put(ColumnType.INSTANT, LogicalTypeAnnotation.timestampType(true, TimeUnit.MILLIS));
         ANNOTATION_MAPPING.put(ColumnType.LOCAL_DATE_TIME, LogicalTypeAnnotation.timestampType(false, TimeUnit.MILLIS));
         ANNOTATION_MAPPING.put(ColumnType.STRING, LogicalTypeAnnotation.stringType());

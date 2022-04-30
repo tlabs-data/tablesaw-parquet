@@ -200,7 +200,7 @@ Note that the `ColumnType.SKIP` column type can be used with these options to fi
 | DoubleColumn | DOUBLE |  |
 | StringColumn | BINARY (STRING) |  |
 | TextColumn | BINARY (STRING) |  |
-| TimeColumn | INT64 (TIME: NANOS, not UTC) | *Will change to INT32 MILLIS in a future release* |
+| TimeColumn | INT32 (TIME: MILLIS, not UTC) | *Changed in v0.11.0, was INT64 (TIME: NANOS, not UTC) before* |
 | DateColumn | INT32 (DATE) |  |
 | DateTimeColumn | INT64 (TIMESTAMP: MILLIS, not UTC) |  |
 | InstantColumn | INT64 (TIMESTAMP: MILLIS, UTC) |  |
