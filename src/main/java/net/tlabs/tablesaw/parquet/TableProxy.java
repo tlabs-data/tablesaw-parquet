@@ -237,9 +237,8 @@ final class TableProxy {
         return (int) PackedLocalDate.toEpochDay(dateColumns[colIndex].getIntInternal(rowIndex));
     }
 
-    long getTimeAsNanoOfDay(final int colIndex, final int rowIndex) {
-//        return PackedLocalTime.getMillisecondOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
-        return PackedLocalTime.toNanoOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
+    int getTimeAsMilliOfDay(final int colIndex, final int rowIndex) {
+      return PackedLocalTime.getMillisecondOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
     }
 
     long getInstantAsEpochMilli(final int colIndex, final int rowIndex) {
