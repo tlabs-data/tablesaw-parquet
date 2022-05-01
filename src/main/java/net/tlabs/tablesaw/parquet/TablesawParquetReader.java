@@ -121,7 +121,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
             return ParquetReader.builder(readSupport, new Path(tmpFile.toURI())).build();
         }
     }
-
+    
     private File createSecureTempFile(final String prefix, final String suffix) throws IOException {
         if(SystemUtils.IS_OS_UNIX) {
             final FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
