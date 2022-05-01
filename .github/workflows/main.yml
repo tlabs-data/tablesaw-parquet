@@ -52,7 +52,7 @@ jobs:
         if: runner.os == 'Windows'
         run: echo "HADOOP_HOME=./hadoop-winutils" >> "$GITHUB_ENV"
       - name: Test with Maven
-        run: mvn -B verify --no-transfer-progress -e
+        run: mvn -B verify --no-transfer-progress -X
 
   check:
     needs: build

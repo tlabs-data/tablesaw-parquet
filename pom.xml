@@ -243,6 +243,7 @@
           <url>https://github.com/apache/parquet-testing/archive/refs/heads/master.zip</url>
           <unpack>true</unpack>
           <outputDirectory>${project.build.directory}/test/data/</outputDirectory>
+          <failOnError>true</failOnError>
         </configuration>
       </plugin>
       <plugin>
