@@ -43,7 +43,7 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Windows download
-        if: ${{ end.RUNNER_OS == 'Windows' }}
+        if: ${{ env.RUNNER_OS == 'Windows' }}
         uses: carlosperate/download-file-action@v1
         with:
           file-url: 'https://github.com/cdarlint/winutils/raw/master/hadoop-3.2.2/bin/winutils.exe'
