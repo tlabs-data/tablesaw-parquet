@@ -26,8 +26,7 @@ jobs:
 #        java-version: [8, 11, 16]
         java-version: [11]
         # windows-latest currently out of scope due to hadoop utils needed
-#        os: [macOS-latest, ubuntu-latest]
-        os: [windows-latest]
+        os: [macOS-latest, ubuntu-latest, windows-latest]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -47,11 +46,11 @@ jobs:
         uses: carlosperate/download-file-action@v1
         with:
           file-url: 'https://github.com/cdarlint/winutils/raw/master/hadoop-3.2.2/bin/winutils.exe'
-          location: '${{github.workspace}}/hadoop-winutils/bin'
+          location: '${{github.workspace}}/hadoop/bin'
       - name: Test with Maven
         env:
-          HADOOP_HOME: '${{github.workspace}}/hadoop-winutils'
-        run: mvn -B verify --no-transfer-progress -X
+          HADOOP_HOME: '${{github.workspace}}/hadoop'
+        run: mvn -B verify --no-transfer-progress
 
   check:
     needs: build
