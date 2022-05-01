@@ -269,7 +269,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <printSummary>false</printSummary>
+          <printSummary>true</printSummary>
           <!-- Jacoco prepare-agent builds some command-line params without -->
           <!-- which jacoco will not instrument. Hence it is important to add -->
           <!-- those command-line params here (${argLine} holds those params) -->

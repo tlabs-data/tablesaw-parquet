@@ -47,12 +47,12 @@ jobs:
         uses: carlosperate/download-file-action@v1
         with:
           file-url: 'https://github.com/cdarlint/winutils/raw/master/hadoop-3.2.2/bin/winutils.exe'
-          location: './hadoop-winutils'
+          location: './hadoop-winutils/bin'
       - name: Windows setup
         if: runner.os == 'Windows'
         run: echo "HADOOP_HOME=./hadoop-winutils" >> "$GITHUB_ENV"
       - name: Test with Maven
-        run: mvn -B verify --no-transfer-progress -X
+        run: mvn -B verify --no-transfer-progress
 
   check:
     needs: build
