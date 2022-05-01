@@ -249,7 +249,7 @@ Testing the compatibility with other sources of parquet files is paramount. We c
 * Test files from the [parquet-testing](https://github.com/apache/parquet-testing) project
 * Test files generated from [pandas](https://pandas.pydata.org/) dataframe with both [fastparquet](https://fastparquet.readthedocs.io/en/latest/) and [pyArrow](https://pyarrow.readthedocs.io/en/latest/)
 
-Note that we currently do not run the tests on Windows (see this [github issue](https://github.com/tlabs-data/tablesaw-parquet/issues/3) for details).
+Testing is performed on linux, macOS, and Windows - with Java 8, 11, and 16.
 
 ## How To Contribute
 
