@@ -368,6 +368,8 @@ public class TablesawRecordConverter extends GroupConverter {
             @Override
             public Optional<Converter> visit(final TimeLogicalTypeAnnotation timeLogicalType) {
                 switch (timeLogicalType.getUnit()) {
+                    case MILLIS:
+                        return Optional.of(new TimePrimitiveConverter(colIndex, MILLIS_TO_NANOS));
                     case MICROS:
                         return Optional.of(new TimePrimitiveConverter(colIndex, MICROS_TO_NANOS));
                     case NANOS:
