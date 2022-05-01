@@ -43,16 +43,16 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
       - name: Windows download
-        if: ${{ env.RUNNER_OS == 'Windows' }}
+        if: runner.os == 'Windows'
         uses: carlosperate/download-file-action@v1
         with:
           file-url: 'https://github.com/cdarlint/winutils/raw/master/hadoop-3.2.2/bin/winutils.exe'
           location: './hadoop-winutils'
       - name: Windows setup
-        if: ${{ env.RUNNER_OS == 'Windows' }}
+        if: runner.os == 'Windows'
         run: echo "HADOOP_HOME=./hadoop-winutils" >> "$GITHUB_ENV"
       - name: Test with Maven
-        run: mvn -B verify --no-transfer-progress
+        run: mvn -B verify --no-transfer-progress -e
 
   check:
     needs: build
