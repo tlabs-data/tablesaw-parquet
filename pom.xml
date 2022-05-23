@@ -50,7 +50,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tablesaw.version>0.43.1</tablesaw.version>
+    <tablesaw.version>1.0.0-SNAPSHOT</tablesaw.version>
     <parquet.version>1.12.2</parquet.version>
     <hadoop.version>3.2.3</hadoop.version>
     <junit.version>5.5.2</junit.version>
@@ -99,8 +99,8 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.6.2</version>
           <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
+            <source>11</source>
+            <target>11</target>
             <compilerArgument>-Xlint:all</compilerArgument>
           </configuration>
         </plugin>

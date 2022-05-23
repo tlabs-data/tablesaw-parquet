@@ -212,7 +212,7 @@ class TestParquetReader {
         assertEquals(ColumnType.INTEGER, table.column(1).type(), APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
         assertEquals(ColumnType.DOUBLE, table.column(2).type(), APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
         assertEquals(ColumnType.BOOLEAN, table.column(3).type(), APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
-        assertEquals(ColumnType.TEXT, table.column(4).type(), APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
+        assertEquals(ColumnType.STRING, table.column(4).type(), APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
     }
 
     @Test
@@ -226,7 +226,7 @@ class TestParquetReader {
         assertEquals(ColumnType.INTEGER, table.column(1).type(), APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
         assertEquals(ColumnType.DOUBLE, table.column(2).type(), APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
         assertEquals(ColumnType.BOOLEAN, table.column(3).type(), APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
-        assertEquals(ColumnType.TEXT, table.column(4).type(), APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
+        assertEquals(ColumnType.STRING, table.column(4).type(), APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
     }
 
     @Test
@@ -239,7 +239,7 @@ class TestParquetReader {
         assertEquals(ColumnType.INTEGER, table.column(1).type(), APACHE_DATAPAGEV2 + "[" + "b" + "] wrong type");
         assertEquals(ColumnType.DOUBLE, table.column(2).type(), APACHE_DATAPAGEV2 + "[" + "c" + "] wrong type");
         assertEquals(ColumnType.BOOLEAN, table.column(3).type(), APACHE_DATAPAGEV2 + "[" + "d" + "] wrong type");
-        assertEquals(ColumnType.TEXT, table.column(4).type(), APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
+        assertEquals(ColumnType.STRING, table.column(4).type(), APACHE_DATAPAGEV2 + "[" + "e" + "] wrong type");
     }
 
     @Test
@@ -337,7 +337,7 @@ class TestParquetReader {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_NULLS_SNAPPY).build());
         validateTable(table, 1, 8, APACHE_NULLS_SNAPPY);
-        assertEquals(ColumnType.TEXT, table.column(0).type(), APACHE_NULLS_SNAPPY + "[" + "b_struct" + "] wrong type");
+        assertEquals(ColumnType.STRING, table.column(0).type(), APACHE_NULLS_SNAPPY + "[" + "b_struct" + "] wrong type");
     }
 
     @Test

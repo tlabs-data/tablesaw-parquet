@@ -91,13 +91,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
                 recordConsumer.addBinary(Binary.fromString(tableProxy.getString(colIndex, rowNumber)));
             }
         },
-        TEXT(ColumnType.TEXT) {
-            @Override
-            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
-                    final int colIndex, final int rowNumber) {
-                recordConsumer.addBinary(Binary.fromString(tableProxy.getText(colIndex, rowNumber)));
-            }
-        },
         LOCAL_DATE(ColumnType.LOCAL_DATE) {
             @Override
             void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
@@ -161,7 +154,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         PRIMITIVE_MAPPING.put(ColumnType.LOCAL_TIME, PrimitiveTypeName.INT32);
         PRIMITIVE_MAPPING.put(ColumnType.LOCAL_DATE_TIME, PrimitiveTypeName.INT64);
         PRIMITIVE_MAPPING.put(ColumnType.STRING, PrimitiveTypeName.BINARY);
-        PRIMITIVE_MAPPING.put(ColumnType.TEXT, PrimitiveTypeName.BINARY);
         ANNOTATION_MAPPING = new HashMap<>();
         ANNOTATION_MAPPING.put(ColumnType.SHORT, LogicalTypeAnnotation.intType(16, true));
         ANNOTATION_MAPPING.put(ColumnType.LOCAL_DATE, LogicalTypeAnnotation.dateType());
@@ -169,7 +161,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         ANNOTATION_MAPPING.put(ColumnType.INSTANT, LogicalTypeAnnotation.timestampType(true, TimeUnit.MILLIS));
         ANNOTATION_MAPPING.put(ColumnType.LOCAL_DATE_TIME, LogicalTypeAnnotation.timestampType(false, TimeUnit.MILLIS));
         ANNOTATION_MAPPING.put(ColumnType.STRING, LogicalTypeAnnotation.stringType());
-        ANNOTATION_MAPPING.put(ColumnType.TEXT, LogicalTypeAnnotation.stringType());
         RECORDER_MAPPING = new HashMap<>();
         RECORDER_MAPPING.put(ColumnType.BOOLEAN, FieldRecorder.BOOLEAN);
         RECORDER_MAPPING.put(ColumnType.SHORT, FieldRecorder.SHORT);
@@ -182,7 +173,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         RECORDER_MAPPING.put(ColumnType.LOCAL_DATE_TIME, FieldRecorder.LOCAL_DATE_TIME);
         RECORDER_MAPPING.put(ColumnType.INSTANT, FieldRecorder.INSTANT);
         RECORDER_MAPPING.put(ColumnType.STRING, FieldRecorder.STRING);
-        RECORDER_MAPPING.put(ColumnType.TEXT, FieldRecorder.TEXT);
     }
 
     public TablesawWriteSupport(final Table table) {
