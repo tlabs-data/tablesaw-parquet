@@ -91,30 +91,32 @@ final class TableProxy {
     }
 
     private void fillColumnArrays(final int colIndex, final ColumnType columnType) {
-        if (columnType == ColumnType.BOOLEAN) {
+        if (ColumnType.BOOLEAN.equals(columnType)) {
             booleanColumns[colIndex] = table.booleanColumn(colIndex);
-        } else if (columnType == ColumnType.SHORT) {
+        } else if (ColumnType.SHORT.equals(columnType)) {
             shortColumns[colIndex] = table.shortColumn(colIndex);
-        } else if (columnType == ColumnType.INTEGER) {
+        } else if (ColumnType.INTEGER.equals(columnType)) {
             intColumns[colIndex] = table.intColumn(colIndex);
-        } else if (columnType == ColumnType.LONG) {
+        } else if (ColumnType.LONG.equals(columnType)) {
             longColumns[colIndex] = table.longColumn(colIndex);
-        } else if (columnType == ColumnType.FLOAT) {
+        } else if (ColumnType.FLOAT.equals(columnType)) {
             floatColumns[colIndex] = table.floatColumn(colIndex);
-        } else if (columnType == ColumnType.DOUBLE) {
+        } else if (ColumnType.DOUBLE.equals(columnType)) {
             doubleColumns[colIndex] = table.doubleColumn(colIndex);
-        } else if (columnType == ColumnType.LOCAL_TIME) {
+        } else if (ColumnType.LOCAL_TIME.equals(columnType)) {
             timeColumns[colIndex] = table.timeColumn(colIndex);
-        } else if (columnType == ColumnType.LOCAL_DATE) {
+        } else if (ColumnType.LOCAL_DATE.equals(columnType)) {
             dateColumns[colIndex] = table.dateColumn(colIndex);
-        } else if (columnType == ColumnType.LOCAL_DATE_TIME) {
+        } else if (ColumnType.LOCAL_DATE_TIME.equals(columnType)) {
             dateTimeColumns[colIndex] = table.dateTimeColumn(colIndex);
-        } else if (columnType == ColumnType.INSTANT) {
+        } else if (ColumnType.INSTANT.equals(columnType)) {
             instantColumns[colIndex] = table.instantColumn(colIndex);
-        } else if (columnType == ColumnType.STRING) {
+        } else if (ColumnType.STRING.equals(columnType)) {
             stringColumns[colIndex] = table.stringColumn(colIndex);
-        } else if (columnType == ColumnType.TEXT) {
+        } else if (ColumnType.TEXT.equals(columnType)) {
             textColumns[colIndex] = table.textColumn(colIndex);
+        } else {
+            throw new IllegalArgumentException("Unsupported ColumnType " + columnType);
         }
     }
 
