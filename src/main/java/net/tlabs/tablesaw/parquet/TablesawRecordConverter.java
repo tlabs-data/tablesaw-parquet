@@ -256,7 +256,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
     private Converter createConverter(final int colIndex, final ColumnType columnType, final Type schemaType,
         final TablesawParquetReadOptions options) {
-        if (columnType == ColumnType.INTEGER) {
+        if (ColumnType.INTEGER.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
@@ -264,7 +264,7 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.LONG) {
+        if (ColumnType.LONG.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
@@ -276,12 +276,12 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.DOUBLE) {
+        if (ColumnType.DOUBLE.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> doubleFromBinaryConverter(colIndex, a))
                 .orElseGet(() -> new DefaultDoublePrimitiveConverter(colIndex));
         }
-        if (columnType == ColumnType.BOOLEAN) {
+        if (ColumnType.BOOLEAN.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addBoolean(final boolean value) {
@@ -289,12 +289,12 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.STRING) {
+        if (ColumnType.STRING.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> annotatedStringConverter(colIndex, a))
                 .orElseGet(() -> createUnannotatedStringConverter(colIndex, schemaType, options));
         }
-        if (columnType == ColumnType.FLOAT) {
+        if (ColumnType.FLOAT.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addFloat(final float value) {
@@ -302,17 +302,17 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.INSTANT) {
+        if (ColumnType.INSTANT.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> annotatedInstantConverter(colIndex, a))
                 .orElseGet(() -> new MillisInstantPrimitiveConverter(colIndex));
         }
-        if (columnType == ColumnType.LOCAL_DATE_TIME) {
+        if (ColumnType.LOCAL_DATE_TIME.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> annotatedDateTimeConverter(colIndex, a))
                 .orElseGet(() -> new DateTimePrimitiveConverter(colIndex, SECOND_TO_MILLIS, MILLIS_TO_NANOS));
         }
-        if (columnType == ColumnType.LOCAL_DATE) {
+        if (ColumnType.LOCAL_DATE.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
@@ -320,12 +320,12 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.LOCAL_TIME) {
+        if (ColumnType.LOCAL_TIME.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
                 .flatMap(a -> annotatedTimeConverter(colIndex, a))
                 .orElseGet(() -> new TimePrimitiveConverter(colIndex, 1L));
         }
-        if (columnType == ColumnType.SHORT) {
+        if (ColumnType.SHORT.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
@@ -333,7 +333,7 @@ public class TablesawRecordConverter extends GroupConverter {
                 }
             };
         }
-        if (columnType == ColumnType.TEXT) {
+        if (ColumnType.TEXT.equals(columnType)) {
             return new PrimitiveConverter() {
                 @Override
                 public void addBinary(final Binary value) {

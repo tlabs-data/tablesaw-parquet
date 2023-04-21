@@ -155,7 +155,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     private boolean acceptMappedFieldType(final int fieldIndex, final Type type) {
         final ColumnTypeReadOptions columnTypeReadOptions = this.options.columnTypeReadOptions();
         return columnTypeReadOptions.columnType(fieldIndex, type.getName())
-            .map(t -> t != ColumnType.SKIP)
+            .map(t -> !ColumnType.SKIP.equals(t))
             .orElse(!columnTypeReadOptions.hasColumnTypeForAllColumnsIfHavingColumnNames());
     }
 
