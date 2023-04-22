@@ -244,6 +244,8 @@
           <unpack>true</unpack>
           <outputDirectory>${project.build.directory}/test/data/</outputDirectory>
           <failOnError>true</failOnError>
+          <overwrite>true</overwrite>
+          <skipCache>true</skipCache>
         </configuration>
       </plugin>
       <plugin>

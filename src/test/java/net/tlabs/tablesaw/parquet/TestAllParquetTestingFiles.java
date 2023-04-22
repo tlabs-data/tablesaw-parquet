@@ -53,8 +53,9 @@ class TestAllParquetTestingFiles {
         if (!filename.endsWith(".parquet")) return false;
         // lz4 not supported
         if(filename.contains("lz4")) return false;
-        // parquet-mr reader fails on this one
+        // parquet-mr reader fails on these ones
         if(filename.equals("nation.dict-malformed.parquet")) return false;
+        if(filename.equals("fixed_length_byte_array.parquet")) return false;
         return true;
     }
     
