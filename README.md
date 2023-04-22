@@ -143,6 +143,15 @@ we provide a couple of additional hadoop Java libraries. See [hadoop dependency]
 dependencies, or if you are using this library on Windows.
 
 
+## Note on logging
+
+__tablesaw-parquet__  uses the same logging framework than  __tablesaw__  ([slf4j](https://www.slf4j.org/)). It only logs performance indicators at DEBUG level, and a few WARNings when using options inherited from  __tablesaw__  that have no effect with this library. It never logs any data nor authentication information.
+
+The internal parquet reader we are using (`org.apache.parquet.hadoop.InternalParquetRecordReader`) logs the data it reads at DEBUG level. It should be configured at least at INFO level to avoid data leaking in the logs. Its performance indicators are logged at INFO level.
+
+No slf4j binding is provided by  __tablesaw-parquet__  nor by  __tablesaw__ .
+
+
 ## Data type conversion
 
 #### Default conversion when reading a parquet file (parquet to tablesaw)
