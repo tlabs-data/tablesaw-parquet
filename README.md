@@ -44,7 +44,7 @@ __maven:__
     <artifactId>tablesaw_${tablesaw.version}-parquet</artifactId>
     <version>${tablesaw-parquet.version}</version>
   </dependency>
-<dependencies>
+</dependencies>
 ```
 
 __gradle:__
