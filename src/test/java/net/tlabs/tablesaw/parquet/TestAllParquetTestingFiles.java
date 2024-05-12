@@ -53,9 +53,17 @@ class TestAllParquetTestingFiles {
         if (!filename.endsWith(".parquet")) return false;
         // lz4 not supported
         if(filename.contains("lz4")) return false;
+        // brotli not supported
+        if(filename.contains("brotli")) return false;
         // parquet-mr reader fails on these ones
         if(filename.equals("nation.dict-malformed.parquet")) return false;
         if(filename.equals("fixed_length_byte_array.parquet")) return false;
+        if(filename.equals("byte_stream_split_extended.gzip.parquet")) return false;
+        if(filename.equals("concatenated_gzip_members.parquet")) return false;
+        if(filename.equals("rle_boolean_encoding.parquet")) return false;
+        if(filename.equals("float16_zeros_and_nans.parquet")) return false;
+        if(filename.equals("float16_nonzeros_and_nans.parquet")) return false;
+        if(filename.equals("delta_length_byte_array.parquet")) return false;
         return true;
     }
     
