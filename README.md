@@ -264,7 +264,7 @@ Parquet files written with tablesaw-parquet contain the statistics needed for pr
 
 Testing the compatibility with other sources of parquet files is paramount. We currently use two sets of test files for that:
 
-* Test files from the [parquet-testing](https://github.com/apache/parquet-testing) project
+* Test files from the [parquet-testing](https://github.com/apache/parquet-testing) project - with some exclusions
 * Test files generated from [pandas](https://pandas.pydata.org/) dataframe with both [fastparquet](https://fastparquet.readthedocs.io/en/latest/) and [pyArrow](https://pyarrow.readthedocs.io/en/latest/)
 
 Testing is performed on linux, macOS, and Windows - with Java 8, 11, and 16.
