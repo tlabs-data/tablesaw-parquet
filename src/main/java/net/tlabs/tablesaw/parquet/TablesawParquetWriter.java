@@ -51,9 +51,16 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
     @Override
     public void write(final Table table, final TablesawParquetWriteOptions options) {
+//        try {
+//            org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.getLocal(new Configuration());
+//            fs.setWriteChecksum(false);
+//        } catch (IOException e1) {
+//            // TODO Auto-generated catch block
+//            e1.printStackTrace();
+//        }
         try (final ParquetWriter<Row> writer = new Builder(new Path(options.getOutputFile()), table)
                 .withCompressionCodec(CompressionCodecName.fromConf(options.getCompressionCodec().name()))
-                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
+                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE).withValidation(false)
                 .build()) {
             final long start = System.currentTimeMillis();
             for(final Row row : table) {
