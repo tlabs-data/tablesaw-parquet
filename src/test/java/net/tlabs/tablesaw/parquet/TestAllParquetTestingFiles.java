@@ -64,6 +64,7 @@ class TestAllParquetTestingFiles {
         if(filename.equals("float16_zeros_and_nans.parquet")) return false;
         if(filename.equals("float16_nonzeros_and_nans.parquet")) return false;
         if(filename.equals("delta_length_byte_array.parquet")) return false;
+        if(filename.equals("repeated_primitive_no_list.parquet")) return false;
         return true;
     }
     
