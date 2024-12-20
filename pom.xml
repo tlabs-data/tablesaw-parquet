@@ -50,7 +50,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tablesaw.version>0.43.1</tablesaw.version>
+    <tablesaw.version>0.43.3</tablesaw.version>
     <parquet.version>1.12.2</parquet.version>
     <hadoop.version>3.4.0</hadoop.version>
     <junit.version>5.5.2</junit.version>
@@ -94,15 +94,24 @@
   <build>
     <pluginManagement>
       <plugins>
+	    <plugin>
+	        <groupId>org.codehaus.mojo</groupId>
+	        <artifactId>versions-maven-plugin</artifactId>
+	        <version>2.18.0</version>
+	        <configuration>
+				<ignoredVersions>(?i).*-(alpha|beta|m|rc)([-.]?\d+)?</ignoredVersions>
+	        </configuration>
+	    </plugin>
         <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.6.2</version>
-          <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <compilerArgument>-Xlint:all</compilerArgument>
-          </configuration>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.13.0</version>
+            <configuration>
+                <release>8</release>
+                <source>8</source>
+                <target>8</target>
+                <compilerArgument>-Xlint:all</compilerArgument>
+            </configuration>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -287,6 +296,26 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>enforce-maven</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.6.3,)</version>
+                </requireMavenVersion>
+              </rules>    
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
@@ -316,7 +345,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>tech.tablesaw</groupId>
+      <groupId>net.tlabs-data</groupId>
       <artifactId>tablesaw-core</artifactId>
       <version>${tablesaw.version}</version>
       <scope>provided</scope>
