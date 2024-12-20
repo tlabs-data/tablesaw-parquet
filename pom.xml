@@ -52,8 +52,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <tablesaw.version>0.43.3</tablesaw.version>
     <parquet.version>1.12.2</parquet.version>
-    <hadoop.version>3.4.0</hadoop.version>
-    <junit.version>5.5.2</junit.version>
+    <hadoop.version>3.4.1</hadoop.version>
+    <junit.version>5.11.4</junit.version>
     <!-- Sonar Cloud integration -->
     <sonar.projectKey>tlabs-data_tablesaw-parquet</sonar.projectKey>
     <sonar.organization>tlabs-data</sonar.organization>
@@ -415,7 +415,7 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.30</version>
+      <version>2.0.16</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -432,19 +432,19 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>3.7.7</version>
+      <version>4.0.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mockftpserver</groupId>
       <artifactId>MockFtpServer</artifactId>
-      <version>3.0.0</version>
+      <version>3.2.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.mock-server</groupId>
       <artifactId>mockserver-netty-no-dependencies</artifactId>
-      <version>5.13.2</version>
+      <version>5.15.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
