@@ -9,13 +9,15 @@ Tablesaw parquet I/O
 
 ## Overview
 
-__tablesaw-parquet__  is an [Apache Parquet](https://parquet.apache.org/) reader and writer for the [Tablesaw](https://github.com/jtablesaw/tablesaw) project implemented using [parquet-mr](https://github.com/apache/parquet-mr).
+__tablesaw-parquet__  is an [Apache Parquet](https://parquet.apache.org/) reader and writer for the [Tablesaw](https://github.com/tlabs-data/tablesaw) project implemented using [parquet-java](https://github.com/apache/parquet-java).
 
 ## Versioning
 
 __tablesaw__  and  __tablesaw-parquet__  have different release schedules and versioning schemes. New  __tablesaw-parquet__  features will be available for the most recent *and* for the previous released version of  __tablesaw__ . Older tablesaw releases will not get updates.
 
 The first supported  __tablesaw__  version is  __v0.38.2__ .
+
+Starting from version  __v0.12.0__ ,  __tablesaw-parquet__  will use the [maintenance release of tablesaw](https://github.com/jtablesaw/tablesaw/discussions/1261).
 
 __tablesaw-parquet__  follows the [semantic versioning](https://semver.org/) scheme.
 
