@@ -18,17 +18,12 @@
  */
 package org.apache.parquet.tools.read;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.BinaryNode;
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
 public class SimpleRecord {
@@ -48,65 +43,6 @@ public class SimpleRecord {
 
   public String toString() {
     return values.toString();
-  }
-
-  public void prettyPrint() {
-    prettyPrint(new PrintWriter(System.out,true));
-  }
-
-  public void prettyPrint(PrintWriter out) {
-    prettyPrint(out, 0);
-  }
-
-  public void prettyPrint(PrintWriter out, int depth) {
-    for (NameValue value : values) {
-      out.print(Strings.repeat(".", depth));
-
-      out.print(value.getName());
-      Object val = value.getValue();
-      if (val == null) {
-        out.print(" = ");
-        out.print("<null>");
-      } else if (byte[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(new BinaryNode((byte[]) val).asText());
-      } else if (short[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(Arrays.toString((short[])val));
-      } else if (int[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(Arrays.toString((int[])val));
-      } else if (long[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(Arrays.toString((long[])val));
-      } else if (float[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(Arrays.toString((float[])val));
-      } else if (double[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(Arrays.toString((double[])val));
-      } else if (boolean[].class == val.getClass()) {
-        out.print(" = ");
-        out.print(Arrays.toString((boolean[])val));
-      } else if (val.getClass().isArray()) {
-        out.print(" = ");
-        out.print(Arrays.deepToString((Object[])val));
-      } else if (SimpleRecord.class.isAssignableFrom(val.getClass())) {
-        out.println(":");
-        ((SimpleRecord)val).prettyPrint(out, depth+1);
-        continue;
-      } else {
-        out.print(" = ");
-        out.print(String.valueOf(val));
-      }
-
-      out.println();
-    }
-  }
-
-  public void prettyPrintJson(PrintWriter out) throws IOException {
-    ObjectMapper mapper = new ObjectMapper();
-    out.write(mapper.writeValueAsString(this.toJsonObject()));
   }
 
   protected Object toJsonObject() {
