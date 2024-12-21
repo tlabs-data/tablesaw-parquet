@@ -57,7 +57,8 @@ class TestTablesawRegistry {
     @Test
     void testRegistryReadMissingFile() throws IOException {
         final File file = new File(WRONG_PARQUET_FILE);
-        assertThrows(IllegalStateException.class, () -> Table.read().file(file));
+        final DataFrameReader dfr = Table.read();
+        assertThrows(IllegalStateException.class, () -> dfr.file(file));
     }
 
     @Test
