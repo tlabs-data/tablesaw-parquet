@@ -129,8 +129,9 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
             return Files.createTempFile(prefix, suffix, attr).toFile();
         }
         final File tmpFile = Files.createTempFile(prefix, suffix).toFile();
-        tmpFile.setReadable(true, true);
-        tmpFile.setWritable(true, true);
+        if(!(tmpFile.setReadable(true, true) && tmpFile.setWritable(true, true))) {
+            throw new IOException("Unable to set required permission on temporary file " + tmpFile.getAbsolutePath());
+        }
         return tmpFile;
     }
 }
