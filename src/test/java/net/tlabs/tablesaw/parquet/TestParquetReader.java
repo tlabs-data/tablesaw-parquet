@@ -103,7 +103,8 @@ class TestParquetReader {
 
     @Test
     void testTableFromOtherSource() throws IOException {
-        assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(Source.fromString("A,B,C,D,E")),
+        final Source source = Source.fromString("A,B,C,D,E");
+        assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(source),
             "Wrong exception reading from a Reader source");
     }
 
@@ -256,8 +257,10 @@ class TestParquetReader {
 
     @Test()
     void testDataPageV2Error() throws IOException {
-        assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(TablesawParquetReadOptions
-            .builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).withManageGroupAs(ManageGroupsAs.ERROR).build()));
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions
+            .builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
+            .withManageGroupAs(ManageGroupsAs.ERROR).build();
+        assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(options));
     }
 
     @Test

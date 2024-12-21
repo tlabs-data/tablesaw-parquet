@@ -28,6 +28,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import tech.tablesaw.api.Table;
+import tech.tablesaw.io.DataFrameReader;
+import tech.tablesaw.io.DataFrameWriter;
 
 class TestTablesawRegistry {
 
@@ -54,7 +56,8 @@ class TestTablesawRegistry {
 
     @Test
     void testRegistryReadMissingFile() throws IOException {
-        assertThrows(IllegalStateException.class, () -> Table.read().file(new File(WRONG_PARQUET_FILE)));
+        final File file = new File(WRONG_PARQUET_FILE);
+        assertThrows(IllegalStateException.class, () -> Table.read().file(file));
     }
 
     @Test
@@ -71,7 +74,8 @@ class TestTablesawRegistry {
 
     @Test
     void testRegistryReadString() {
-        assertThrows(UnsupportedOperationException.class, () -> Table.read().string("STRING", "parquet"));
+        final DataFrameReader dfr = Table.read();
+        assertThrows(UnsupportedOperationException.class, () -> dfr.string("STRING", "parquet"));
     }
 
     @Test
@@ -105,12 +109,15 @@ class TestTablesawRegistry {
     @Test
     void testRegistryWriteFilename() throws IOException {
         final Table table = Table.read().file(PANDAS_PYARROW);
-        assertThrows(NullPointerException.class, () -> table.write().toFile(OUTPUT_FILE));
+        final DataFrameWriter dfw = table.write();
+        assertThrows(NullPointerException.class, () -> dfw.toFile(OUTPUT_FILE));
     }
 
     @Test
     void testRegistryWriteFile() throws IOException {
         final Table table = Table.read().file(PANDAS_PYARROW);
-        assertThrows(NullPointerException.class, () -> table.write().toFile(new File(OUTPUT_FILE)));
+        final DataFrameWriter dfw = table.write();
+        final File file = new File(OUTPUT_FILE);
+        assertThrows(NullPointerException.class, () -> dfw.toFile(file));
     }
 }

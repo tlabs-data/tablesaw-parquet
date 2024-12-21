@@ -25,7 +25,7 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-public class TestSimplePrimitiveRecord {
+class TestSimplePrimitiveRecord {
 
   class TestRecord {
     private int x;
@@ -43,7 +43,7 @@ public class TestSimplePrimitiveRecord {
   }
 
   @Test
-  public void testBinary() {
+  void testBinary() {
     SimpleMapRecord r = new SimpleMapRecord();
     assertEquals("null", r.keyToString(null));
     assertEquals("true", r.keyToString(true));
