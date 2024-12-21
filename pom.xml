@@ -117,9 +117,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
           <version>2.5.0</version>
-          <configuration>
-            <licenseName>apache_v2</licenseName>
-          </configuration>
         </plugin>
         <plugin>
           <groupId>com.googlecode.maven-download-plugin</groupId>
@@ -229,6 +226,12 @@
               <goal>update-file-header</goal>
             </goals>
             <phase>process-sources</phase>
+            <configuration>
+	            <licenseName>apache_v2</licenseName>
+	            <excludes>
+	            	<exclude>**/org/apache/**</exclude>
+            	</excludes>
+            </configuration>
           </execution>
         </executions>
       </plugin>
