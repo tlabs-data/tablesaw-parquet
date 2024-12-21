@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
-public class TestSimpleMapRecord {
+class TestSimpleMapRecord {
 
   class TestRecord {
     private int x;
@@ -40,7 +40,7 @@ public class TestSimpleMapRecord {
   }
 
   @Test
-  public void testBinary() {
+  void testBinary() {
     SimpleMapRecord r = new SimpleMapRecord();
     assertEquals("null", r.keyToString(null));
     assertEquals("[true, false, true]", r.keyToString(new boolean[]{true, false, true}));

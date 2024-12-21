@@ -177,8 +177,10 @@ class TestParquetWriter {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        assertThrows(RuntimeIOException.class, () -> PARQUET_WRITER.write(orig,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE).withOverwrite(false).build()));
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions
+            .builder(OUTPUT_FILE)
+            .withOverwrite(false).build();
+        assertThrows(RuntimeIOException.class, () -> PARQUET_WRITER.write(orig, options));
     }
 
     @Test
