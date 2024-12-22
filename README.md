@@ -244,11 +244,11 @@ Filtering is done by schema projection in the underlying reader: columns that ar
 
 #### Column encoding
 
-Physical reading and writing of parquet files is done by [parquet-mr](https://github.com/apache/parquet-mr). The encoding and decoding is managed by this library.
+Physical reading and writing of parquet files is done by [parquet-mr](https://github.com/apache/parquet-java). The encoding and decoding is managed by this library.
 
 #### Compression codecs
 
-Currently supported and tested compression codecs: UNCOMPRESSED (None), SNAPPY, GZIP, and ZSTD.
+Currently supported and tested compression codecs: UNCOMPRESSED (none), SNAPPY (default), GZIP, LZ4, and ZSTD.
 
 Other compression codecs *might* work when reading parquet files depending on your setup but there is no guarantee.
 
