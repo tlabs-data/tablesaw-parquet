@@ -60,6 +60,7 @@ class TestParquetWriter {
     private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
     private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
     private static final String OUTPUT_FILE = "target/test/results/out.parquet";
+    private static final String OUTPUT_CRC_FILE = "target/test/results/.out.parquet.crc";
 
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
@@ -353,5 +354,25 @@ class TestParquetWriter {
         final Table dest = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
         assertTableEquals(orig, dest, "All ColumnTypes reloaded");
+    }
+    
+    /**
+     * checksum file is removed when option is false
+     * checksum tests can be run in any order
+     */
+    @Test
+    void testWriteDefaultNoChecksum() {
+        final Table orig = Table.create(BooleanColumn.create("boolean", true, false));
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        final File checksumFile = new File(OUTPUT_CRC_FILE);
+        assertFalse(checksumFile.exists(), "Default option for checksum is not false");
+    }
+
+    @Test
+    void testWriteOptionWithChecksum() {
+        final Table orig = Table.create(BooleanColumn.create("boolean", true, false));
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).withWriteChecksum(true).build());
+        final File checksumFile = new File(OUTPUT_CRC_FILE);
+        assertTrue(checksumFile.exists(), "Option with checksum does not generate checksum");
     }
 }
