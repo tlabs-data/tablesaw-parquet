@@ -224,6 +224,16 @@ class TestParquetWriter {
     }
 
     @Test
+    void testLZ4Compressor() {
+        final Table orig = PARQUET_READER
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
+        PARQUET_WRITER.write(orig,
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.LZ4).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " lz4 reloaded");
+    }
+
+    @Test
     void testDestinationWriteException() {
         assertThrows(UnsupportedOperationException.class, () -> PARQUET_WRITER.write(null, (Destination) null),
             "Wrong exception on writing to destination");

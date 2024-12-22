@@ -51,14 +51,14 @@ class TestAllParquetTestingFiles {
         final String filename = file.getName();
         // keep only unencrypted parquet files
         if (!filename.endsWith(".parquet")) return false;
-        // lz4 not supported
-        if(filename.contains("lz4")) return false;
         // brotli not supported
         if(filename.contains("brotli")) return false;
         // parquet-mr reader fails on these ones
         if(filename.equals("nation.dict-malformed.parquet")) return false;
         if(filename.equals("fixed_length_byte_array.parquet")) return false;
         if(filename.equals("repeated_primitive_no_list.parquet")) return false;
+        // lz4 issue
+        if(filename.equals("non_hadoop_lz4_compressed.parquet")) return false;
         return true;
     }
     

@@ -27,7 +27,7 @@ import tech.tablesaw.io.WriteOptions;
 public class TablesawParquetWriteOptions extends WriteOptions {
 
     public enum CompressionCodec {
-        UNCOMPRESSED, SNAPPY, GZIP, ZSTD
+        UNCOMPRESSED, SNAPPY, GZIP, ZSTD, LZ4
     }
 
     private final String outputFile;
