@@ -19,12 +19,7 @@
 package org.apache.parquet.tools.read;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
-import com.fasterxml.jackson.databind.node.BinaryNode;
-import com.google.common.collect.Maps;
 
 public class SimpleRecord {
   protected final List<NameValue> values;
@@ -37,31 +32,8 @@ public class SimpleRecord {
     values.add(new NameValue(name,value));
   }
   
-  public List<NameValue> getValues() {
-    return Collections.unmodifiableList(values);
-  }
-
   public String toString() {
     return values.toString();
-  }
-
-  protected Object toJsonObject() {
-    Map<String, Object> result = Maps.newLinkedHashMap();
-    for (NameValue value : values) {
-      result.put(value.getName(), toJsonValue(value.getValue()));
-    }
-
-    return result;
-  }
-
-  protected static Object toJsonValue(Object val) {
-    if (SimpleRecord.class.isAssignableFrom(val.getClass())) {
-      return ((SimpleRecord) val).toJsonObject();
-    } else if (byte[].class == val.getClass()) {
-      return new BinaryNode((byte[]) val);
-    } else {
-      return val;
-    }
   }
 
   public static final class NameValue {
@@ -75,14 +47,6 @@ public class SimpleRecord {
 
     public String toString() {
       return name + ": " + value;
-    }
-
-    public String getName() {
-      return name;
-    }
-
-    public Object getValue() {
-      return value;
     }
   }
 }
