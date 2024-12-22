@@ -75,19 +75,6 @@ public class SimpleRecordConverter extends GroupConverter {
     }
 
     GroupType groupType = field.asGroupType();
-    if (ltype != null) {
-      return ltype.accept(new LogicalTypeAnnotation.LogicalTypeAnnotationVisitor<Converter>() {
-        @Override
-        public Optional<Converter> visit(LogicalTypeAnnotation.MapLogicalTypeAnnotation mapLogicalType) {
-          return of(new SimpleMapRecordConverter(groupType, field.getName(), SimpleRecordConverter.this));
-        }
-
-        @Override
-        public Optional<Converter> visit(LogicalTypeAnnotation.ListLogicalTypeAnnotation listLogicalType) {
-          return of(new SimpleListRecordConverter(groupType, field.getName(), SimpleRecordConverter.this));
-        }
-      }).orElse(new SimpleRecordConverter(groupType, field.getName(), this));
-    }
     return new SimpleRecordConverter(groupType, field.getName(), this);
   }
 
