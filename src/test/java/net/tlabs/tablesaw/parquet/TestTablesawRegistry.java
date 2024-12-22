@@ -23,7 +23,6 @@ package net.tlabs.tablesaw.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 
 import org.junit.jupiter.api.BeforeAll;
