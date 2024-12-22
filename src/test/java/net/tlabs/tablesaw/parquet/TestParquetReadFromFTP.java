@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -72,7 +73,7 @@ class TestParquetReadFromFTP {
     }
     
     @Test
-    void testReadParquetFromFTPUsingURL() throws IOException {
+    void testReadParquetFromFTPUsingURL() throws MalformedURLException {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(new URL("ftp://user:pwd@localhost:9021/pandas_pyarrow.parquet")).build());
         assertNotNull(table, "Table is null");
@@ -80,7 +81,7 @@ class TestParquetReadFromFTP {
     }
     
     @Test
-    void testReadParquetFromFTPUsingString() throws IOException {
+    void testReadParquetFromFTPUsingString() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder("ftp://user:pwd@localhost:9021/pandas_pyarrow.parquet").build());
         assertNotNull(table, "Table is null");
@@ -88,7 +89,7 @@ class TestParquetReadFromFTP {
     }
 
     @Test
-    void testReadParquetFromFTPUsingURI() throws IOException, URISyntaxException {
+    void testReadParquetFromFTPUsingURI() throws URISyntaxException {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(new URI("ftp://user:pwd@localhost:9021/pandas_pyarrow.parquet")).build());
         assertNotNull(table, "Table is null");

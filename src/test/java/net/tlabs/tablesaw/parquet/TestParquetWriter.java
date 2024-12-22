@@ -23,7 +23,6 @@ package net.tlabs.tablesaw.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -91,7 +90,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testReadWriteAllTypeDict() throws IOException {
+    void testReadWriteAllTypeDict() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -100,7 +99,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testReadWriteAllTypeDictMinimized() throws IOException {
+    void testReadWriteAllTypeDictMinimized() {
         final Table orig = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).minimizeColumnSizes().build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -110,7 +109,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testReadWriteAllTypeDictToFile() throws IOException {
+    void testReadWriteAllTypeDictToFile() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE)).build());
@@ -119,7 +118,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testReadWriteAllTypePlain() throws IOException {
+    void testReadWriteAllTypePlain() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -128,7 +127,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testReadWriteAllTypeSnappy() throws IOException {
+    void testReadWriteAllTypeSnappy() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -137,7 +136,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testInt96AsTimestamp() throws IOException {
+    void testInt96AsTimestamp() {
         final Table orig = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).withConvertInt96ToTimestamp(true).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -146,7 +145,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testFixedLengthDecimal() throws IOException {
+    void testFixedLengthDecimal() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -155,7 +154,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testBinaryDecimal() throws IOException {
+    void testBinaryDecimal() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -164,7 +163,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testDatapageV2() throws IOException {
+    void testDatapageV2() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -173,7 +172,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testOverwriteOption() throws IOException {
+    void testOverwriteOption() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
@@ -184,7 +183,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testGZIPCompressor() throws IOException {
+    void testGZIPCompressor() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig,
@@ -194,7 +193,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testPLAINCompressor() throws IOException {
+    void testPLAINCompressor() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
@@ -204,7 +203,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testSNAPPYCompressor() throws IOException {
+    void testSNAPPYCompressor() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig,
@@ -214,7 +213,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testZSTDCompressor() throws IOException {
+    void testZSTDCompressor() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).build());
         PARQUET_WRITER.write(orig,
@@ -230,7 +229,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testWriteReadAllColumnTypes() throws IOException {
+    void testWriteReadAllColumnTypes() {
         final Table orig = Table.create(
             BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
@@ -252,7 +251,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testWriteReadDefaultTypes() throws IOException {
+    void testWriteReadDefaultTypes() {
         final Table orig = Table.create(
             BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
@@ -277,7 +276,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testWriteReadEmptyColumnTypeList() throws IOException {
+    void testWriteReadEmptyColumnTypeList() {
         final Table orig = Table.create(
             BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
@@ -303,7 +302,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testWriteReadNoShorts() throws IOException {
+    void testWriteReadNoShorts() {
         final Table orig = Table.create(
             BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),
@@ -330,7 +329,7 @@ class TestParquetWriter {
     }
 
     @Test
-    void testWriteReadNoFloat() throws IOException {
+    void testWriteReadNoFloat() {
         final Table orig = Table.create(
             BooleanColumn.create("boolean", true, false),
             DateColumn.create("date", LocalDate.now(), LocalDate.now()),

@@ -43,7 +43,7 @@ class TestAllParquetTestingFiles {
         return Files.list(Paths.get(PARQUET_TESTING_FOLDER))
             .map(Path::toFile)
             .filter(TestAllParquetTestingFiles::filterPath)
-            .map(f -> Arguments.of(f));
+            .map(Arguments::of);
     }
     
     private static boolean filterPath(final File file) {
@@ -64,7 +64,7 @@ class TestAllParquetTestingFiles {
     
     @ParameterizedTest
     @MethodSource("listParquetTestingFile")
-    void testParquetTestingFile(final File parquetFile) throws IOException {
+    void testParquetTestingFile(final File parquetFile) {
         final Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(parquetFile).build());
         assertNotNull(table);
     }

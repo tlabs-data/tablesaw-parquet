@@ -22,7 +22,6 @@ package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -36,7 +35,7 @@ class TestColumnTypesOptions {
     private static final String PANDAS_PYARROW = "target/test-classes/pandas_pyarrow.parquet";
 
     @Test
-    void testLocalDateTimeToInstant() throws IOException {
+    void testLocalDateTimeToInstant() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(PANDAS_PYARROW)
                 .columnTypesPartial(Collections.singletonMap("datetime", ColumnType.INSTANT))
@@ -46,7 +45,7 @@ class TestColumnTypesOptions {
     }
     
     @Test
-    void testColumnTypeSkipPartial() throws IOException {
+    void testColumnTypeSkipPartial() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(PANDAS_PYARROW)
                 .columnTypesPartial(name -> Optional.of(name)
@@ -56,7 +55,7 @@ class TestColumnTypesOptions {
     }
     
     @Test
-    void testColumnTypeSkipFull() throws IOException {
+    void testColumnTypeSkipFull() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(PANDAS_PYARROW)
                 .columnTypes(name -> {
@@ -69,7 +68,7 @@ class TestColumnTypesOptions {
     }
     
     @Test
-    void testColumnTypeWithSelectedColumns() throws IOException {
+    void testColumnTypeWithSelectedColumns() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(PANDAS_PYARROW)
                 .withOnlyTheseColumns("byte", "ubyte")
@@ -83,7 +82,7 @@ class TestColumnTypesOptions {
     }
 
     @Test
-    void testPartialColumnTypeWithSelectedColumns() throws IOException {
+    void testPartialColumnTypeWithSelectedColumns() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(PANDAS_PYARROW)
                 .withOnlyTheseColumns("byte", "ubyte")
