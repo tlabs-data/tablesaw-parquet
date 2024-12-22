@@ -22,8 +22,6 @@ package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import tech.tablesaw.api.Table;
@@ -34,7 +32,7 @@ class TestColumnFiltering {
         "target/test/data/parquet-testing-master/data/alltypes_plain.snappy.parquet";
     
     @Test
-    void testKeepFirstSix() throws IOException {
+    void testKeepFirstSix() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY)
                 .withOnlyTheseColumns("id", "bool_col", "tinyint_col", "smallint_col", "int_col", "bigint_col")
@@ -43,7 +41,7 @@ class TestColumnFiltering {
     }
 
     @Test
-    void testKeepLastFive() throws IOException {
+    void testKeepLastFive() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY)
                 .withOnlyTheseColumns("float_col", "double_col", "date_string_col", "string_col", "timestamp_col")
@@ -52,7 +50,7 @@ class TestColumnFiltering {
     }
     
     @Test
-    void testColumnOrdering() throws IOException {
+    void testColumnOrdering() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(APACHE_ALL_TYPES_SNAPPY)
                 .withOnlyTheseColumns("float_col", "id")

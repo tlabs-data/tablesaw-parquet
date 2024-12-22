@@ -33,7 +33,7 @@ import org.apache.parquet.schema.Type;
 import static java.util.Optional.of;
 
 public class SimpleRecordConverter extends GroupConverter {
-  private final Converter converters[];
+  private final Converter[] converters;
   private final String name;
   private final SimpleRecordConverter parent;
   protected SimpleRecord record;

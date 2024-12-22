@@ -23,7 +23,6 @@ package net.tlabs.tablesaw.parquet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
@@ -84,7 +83,7 @@ class TestMinimizedReadPyArrow extends AbstractTableParameterizedTest {
     private static final String PANDAS_PYARROW = "target/test-classes/pandas_pyarrow.parquet";
 
     @BeforeAll
-    static void beforeAll() throws IOException {
+    static void beforeAll() {
         table = new TablesawParquetReader()
             .read(TablesawParquetReadOptions.builder(new File(PANDAS_PYARROW)).minimizeColumnSizes().build());
         assertEquals("pandas_pyarrow.parquet", table.name(), "Wrong table name");

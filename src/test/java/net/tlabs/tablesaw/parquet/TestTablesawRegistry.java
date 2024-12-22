@@ -23,7 +23,8 @@ package net.tlabs.tablesaw.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.MalformedURLException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -43,32 +44,32 @@ class TestTablesawRegistry {
     }
 
     @Test
-    void testRegistryReadFilename() throws IOException {
+    void testRegistryReadFilename() {
         final Table table = Table.read().file(PANDAS_PYARROW);
         assertNotNull(table, "Read table is null");
     }
 
     @Test
-    void testRegistryReadFile() throws IOException {
+    void testRegistryReadFile() {
         final Table table = Table.read().file(new File(PANDAS_PYARROW));
         assertNotNull(table, "Read table is null");
     }
 
     @Test
-    void testRegistryReadMissingFile() throws IOException {
+    void testRegistryReadMissingFile() {
         final File file = new File(WRONG_PARQUET_FILE);
         final DataFrameReader dfr = Table.read();
         assertThrows(IllegalStateException.class, () -> dfr.file(file));
     }
 
     @Test
-    void testRegistryReadUsingOptionsBuilder() throws IOException {
+    void testRegistryReadUsingOptionsBuilder() {
         final Table table = Table.read().usingOptions(TablesawParquetReadOptions.builder(PANDAS_PYARROW));
         assertNotNull(table, "Read table is null");
     }
 
     @Test
-    void testRegistryReadUsingOptions() throws IOException {
+    void testRegistryReadUsingOptions() {
         final Table table = Table.read().usingOptions(TablesawParquetReadOptions.builder(PANDAS_PYARROW).build());
         assertNotNull(table, "Read table is null");
     }
@@ -80,27 +81,27 @@ class TestTablesawRegistry {
     }
 
     @Test
-    void testRegistryReadURL() throws IOException {
+    void testRegistryReadURL() throws MalformedURLException {
         final Table table = Table.read().url(new File(PANDAS_PYARROW).toURI().toURL());
         assertNotNull(table, "Read table is null");
     }
 
     @Test
-    void testRegistryReadURLUsingOptions() throws IOException {
+    void testRegistryReadURLUsingOptions() throws MalformedURLException {
         final Table table = Table.read()
             .usingOptions(TablesawParquetReadOptions.builder(new File(PANDAS_PYARROW).toURI().toURL()));
         assertNotNull(table, "Read table is null");
     }
 
     @Test
-    void testRegistryReadURIUsingOptions() throws IOException {
+    void testRegistryReadURIUsingOptions() {
         final Table table = Table.read()
             .usingOptions(TablesawParquetReadOptions.builder(new File(PANDAS_PYARROW).toURI()));
         assertNotNull(table, "Read table is null");
     }
 
     @Test
-    void testRegistryWriteUsingOptions() throws IOException {
+    void testRegistryWriteUsingOptions() {
         final Table table = Table.read().file(PANDAS_PYARROW);
         table.write().usingOptions(TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
         final Table readTable = Table.read().file(OUTPUT_FILE);
@@ -108,14 +109,14 @@ class TestTablesawRegistry {
     }
 
     @Test
-    void testRegistryWriteFilename() throws IOException {
+    void testRegistryWriteFilename() {
         final Table table = Table.read().file(PANDAS_PYARROW);
         final DataFrameWriter dfw = table.write();
         assertThrows(NullPointerException.class, () -> dfw.toFile(OUTPUT_FILE));
     }
 
     @Test
-    void testRegistryWriteFile() throws IOException {
+    void testRegistryWriteFile() {
         final Table table = Table.read().file(PANDAS_PYARROW);
         final DataFrameWriter dfw = table.write();
         final File file = new File(OUTPUT_FILE);

@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.Builder;
@@ -62,7 +63,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testTableNameFromFile() throws IOException {
+    void testTableNameFromFile() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT)).build());
         assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
@@ -70,7 +71,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testTableNameFromOptions() throws IOException {
+    void testTableNameFromOptions() {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT)).tableName("ANOTHERNAME").build());
         assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
@@ -78,7 +79,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testTableFromURL() throws IOException {
+    void testTableFromURL() throws MalformedURLException  {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT).toURI().toURL()).build());
         assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
@@ -86,7 +87,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testTableFromFileSource() throws IOException {
+    void testTableFromFileSource() {
         final Table table = PARQUET_READER.read(new Source(new File(PARQUET_TESTING_FOLDER, APACHE_ALL_TYPES_DICT)));
         assertNotNull(table, APACHE_ALL_TYPES_DICT + " null table");
         assertEquals("alltypes_dictionary.parquet", table.name(), APACHE_ALL_TYPES_DICT + " wrong name");
@@ -102,14 +103,14 @@ class TestParquetReader {
     }
 
     @Test
-    void testTableFromOtherSource() throws IOException {
+    void testTableFromOtherSource() {
         final Source source = Source.fromString("A,B,C,D,E");
         assertThrows(UnsupportedOperationException.class, () -> PARQUET_READER.read(source),
             "Wrong exception reading from a Reader source");
     }
 
     @Test
-    void testColumnNames() throws IOException {
+    void testColumnNames() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).build());
         validateTable(table, 11, 2, APACHE_ALL_TYPES_DICT);
@@ -127,28 +128,27 @@ class TestParquetReader {
     }
 
     @Test
-    void testAllTypesDict() throws IOException {
+    void testAllTypesDict() {
         validateAllTypesDefault(APACHE_ALL_TYPES_DICT,
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).minimizeColumnSizes(),
             2);
     }
 
     @Test
-    void testAllTypesPlain() throws IOException {
+    void testAllTypesPlain() {
         validateAllTypesDefault(APACHE_ALL_TYPES_PLAIN,
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).minimizeColumnSizes(),
             8);
     }
 
     @Test
-    void testAllTypesSnappy() throws IOException {
+    void testAllTypesSnappy() {
         validateAllTypesDefault(APACHE_ALL_TYPES_SNAPPY,
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY).minimizeColumnSizes(),
             2);
     }
 
-    private void validateAllTypesDefault(final String sourceName, final Builder builder, final int rows)
-        throws IOException {
+    private void validateAllTypesDefault(final String sourceName, final Builder builder, final int rows) {
         final Table table = PARQUET_READER.read(builder.build());
         validateTable(table, 11, rows, sourceName);
         assertEquals(ColumnType.INTEGER, table.column(0).type(), sourceName + "[" + "id" + "] wrong type");
@@ -165,7 +165,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testInt96AsTimestamp() throws IOException {
+    void testInt96AsTimestamp() {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).withConvertInt96ToTimestamp(true).build());
         validateTable(table, 11, 8, APACHE_ALL_TYPES_PLAIN);
@@ -174,7 +174,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testBinaryUTF8() throws IOException {
+    void testBinaryUTF8() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BINARY).build());
         validateTable(table, 1, 12, APACHE_BINARY);
@@ -186,7 +186,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testBinaryRaw() throws IOException {
+    void testBinaryRaw() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BINARY)
                 .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING).build());
@@ -197,14 +197,14 @@ class TestParquetReader {
     }
 
     @Test
-    void testBinarySkip() throws IOException {
+    void testBinarySkip() {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_BINARY).withUnnanotatedBinaryAs(UnnanotatedBinaryAs.SKIP).build());
         assertEquals(0, table.columnCount(), "Unnanotated binary column should have beend skipped");
     }
 
     @Test
-    void testDataPageV2() throws IOException {
+    void testDataPageV2() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).build());
         validateTable(table, 5, 5, APACHE_DATAPAGEV2);
@@ -217,7 +217,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testDataPageV2RawBinary() throws IOException {
+    void testDataPageV2RawBinary() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
                 .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING).build());
@@ -231,7 +231,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testDataPageV2Text() throws IOException {
+    void testDataPageV2Text() {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).withManageGroupAs(ManageGroupsAs.TEXT).build());
         validateTable(table, 5, 5, APACHE_DATAPAGEV2);
@@ -244,7 +244,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testDataPageV2Skip() throws IOException {
+    void testDataPageV2Skip() {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).withManageGroupAs(ManageGroupsAs.SKIP).build());
         validateTable(table, 4, 5, APACHE_DATAPAGEV2);
@@ -256,7 +256,7 @@ class TestParquetReader {
     }
 
     @Test()
-    void testDataPageV2Error() throws IOException {
+    void testDataPageV2Error() {
         final TablesawParquetReadOptions options = TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2)
             .withManageGroupAs(ManageGroupsAs.ERROR).build();
@@ -264,7 +264,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testDictPageOffset0() throws IOException {
+    void testDictPageOffset0() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DICT_PAGE_OFFSET0).build());
         validateTable(table, 1, 39, APACHE_DICT_PAGE_OFFSET0);
@@ -277,7 +277,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testInt32Decimal() throws IOException {
+    void testInt32Decimal() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT32_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_INT32_DECIMAL);
@@ -287,7 +287,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testInt64Decimal() throws IOException {
+    void testInt64Decimal() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT64_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_INT64_DECIMAL);
@@ -297,7 +297,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testFixedLengthDecimal() throws IOException {
+    void testFixedLengthDecimal() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL);
@@ -310,7 +310,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testFixedLengthDecimalLegacy() throws IOException {
+    void testFixedLengthDecimalLegacy() {
         final Table table = PARQUET_READER.read(
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL_LEGACY).build());
         validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL_LEGACY);
@@ -323,7 +323,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testByteArrayDecimal() throws IOException {
+    void testByteArrayDecimal() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_BYTE_ARRAY_DECIMAL);
@@ -336,7 +336,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testNullsSnappy() throws IOException {
+    void testNullsSnappy() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_NULLS_SNAPPY).build());
         validateTable(table, 1, 8, APACHE_NULLS_SNAPPY);
@@ -344,7 +344,7 @@ class TestParquetReader {
     }
 
     @Test
-    void testNullsSnappySkip() throws IOException {
+    void testNullsSnappySkip() {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_NULLS_SNAPPY).withManageGroupAs(ManageGroupsAs.SKIP).build());
         validateTable(table, 0, 0, APACHE_NULLS_SNAPPY);

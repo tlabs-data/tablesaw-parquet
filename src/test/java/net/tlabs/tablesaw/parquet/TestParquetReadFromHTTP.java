@@ -30,6 +30,7 @@ import static org.mockserver.model.BinaryBody.binary;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -78,21 +79,21 @@ class TestParquetReadFromHTTP {
     }
     
     @Test
-    void testParquetFileFromHTTPUsingURL() throws IOException {
+    void testParquetFileFromHTTPUsingURL() throws MalformedURLException {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(new URL(FILE_URL)).build());
         assertNotNull(table, "Table is null");
     }
 
     @Test
-    void testParquetFileFromHTTPUsingString() throws IOException {
+    void testParquetFileFromHTTPUsingString() {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(FILE_URL).build());
         assertNotNull(table, "Table is null");
     }
 
     @Test
-    void testParquetFileFromHTTPUsingURI() throws IOException, URISyntaxException {
+    void testParquetFileFromHTTPUsingURI() throws URISyntaxException {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(new URI(FILE_URL)).build());
         assertNotNull(table, "Table is null");

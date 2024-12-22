@@ -30,7 +30,7 @@ public class SimpleRecord {
   protected final List<NameValue> values;
 
   public SimpleRecord() {
-    this.values = new ArrayList<NameValue>();
+    this.values = new ArrayList<>();
   }
 
   public void add(String name, Object value) {
