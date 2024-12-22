@@ -33,6 +33,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     private final String outputFile;
     private final CompressionCodec compressionCodec;
     private final boolean overwrite;
+    private final boolean writeChecksum;
 
     public static Builder builder(final File file) {
         return new Builder(file.getAbsolutePath());
@@ -47,6 +48,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         this.outputFile = builder.outputFile;
         this.compressionCodec = builder.compressionCodec;
         this.overwrite = builder.overwrite;
+        this.writeChecksum = builder.writeChecksum;
     }
 
     public String getOutputFile() {
@@ -61,11 +63,16 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         return overwrite;
     }
 
+    public boolean isWriteChecksum() {
+        return writeChecksum;
+    }
+
     public static class Builder extends WriteOptions.Builder {
 
         private final String outputFile;
         private CompressionCodec compressionCodec = CompressionCodec.SNAPPY;
         private boolean overwrite = true;
+        private boolean writeChecksum = false;
 
         public Builder(final String outputFile) {
             super((Writer) null);
@@ -79,6 +86,11 @@ public class TablesawParquetWriteOptions extends WriteOptions {
 
         public Builder withOverwrite(final boolean overwrite) {
             this.overwrite = overwrite;
+            return this;
+        }
+
+        public Builder withWriteChecksum(final boolean writeChecksum) {
+            this.writeChecksum = writeChecksum;
             return this;
         }
 

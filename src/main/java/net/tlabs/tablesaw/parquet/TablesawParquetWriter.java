@@ -22,6 +22,7 @@ package net.tlabs.tablesaw.parquet;
 
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetWriter;
@@ -51,9 +52,17 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
     @Override
     public void write(final Table table, final TablesawParquetWriteOptions options) {
+        
+        try {
+            final FileSystem fs = FileSystem.getLocal(new Configuration());
+            fs.setWriteChecksum(options.isWriteChecksum());
+        } catch (IOException e) {
+            throw new RuntimeIOException(e);
+        }
+
         try (final ParquetWriter<Row> writer = new Builder(new Path(options.getOutputFile()), table)
                 .withCompressionCodec(CompressionCodecName.fromConf(options.getCompressionCodec().name()))
-                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
+                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE).withValidation(false)
                 .build()) {
             final long start = System.currentTimeMillis();
             for(final Row row : table) {
