@@ -147,6 +147,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                         }
                     }))
                     .orElse(Boolean.TRUE);
+                //$CASES-OMITTED$
             default:
                 return true;
         }

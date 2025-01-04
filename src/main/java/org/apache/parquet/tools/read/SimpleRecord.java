@@ -32,6 +32,7 @@ public class SimpleRecord {
     values.add(new NameValue(name,value));
   }
   
+  @Override
   public String toString() {
     return values.toString();
   }
@@ -45,6 +46,7 @@ public class SimpleRecord {
       this.value = value;
     }
 
+    @Override
     public String toString() {
       return name + ": " + value;
     }
