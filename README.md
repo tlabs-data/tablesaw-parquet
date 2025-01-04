@@ -17,8 +17,6 @@ __tablesaw__  and  __tablesaw-parquet__  have different release schedules and ve
 
 The first supported  __tablesaw__  version is  __v0.38.2__ .
 
-Starting from version  __v0.12.0__ ,  __tablesaw-parquet__  will use the [maintenance release of tablesaw](https://github.com/jtablesaw/tablesaw/discussions/1261).
-
 __tablesaw-parquet__  follows the [semantic versioning](https://semver.org/) scheme.
 
 ## Getting started
