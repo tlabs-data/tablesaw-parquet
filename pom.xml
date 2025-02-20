@@ -50,7 +50,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tablesaw.version>0.43.3</tablesaw.version>
+    <tablesaw.version>0.44.1</tablesaw.version>
     <parquet.version>1.15.0</parquet.version>
     <hadoop.version>3.4.1</hadoop.version>
     <junit.version>5.11.4</junit.version>
@@ -107,9 +107,9 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.13.0</version>
             <configuration>
-                <release>8</release>
-                <source>8</source>
-                <target>8</target>
+                <release>11</release>
+                <source>11</source>
+                <target>11</target>
                 <compilerArgument>-Xlint:all</compilerArgument>
             </configuration>
         </plugin>
@@ -317,7 +317,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>net.tlabs-data</groupId>
+      <groupId>tech.tablesaw</groupId>
       <artifactId>tablesaw-core</artifactId>
       <version>${tablesaw.version}</version>
       <scope>provided</scope>

@@ -58,7 +58,6 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.ShortColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 import tech.tablesaw.io.ReadOptions.ColumnTypeReadOptions;
@@ -184,7 +183,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             case TEXT:
                 // CASCADE
             default:
-                return TextColumn.create(name);
+                return StringColumn.create(name);
         }
     }
 
@@ -236,7 +235,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
             @Override
             public Optional<Column<?>> visit(final JsonLogicalTypeAnnotation jsonLogicalType) {
-                return Optional.of(TextColumn.create(fieldName));
+                return Optional.of(StringColumn.create(fieldName));
             }
 
             @Override

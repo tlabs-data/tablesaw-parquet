@@ -182,11 +182,11 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | TIME | TimeColumn |  |
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
 | INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
-| JSON | TextColumn |  __Not tested__  |
+| JSON | StringColumn |  __Not tested__  |
 | BSON |  __Not read__  |  __Not tested__  |
-| Nested Types | TextColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
+| Nested Types | StringColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
 
-Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a TextColumn. The same *withManageGroupsAs* option is used to change this behavior.
+Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a StringColumn. The same *withManageGroupsAs* option is used to change this behavior.
 
 Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, UUID, JSON, BSON).
 
@@ -199,7 +199,6 @@ Starting from `v0.9.0`, tablesaw-parquet allows a better control of data convers
 Only a limited set of possible conversions is implemented:
 * Widening primitive conversions for integers (e.g. INT32 column can be read as a LongColumn)
 * Widening primitive conversions for floats (e.g. FLOAT32 column can be read as a DoubleColumn)
-* Switching between TextColumn and StringColumn for any textual columns
 * Switching between InstantColumn and DateTimeColumn for timestamps - in this case the UTC annotation is ignored
 
 Other conversions (e.g. converting numbers or dates to StringColumn) are not implemented but can be done using one of the several  __tablesaw__  features for such operations.
@@ -217,7 +216,6 @@ Note that the `ColumnType.SKIP` column type can be used with these options to fi
 | FloatColumn | FLOAT |  |
 | DoubleColumn | DOUBLE |  |
 | StringColumn | BINARY (STRING) |  |
-| TextColumn | BINARY (STRING) |  |
 | TimeColumn | INT32 (TIME: MILLIS, not UTC) | *Changed in v0.11.0, was INT64 (TIME: NANOS, not UTC) before* |
 | DateColumn | INT32 (DATE) |  |
 | DateTimeColumn | INT64 (TIMESTAMP: MILLIS, not UTC) |  |
@@ -225,7 +223,6 @@ Note that the `ColumnType.SKIP` column type can be used with these options to fi
 
 Note that a tablesaw Table written to parquet and read back with default conversion will have the following changes:
 
-* TextColumns will be read back as StringColumns.
 * If the *minimizeColumnSizes* option is not set (which is the default), Floats will be changed to Doubles and Shorts to Integers.
 
 ## Features
@@ -267,7 +264,9 @@ Testing the compatibility with other sources of parquet files is paramount. We c
 * Test files from the [parquet-testing](https://github.com/apache/parquet-testing) project - with some exclusions
 * Test files generated from [pandas](https://pandas.pydata.org/) dataframe with both [fastparquet](https://fastparquet.readthedocs.io/en/latest/) and [pyArrow](https://pyarrow.readthedocs.io/en/latest/)
 
-Testing is performed on linux, macOS, and Windows - with Java 8, 11, and 16.
+Testing is performed on linux, macOS, and Windows - with Java 11, 17, and 21.
+
+Note that we do not currently support Java 23 due to an [Hadoop incompatibility](https://issues.apache.org/jira/browse/HADOOP-19212).
 
 ## How To Contribute
 

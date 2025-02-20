@@ -43,7 +43,6 @@ import tech.tablesaw.api.LongColumn;
 import tech.tablesaw.api.ShortColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 import tech.tablesaw.io.Destination;
@@ -72,13 +71,7 @@ class TestParquetWriter {
             final Column<?> actualColumn = actual.column(columnIndex);
             final Column<?> expectedColumn = expected.column(columnIndex);
             assertEquals(expectedColumn.name(), actualColumn.name(), "Wrong column name");
-            // No good way to distinguish between string and text after writing
-            if (actualColumn instanceof StringColumn) {
-                assertTrue(expectedColumn instanceof StringColumn || expectedColumn instanceof TextColumn,
-                    "Column transformed to StringColumns");
-            } else {
-                assertEquals(expectedColumn.type(), actualColumn.type(), "Column type different");
-            }
+            assertEquals(expectedColumn.type(), actualColumn.type(), "Column type different");
         }
         final int numberOfRows = actual.rowCount();
         assertEquals(expected.rowCount(), numberOfRows, header + " tables should have same number of rows");
@@ -253,7 +246,7 @@ class TestParquetWriter {
             FloatColumn.create("float", Float.NaN, 2.14159f),
             DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), 
             StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+            StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
         final Table dest = PARQUET_READER
@@ -275,7 +268,7 @@ class TestParquetWriter {
             FloatColumn.create("float", Float.NaN, 2.14159f),
             DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
             StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+            StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
@@ -300,7 +293,7 @@ class TestParquetWriter {
             FloatColumn.create("float", Float.NaN, 2.14159f),
             DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
             StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+            StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
@@ -326,7 +319,7 @@ class TestParquetWriter {
             FloatColumn.create("float", Float.NaN, 2.14159f),
             DoubleColumn.create("double", Double.MAX_VALUE, 0.0d),
             StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+            StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 
@@ -353,7 +346,7 @@ class TestParquetWriter {
             FloatColumn.create("float", Float.NaN, 2.14159f),
             DoubleColumn.create("double", Double.MAX_VALUE, 0.0d), 
             StringColumn.create("string", "", "abdce"),
-            TextColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
+            StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
         PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
 

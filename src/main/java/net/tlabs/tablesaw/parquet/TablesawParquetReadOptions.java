@@ -201,30 +201,6 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
         /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
         @Override
-        @Deprecated
-        public Builder dateFormat(final String dateFormat) {
-            super.dateFormat(dateFormat);
-            return this;
-        }
-
-        /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
-        @Override
-        @Deprecated
-        public Builder timeFormat(final String timeFormat) {
-            super.timeFormat(timeFormat);
-            return this;
-        }
-
-        /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
-        @Override
-        @Deprecated
-        public Builder dateTimeFormat(final String dateTimeFormat) {
-            super.dateTimeFormat(dateTimeFormat);
-            return this;
-        }
-
-        /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
-        @Override
         public Builder dateFormat(final DateTimeFormatter dateFormat) {
             super.dateFormat(dateFormat);
             return this;

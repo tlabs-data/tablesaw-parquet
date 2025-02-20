@@ -39,7 +39,6 @@ import tech.tablesaw.api.Row;
 import tech.tablesaw.api.ShortColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
-import tech.tablesaw.api.TextColumn;
 import tech.tablesaw.api.TimeColumn;
 import tech.tablesaw.columns.Column;
 import tech.tablesaw.columns.dates.PackedLocalDate;
@@ -61,7 +60,6 @@ final class TableProxy {
     private final DateTimeColumn[] dateTimeColumns;
     private final InstantColumn[] instantColumns;
     private final StringColumn[] stringColumns;
-    private final TextColumn[] textColumns;
 
     private Row currentRow = null;
     private int currentRownum;
@@ -84,7 +82,6 @@ final class TableProxy {
         dateTimeColumns = new DateTimeColumn[size];
         instantColumns = new InstantColumn[size];
         stringColumns = new StringColumn[size];
-        textColumns = new TextColumn[size];
         for (int i = 0; i < size; i++) {
             fillColumnArrays(i, columns.get(i).type());
         }
@@ -113,8 +110,6 @@ final class TableProxy {
             instantColumns[colIndex] = table.instantColumn(colIndex);
         } else if (ColumnType.STRING.equals(columnType)) {
             stringColumns[colIndex] = table.stringColumn(colIndex);
-        } else if (ColumnType.TEXT.equals(columnType)) {
-            textColumns[colIndex] = table.textColumn(colIndex);
         } else {
             throw new IllegalArgumentException("Unsupported ColumnType " + columnType);
         }
@@ -147,11 +142,6 @@ final class TableProxy {
 
     void appendString(final int colIndex, final String value) {
         stringColumns[colIndex].append(value);
-        rowColumnsSet[colIndex] = true;
-    }
-
-    void appendText(final int colIndex, final String value) {
-        textColumns[colIndex].append(value);
         rowColumnsSet[colIndex] = true;
     }
 
@@ -229,10 +219,6 @@ final class TableProxy {
 
     String getString(final int colIndex, final int rowIndex) {
         return stringColumns[colIndex].get(rowIndex);
-    }
-
-    String getText(final int colIndex, final int rowIndex) {
-        return textColumns[colIndex].get(rowIndex);
     }
 
     int getDateAsEpochDay(final int colIndex, final int rowIndex) {

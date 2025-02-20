@@ -215,7 +215,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
         @Override
         public void end() {
-            proxy.appendText(col, this.record.toString());
+            proxy.appendString(col, this.record.toString());
         }
     }
 
@@ -330,14 +330,6 @@ public class TablesawRecordConverter extends GroupConverter {
                 @Override
                 public void addInt(final int value) {
                     proxy.appendShort(colIndex, (short) value);
-                }
-            };
-        }
-        if (ColumnType.TEXT.equals(columnType)) {
-            return new PrimitiveConverter() {
-                @Override
-                public void addBinary(final Binary value) {
-                    proxy.appendText(colIndex, value.toStringUsingUTF8());
                 }
             };
         }

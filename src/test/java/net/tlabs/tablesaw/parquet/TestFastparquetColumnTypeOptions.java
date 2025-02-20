@@ -46,7 +46,7 @@ class TestFastparquetColumnTypeOptions extends AbstractTableParameterizedTest {
             Arguments.of(9, ColumnType.DOUBLE, "float32"),
             Arguments.of(10, ColumnType.DOUBLE, "float64"),
             Arguments.of(11, ColumnType.LOCAL_DATE_TIME, "TIMESTAMP_MICROS"),
-            Arguments.of(12, ColumnType.TEXT, "string"));
+            Arguments.of(12, ColumnType.STRING, "string"));
     }
 
     @SuppressWarnings("unused")
@@ -95,7 +95,7 @@ class TestFastparquetColumnTypeOptions extends AbstractTableParameterizedTest {
         ColumnType.DOUBLE,
         ColumnType.DOUBLE,
         ColumnType.LOCAL_DATE_TIME,
-        ColumnType.TEXT
+        ColumnType.STRING
     };
 
     @BeforeAll
