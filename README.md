@@ -264,7 +264,9 @@ Testing the compatibility with other sources of parquet files is paramount. We c
 * Test files from the [parquet-testing](https://github.com/apache/parquet-testing) project - with some exclusions
 * Test files generated from [pandas](https://pandas.pydata.org/) dataframe with both [fastparquet](https://fastparquet.readthedocs.io/en/latest/) and [pyArrow](https://pyarrow.readthedocs.io/en/latest/)
 
-Testing is performed on linux, macOS, and Windows - with Java 11, 17, 21, and 23.
+Testing is performed on linux, macOS, and Windows - with Java 11, 17, and 21.
+
+Note that we do not currently support Java 23 due to an [Hadoop incompatibility](https://issues.apache.org/jira/browse/HADOOP-19212).
 
 ## How To Contribute
 

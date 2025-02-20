@@ -23,7 +23,7 @@ jobs:
       fail-fast: false
       matrix:
         # Test the Java LTS versions and latest version available
-        java-version: [11, 17, 21, 23]
+        java-version: [11, 17, 21]
         # Test on linux, macOS and windows - all -latest
         os: [macOS-13, ubuntu-latest, windows-latest]
     steps:
