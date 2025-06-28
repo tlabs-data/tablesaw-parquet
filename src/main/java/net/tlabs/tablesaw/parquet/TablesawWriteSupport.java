@@ -208,6 +208,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         return Types.optional(PRIMITIVE_MAPPING.get(type)).as(ANNOTATION_MAPPING.get(type)).named(column.name());
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public WriteContext init(final Configuration configuration) {
         return new WriteContext(this.schema, new HashMap<>());

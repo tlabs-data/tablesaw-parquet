@@ -90,6 +90,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
             return this;
         }
 
+        @SuppressWarnings("deprecation")
         @Override
         protected WriteSupport<Row> getWriteSupport(final Configuration conf) {
             return new TablesawWriteSupport(this.table);

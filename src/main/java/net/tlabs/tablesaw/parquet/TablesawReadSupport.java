@@ -105,6 +105,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             .collect(Collectors.toList())));
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public RecordMaterializer<Row> prepareForRead(final Configuration configuration,
             final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
