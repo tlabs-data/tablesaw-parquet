@@ -9,7 +9,7 @@ Tablesaw parquet I/O
 
 ## Overview
 
-__tablesaw-parquet__  is an [Apache Parquet](https://parquet.apache.org/) reader and writer for the [Tablesaw](https://github.com/tlabs-data/tablesaw) project implemented using [parquet-java](https://github.com/apache/parquet-java).
+__tablesaw-parquet__  is an [Apache Parquet](https://parquet.apache.org/) reader and writer for the [Tablesaw](https://github.com/jtablesaw/tablesaw) project implemented using [parquet-java](https://github.com/apache/parquet-java).
 
 ## Versioning
 
