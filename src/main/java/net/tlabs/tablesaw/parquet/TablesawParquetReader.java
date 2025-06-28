@@ -75,7 +75,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         }
     }
     
-    private Table readFromStream(final InputStream inStream) {
+    private static Table readFromStream(final InputStream inStream) {
         final TablesawReadSupport readSupport = new TablesawReadSupport(TablesawParquetReadOptions.builderForStream().build());
         try {
             return readInternal(makeReaderFromStream(inStream, readSupport), readSupport, "stream");
@@ -84,7 +84,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         }
     }
 
-    private Table readInternal(final ParquetReader<Row> reader, final TablesawReadSupport readSupport, final String displayName) throws IOException {
+    private static Table readInternal(final ParquetReader<Row> reader, final TablesawReadSupport readSupport, final String displayName) throws IOException {
         final long start = System.currentTimeMillis();
         int i = 0;
         while (reader.read() != null) {
@@ -95,7 +95,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         return readSupport.getTable();
     }
     
-    private ParquetReader<Row> makeReader(final URI uri, final TablesawReadSupport readSupport) throws IOException {
+    private static ParquetReader<Row> makeReader(final URI uri, final TablesawReadSupport readSupport) throws IOException {
         final String scheme = uri.getScheme();
         if(scheme != null) {
             switch(scheme) {
@@ -113,7 +113,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         return ParquetReader.builder(readSupport, new Path(uri)).build();
     }
 
-    private ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport) throws IOException {
+    private static ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport) throws IOException {
         final File tmpFile = createSecureTempFile("tablesaw-parquet", "parquet");
         tmpFile.deleteOnExit();
         try(final FileOutputStream outStream = new FileOutputStream(tmpFile)) {
@@ -122,7 +122,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         }
     }
     
-    private File createSecureTempFile(final String prefix, final String suffix) throws IOException {
+    private static File createSecureTempFile(final String prefix, final String suffix) throws IOException {
         if(SystemUtils.IS_OS_UNIX) {
             final FileAttribute<Set<PosixFilePermission>> attr = PosixFilePermissions.asFileAttribute(
                 PosixFilePermissions.fromString("rw-------"));
