@@ -56,7 +56,7 @@ class TestParquetReader {
 
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
-    private void validateTable(final Table table, int cols, int rows, String source) {
+    private static void validateTable(final Table table, int cols, int rows, String source) {
         assertNotNull(table, source + " is null");
         assertEquals(cols, table.columnCount(), source + " wrong column count");
         assertEquals(rows, table.rowCount(), source + " wrong row count");
@@ -148,7 +148,7 @@ class TestParquetReader {
             2);
     }
 
-    private void validateAllTypesDefault(final String sourceName, final Builder builder, final int rows) {
+    private static void validateAllTypesDefault(final String sourceName, final Builder builder, final int rows) {
         final Table table = PARQUET_READER.read(builder.build());
         validateTable(table, 11, rows, sourceName);
         assertEquals(ColumnType.INTEGER, table.column(0).type(), sourceName + "[" + "id" + "] wrong type");
