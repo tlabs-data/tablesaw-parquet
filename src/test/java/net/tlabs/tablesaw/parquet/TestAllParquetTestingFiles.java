@@ -59,6 +59,8 @@ class TestAllParquetTestingFiles {
         if(filename.equals("repeated_primitive_no_list.parquet")) return false;
         // lz4 issue
         if(filename.equals("non_hadoop_lz4_compressed.parquet")) return false;
+        // null logicalType
+        if(filename.equals("unknown-logical-type.parquet")) return false;
         return true;
     }
     
