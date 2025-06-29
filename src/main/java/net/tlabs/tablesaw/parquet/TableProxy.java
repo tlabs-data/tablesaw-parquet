@@ -145,6 +145,15 @@ final class TableProxy {
         rowColumnsSet[colIndex] = true;
     }
 
+    void addRepeatedString(final int colIndex, final String value) {
+        if(rowColumnsSet[colIndex]) {
+            final String initialContent = getString(colIndex, currentRownum);
+            stringColumns[colIndex].set(currentRownum, "[" + initialContent.substring(1, initialContent.length() - 1) + ", " + value + "]");
+        } else {
+            appendString(colIndex, "[" + value + "]");
+        }
+    }
+
     void appendBoolean(final int colIndex, final boolean value) {
         booleanColumns[colIndex].append(value);
         rowColumnsSet[colIndex] = true;
@@ -220,7 +229,7 @@ final class TableProxy {
     String getString(final int colIndex, final int rowIndex) {
         return stringColumns[colIndex].get(rowIndex);
     }
-
+    
     int getDateAsEpochDay(final int colIndex, final int rowIndex) {
         return (int) PackedLocalDate.toEpochDay(dateColumns[colIndex].getIntInternal(rowIndex));
     }
