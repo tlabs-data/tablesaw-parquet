@@ -34,6 +34,7 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.hadoop.fs.Path;
+import org.apache.parquet.crypto.FileDecryptionProperties;
 import org.apache.parquet.hadoop.ParquetReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     @Override
     public Table read(final TablesawParquetReadOptions options) {
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-        try (final ParquetReader<Row> reader = makeReader(options.getInputURI(), readSupport)) {
+        try (final ParquetReader<Row> reader = makeReader(options.getInputURI(), readSupport, options.getFileDecryptionProperties())) {
             return readInternal(reader, readSupport, options.getSanitizedinputPath());
         } catch (IOException e) {
             throw new RuntimeIOException(e);
@@ -78,13 +79,14 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     private static Table readFromStream(final InputStream inStream) {
         final TablesawReadSupport readSupport = new TablesawReadSupport(TablesawParquetReadOptions.builderForStream().build());
         try {
-            return readInternal(makeReaderFromStream(inStream, readSupport), readSupport, "stream");
+            return readInternal(makeReaderFromStream(inStream, readSupport, null), readSupport, "stream");
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
     }
 
-    private static Table readInternal(final ParquetReader<Row> reader, final TablesawReadSupport readSupport, final String displayName) throws IOException {
+    private static Table readInternal(final ParquetReader<Row> reader, final TablesawReadSupport readSupport,
+            final String displayName) throws IOException {
         final long start = System.currentTimeMillis();
         int i = 0;
         while (reader.read() != null) {
@@ -95,7 +97,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
         return readSupport.getTable();
     }
     
-    private static ParquetReader<Row> makeReader(final URI uri, final TablesawReadSupport readSupport) throws IOException {
+    private static ParquetReader<Row> makeReader(final URI uri, final TablesawReadSupport readSupport,
+            final FileDecryptionProperties fileDecryptionProperties) throws IOException {
         final String scheme = uri.getScheme();
         if(scheme != null) {
             switch(scheme) {
@@ -104,21 +107,22 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
                 case "ftp":    // fall through
                 case "ftps":   // fall through
                     try(final InputStream inStream = uri.toURL().openStream()) {
-                        return makeReaderFromStream(inStream, readSupport);
+                        return makeReaderFromStream(inStream, readSupport, fileDecryptionProperties);
                     }
                 default:
                     // fall through
             }
         }
-        return ParquetReader.builder(readSupport, new Path(uri)).build();
+        return ParquetReader.builder(readSupport, new Path(uri)).withDecryption(fileDecryptionProperties).build();
     }
 
-    private static ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport) throws IOException {
+    private static ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport,
+            final FileDecryptionProperties fileDecryptionProperties) throws IOException {
         final File tmpFile = createSecureTempFile("tablesaw-parquet", "parquet");
         tmpFile.deleteOnExit();
         try(final FileOutputStream outStream = new FileOutputStream(tmpFile)) {
             IOUtils.copyLarge(inStream, outStream);
-            return ParquetReader.builder(readSupport, new Path(tmpFile.toURI())).build();
+            return ParquetReader.builder(readSupport, new Path(tmpFile.toURI())).withDecryption(fileDecryptionProperties).build();
         }
     }
     

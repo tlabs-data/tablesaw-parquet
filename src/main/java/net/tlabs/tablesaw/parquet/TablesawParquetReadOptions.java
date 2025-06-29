@@ -27,14 +27,20 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.parquet.crypto.ColumnDecryptionProperties;
+import org.apache.parquet.crypto.DecryptionKeyRetriever;
+import org.apache.parquet.crypto.FileDecryptionProperties;
+import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
@@ -57,6 +63,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     private final ManageGroupsAs manageGroupsAs;
     private final List<String> columns;
     private final URI inputURI;
+    private final FileDecryptionProperties fileDecryptionProperties;
 
     protected TablesawParquetReadOptions(final Builder builder) {
         super(builder);
@@ -67,6 +74,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         inputURI = builder.inputURI;
         shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
         floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
+        fileDecryptionProperties = builder.getFileDecryptionProperties();
     }
 
     public boolean isShortColumnTypeUsed() {
@@ -135,6 +143,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
             .toString();
     }
 
+    public FileDecryptionProperties getFileDecryptionProperties() {
+        return fileDecryptionProperties;
+    }
+
     public static Builder builder(final File file) {
         return new Builder(file.toURI()).tableName(file.getName());
     }
@@ -165,6 +177,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
         private String[] columns = new String[0];
         private final URI inputURI;
+        private byte[] footerKey;
+        private Map<String, byte[]> columnKeyMap;
+        private byte[] aadPrefix;
+        private DecryptionKeyRetriever keyRetriever;
 
         protected Builder(final URI inputURI) {
             super();
@@ -174,6 +190,31 @@ public class TablesawParquetReadOptions extends ReadOptions {
         @Override
         public TablesawParquetReadOptions build() {
             return new TablesawParquetReadOptions(this);
+        }
+
+        public FileDecryptionProperties getFileDecryptionProperties() {
+            if(footerKey == null && columnKeyMap == null && keyRetriever == null) {
+                return null;
+            }
+            final FileDecryptionProperties.Builder fdpBuilder = FileDecryptionProperties.builder();
+            if(footerKey != null) {
+                fdpBuilder.withFooterKey(footerKey);
+            }
+            if(columnKeyMap != null) {
+                final Map<ColumnPath, ColumnDecryptionProperties> columnProperties = new HashMap<>();
+                for(String key : columnKeyMap.keySet()) {
+                    columnProperties.put(ColumnPath.get(key),
+                        ColumnDecryptionProperties.builder(key).withKey(columnKeyMap.get(key)).build());
+                }
+                fdpBuilder.withColumnKeys(columnProperties);
+            }
+            if(aadPrefix != null) {
+                fdpBuilder.withAADPrefix(aadPrefix);
+            }
+            if(keyRetriever != null) {
+                fdpBuilder.withKeyRetriever(keyRetriever);
+            }
+            return fdpBuilder.build();
         }
 
         // Override super-class setters to return an instance of this class
@@ -286,7 +327,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
         /**
          * {@inheritDoc}
-         * If used in conjuntion with the {@link #withOnlyTheseColumns(String...)} options,
+         * If used in conjunction with the {@link #withOnlyTheseColumns(String...)} options,
          * the provided ColumnType array must contain only the selected columns in the order they were provided.
          */
         @Override
@@ -361,6 +402,27 @@ public class TablesawParquetReadOptions extends ReadOptions {
          */
         public Builder withOnlyTheseColumns(final String... columns) {
             this.columns = columns;
+            return this;
+        }
+        
+        public Builder withFooterKey(final byte[] footerKey) {
+            this.footerKey = footerKey;
+            return this;
+        }
+        
+        public Builder withColumnKeys(final Map<String, byte[]> columnKeyMap) {
+            this.columnKeyMap = columnKeyMap;
+            return this;
+            
+        }
+        
+        public Builder withAADPrefix(final byte[] aadPrefix) {
+            this.aadPrefix = aadPrefix;
+            return this;
+        }
+
+        public Builder withKeyRetriever(final DecryptionKeyRetriever keyRetriever) {
+            this.keyRetriever = keyRetriever;
             return this;
         }
     }
