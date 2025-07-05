@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -192,7 +193,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return new TablesawParquetReadOptions(this);
         }
 
-        public FileDecryptionProperties getFileDecryptionProperties() {
+        protected FileDecryptionProperties getFileDecryptionProperties() {
             if(footerKey == null && columnKeyMap == null && keyRetriever == null) {
                 return null;
             }
@@ -202,9 +203,9 @@ public class TablesawParquetReadOptions extends ReadOptions {
             }
             if(columnKeyMap != null) {
                 final Map<ColumnPath, ColumnDecryptionProperties> columnProperties = new HashMap<>();
-                for(String key : columnKeyMap.keySet()) {
-                    columnProperties.put(ColumnPath.get(key),
-                        ColumnDecryptionProperties.builder(key).withKey(columnKeyMap.get(key)).build());
+                for(Entry<String, byte[]> entry : columnKeyMap.entrySet()) {
+                    columnProperties.put(ColumnPath.get(entry.getKey()),
+                        ColumnDecryptionProperties.builder(entry.getKey()).withKey(entry.getValue()).build());
                 }
                 fdpBuilder.withColumnKeys(columnProperties);
             }

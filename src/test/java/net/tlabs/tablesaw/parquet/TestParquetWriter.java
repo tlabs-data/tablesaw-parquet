@@ -393,8 +393,8 @@ class TestParquetWriter {
     void testWriteReadAllEncryptedFail() {
         PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
             .withEncryption(FOOTER_ENCRYPTION_KEY).build());
-        assertThrows(ParquetCryptoRuntimeException.class,
-            () -> PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build()));
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE).build();
+        assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
     }
     @Test
     void testWriteReadSomeEncrypted() {
@@ -409,9 +409,9 @@ class TestParquetWriter {
     void testWriteReadSomeEncryptedFail() {
         PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP).build());
-        assertThrows(ParquetDecodingException.class,
-            () -> PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
-                .withFooterKey(FOOTER_ENCRYPTION_KEY).build()));
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withFooterKey(FOOTER_ENCRYPTION_KEY).build();
+        assertThrows(ParquetDecodingException.class, () -> PARQUET_READER.read(options));
     }
 
     @Test
@@ -439,9 +439,9 @@ class TestParquetWriter {
         PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().build());
-        assertThrows(ParquetDecodingException.class,
-            () -> PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
-                .withFooterKey(FOOTER_ENCRYPTION_KEY).build()));
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withFooterKey(FOOTER_ENCRYPTION_KEY).build();
+        assertThrows(ParquetDecodingException.class, () -> PARQUET_READER.read(options));
     }
 
     @Test
@@ -472,8 +472,8 @@ class TestParquetWriter {
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX)
             .withoutAADPrefixStorage().build());
-        assertThrows(ParquetCryptoRuntimeException.class,
-            () -> PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
-                .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build()));
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build();
+        assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
     }
 }

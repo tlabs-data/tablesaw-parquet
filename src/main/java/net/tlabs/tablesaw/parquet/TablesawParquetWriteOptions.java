@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.Writer;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.parquet.crypto.ColumnEncryptionProperties;
 import org.apache.parquet.crypto.FileEncryptionProperties;
@@ -99,7 +100,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
             this.outputFile = outputFile;
         }
 
-        public FileEncryptionProperties getEncryptionProperties() {
+        protected FileEncryptionProperties getEncryptionProperties() {
             if(footerKeyBytes == null) return null;
             final FileEncryptionProperties.Builder fileEncryptionPropertiesBuilder = 
                 FileEncryptionProperties.builder(footerKeyBytes);
@@ -114,9 +115,9 @@ public class TablesawParquetWriteOptions extends WriteOptions {
             }
             if(columnKeyMap != null) {
                 final Map<ColumnPath, ColumnEncryptionProperties> columnProperties = new HashMap<>();
-                for(String key : columnKeyMap.keySet()) {
-                    columnProperties.put(ColumnPath.get(key),
-                        ColumnEncryptionProperties.builder(key).withKey(columnKeyMap.get(key)).build());
+                for(Entry<String, byte[]> entry : columnKeyMap.entrySet()) {
+                    columnProperties.put(ColumnPath.get(entry.getKey()),
+                        ColumnEncryptionProperties.builder(entry.getKey()).withKey(entry.getValue()).build());
                 }
                 fileEncryptionPropertiesBuilder.withEncryptedColumns(columnProperties);
             }

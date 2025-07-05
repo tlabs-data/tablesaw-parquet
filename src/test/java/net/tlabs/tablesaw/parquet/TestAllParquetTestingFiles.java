@@ -49,7 +49,7 @@ class TestAllParquetTestingFiles {
     private static final Map<String, byte[]> COLUMN_KEY_MAP = Map.of(
         "double_field", COLUMN_ENCRYPTION_KEY1,
         "float_field", COLUMN_ENCRYPTION_KEY2);
-    private final static StringKeyIdRetriever KEY_RETRIEVER = new StringKeyIdRetriever();
+    private static final StringKeyIdRetriever KEY_RETRIEVER = new StringKeyIdRetriever();
     
     static {
         KEY_RETRIEVER.putKey("kf", FOOTER_ENCRYPTION_KEY);
