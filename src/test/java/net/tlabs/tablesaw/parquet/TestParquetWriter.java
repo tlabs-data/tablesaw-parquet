@@ -476,4 +476,28 @@ class TestParquetWriter {
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build();
         assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
     }
+
+    @Test
+    void testWriteReadNoFooterEncryption() {
+        PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withEncryption(FOOTER_ENCRYPTION_KEY).withPlainTextFooter()
+            .withEncryptedColumns(COLUMN_KEY_MAP).withAADdPrefix(AAD_PREFIX)
+            .build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
+            .build());
+        assertTableEquals(ALL_TYPE_DICT_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+    }
+
+    @Test
+    void testWriteReadNoFooterEncryptionNoCheck() {
+        PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withEncryption(FOOTER_ENCRYPTION_KEY).withPlainTextFooter()
+            .withEncryptedColumns(COLUMN_KEY_MAP).withAADdPrefix(AAD_PREFIX)
+            .build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withoutFooterSignatureVerification().withColumnKeys(COLUMN_KEY_MAP)
+            .build());
+        assertTableEquals(ALL_TYPE_DICT_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+    }
 }

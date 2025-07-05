@@ -98,6 +98,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         private Map<String, byte[]> columnKeyMap;
         private boolean storeAadPrefixInFile = true;
         private boolean completeColumnEncryption = false;
+        private boolean encryptedFooter = true;
 
         public Builder(final String outputFile) {
             super((Writer) null);
@@ -127,6 +128,9 @@ public class TablesawParquetWriteOptions extends WriteOptions {
             }
             if(completeColumnEncryption) {
                 fileEncryptionPropertiesBuilder.withCompleteColumnEncryption();
+            }
+            if(!encryptedFooter) {
+                fileEncryptionPropertiesBuilder.withPlaintextFooter();
             }
             return fileEncryptionPropertiesBuilder.build();
         }
@@ -223,11 +227,22 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         }
 
         /**
+         * Create files with plaintext footer.
+         * If not called, the files will be created with encrypted footer (default).
+         * @return this builder
+         */
+        public Builder withPlainTextFooter() {
+            this.encryptedFooter = false;
+            return this;
+        }
+
+        /**
          * Build the {@link net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions}
          * @return the options
          */
         public TablesawParquetWriteOptions build() {
             return new TablesawParquetWriteOptions(this);
         }
+
     }
 }

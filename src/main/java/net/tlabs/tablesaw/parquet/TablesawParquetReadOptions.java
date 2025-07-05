@@ -186,6 +186,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private Map<String, byte[]> columnKeyMap;
         private byte[] aadPrefix;
         private DecryptionKeyRetriever keyRetriever;
+        private boolean checkFooterIntegrity = true;
 
         protected Builder(final URI inputURI) {
             super();
@@ -218,6 +219,9 @@ public class TablesawParquetReadOptions extends ReadOptions {
             }
             if(keyRetriever != null) {
                 fdpBuilder.withKeyRetriever(keyRetriever);
+            }
+            if(!checkFooterIntegrity) {
+                fdpBuilder.withoutFooterSignatureVerification();
             }
             return fdpBuilder.build();
         }
@@ -453,6 +457,15 @@ public class TablesawParquetReadOptions extends ReadOptions {
          */
         public Builder withKeyRetriever(final DecryptionKeyRetriever keyRetriever) {
             this.keyRetriever = keyRetriever;
+            return this;
+        }
+        
+        /**
+         * Do not check plain footer integrity in files without footer encryption
+         * @return
+         */
+        public Builder withoutFooterSignatureVerification() {
+            this.checkFooterIntegrity = false;
             return this;
         }
     }
