@@ -22,6 +22,10 @@ package net.tlabs.tablesaw.parquet;
 
 import tech.tablesaw.api.Table;
 
+/**
+ * Non instantiable Class containing static methods to register the parquet
+ * reader and writer with Tablesaw
+ */
 public class TablesawParquet {
 
     private TablesawParquet() {

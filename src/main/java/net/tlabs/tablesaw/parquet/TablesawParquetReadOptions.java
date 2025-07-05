@@ -45,6 +45,10 @@ import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
+/**
+ * Options for reading parquet file in tablesaw.
+ * Use the static {@code builder} methods
+ */
 public class TablesawParquetReadOptions extends ReadOptions {
 
     public enum ManageGroupsAs {
@@ -227,6 +231,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return this;
         }
 
+        /**
+         * Set the table name
+         * @param tableName the table name
+         * @return this for chaining
+         */
         @Override
         public Builder tableName(final String tableName) {
             super.tableName(tableName);
@@ -406,22 +415,42 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return this;
         }
         
+        /**
+         * Set the footer key used for encryption
+         * @param footerKey the footer key, must be either 16, 24 or 32 bytes.
+         * @return this builder
+         */
         public Builder withFooterKey(final byte[] footerKey) {
             this.footerKey = footerKey;
             return this;
         }
         
+        /**
+         * Sets the keys for column encryption.
+         * @param columnKeyMap map column names to columns keys. Keys must be either 16, 24 or 32 bytes.
+         * @return this builder
+         */
         public Builder withColumnKeys(final Map<String, byte[]> columnKeyMap) {
             this.columnKeyMap = columnKeyMap;
             return this;
             
         }
         
+        /**
+         * Sets the AAD prefix. Required if it is not stored in the file.
+         * @param aadPrefix the AADPrefix
+         * @return this builder
+         */
         public Builder withAADPrefix(final byte[] aadPrefix) {
             this.aadPrefix = aadPrefix;
             return this;
         }
-
+        
+        /**
+         * Use a keyRetriever for fetching encryption keys
+         * @param keyRetriever
+         * @return
+         */
         public Builder withKeyRetriever(final DecryptionKeyRetriever keyRetriever) {
             this.keyRetriever = keyRetriever;
             return this;
