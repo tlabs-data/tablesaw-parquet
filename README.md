@@ -239,7 +239,7 @@ Filtering is done by schema projection in the underlying reader: columns that ar
 
 #### Column encoding
 
-Physical reading and writing of parquet files is done by [parquet-mr](https://github.com/apache/parquet-java). The encoding and decoding is managed by this library.
+Physical reading and writing of parquet files is done by [parquet-java](https://github.com/apache/parquet-java). The encoding and decoding is managed by this library.
 
 #### Compression codecs
 
@@ -255,7 +255,7 @@ Parquet files written with tablesaw-parquet contain the statistics needed for pr
 
 #### Encryption
 
-[Parquet Modular Encryption](https://github.com/apache/parquet-format/blob/encryption/Encryption.md) is not supported.
+[Parquet Modular Encryption](https://github.com/apache/parquet-format/blob/encryption/Encryption.md) is supported since `v0.13.0` when reading and writing parquet files.
 
 ## Compatibility testing
 

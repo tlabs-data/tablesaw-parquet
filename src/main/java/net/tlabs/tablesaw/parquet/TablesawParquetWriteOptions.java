@@ -22,6 +22,14 @@ package net.tlabs.tablesaw.parquet;
 
 import java.io.File;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.parquet.crypto.ColumnEncryptionProperties;
+import org.apache.parquet.crypto.FileEncryptionProperties;
+import org.apache.parquet.crypto.ParquetCipher;
+import org.apache.parquet.hadoop.metadata.ColumnPath;
+
 import tech.tablesaw.io.WriteOptions;
 
 public class TablesawParquetWriteOptions extends WriteOptions {
@@ -34,6 +42,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     private final CompressionCodec compressionCodec;
     private final boolean overwrite;
     private final boolean writeChecksum;
+    private final FileEncryptionProperties fileEncryptionProperties;
 
     public static Builder builder(final File file) {
         return new Builder(file.getAbsolutePath());
@@ -49,6 +58,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         this.compressionCodec = builder.compressionCodec;
         this.overwrite = builder.overwrite;
         this.writeChecksum = builder.writeChecksum;
+        this.fileEncryptionProperties = builder.getEncryptionProperties();
     }
 
     public String getOutputFile() {
@@ -67,16 +77,83 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         return writeChecksum;
     }
 
+    public FileEncryptionProperties getFileEncryptionProperties() {
+        return fileEncryptionProperties;
+    }
+
     public static class Builder extends WriteOptions.Builder {
 
         private final String outputFile;
         private CompressionCodec compressionCodec = CompressionCodec.SNAPPY;
         private boolean overwrite = true;
         private boolean writeChecksum = false;
+        private byte[] footerKeyBytes;
+        private ParquetCipher parquetCipher;
+        private byte[] aadPrefix;
+        private Map<String, byte[]> columnKeyMap;
+        private boolean storeAadPrefixInFile = true;
+        private boolean completeColumnEncryption = false;
 
         public Builder(final String outputFile) {
             super((Writer) null);
             this.outputFile = outputFile;
+        }
+
+        public FileEncryptionProperties getEncryptionProperties() {
+            if(footerKeyBytes == null) return null;
+            final FileEncryptionProperties.Builder fileEncryptionPropertiesBuilder = 
+                FileEncryptionProperties.builder(footerKeyBytes);
+            if(parquetCipher != null) {
+                fileEncryptionPropertiesBuilder.withAlgorithm(parquetCipher);
+            }
+            if(aadPrefix != null) {
+                fileEncryptionPropertiesBuilder.withAADPrefix(aadPrefix);
+                if(!storeAadPrefixInFile) {
+                    fileEncryptionPropertiesBuilder.withoutAADPrefixStorage();
+                }
+            }
+            if(columnKeyMap != null) {
+                final Map<ColumnPath, ColumnEncryptionProperties> columnProperties = new HashMap<>();
+                for(String key : columnKeyMap.keySet()) {
+                    columnProperties.put(ColumnPath.get(key),
+                        ColumnEncryptionProperties.builder(key).withKey(columnKeyMap.get(key)).build());
+                }
+                fileEncryptionPropertiesBuilder.withEncryptedColumns(columnProperties);
+            }
+            if(completeColumnEncryption) {
+                fileEncryptionPropertiesBuilder.withCompleteColumnEncryption();
+            }
+            return fileEncryptionPropertiesBuilder.build();
+        }
+        
+        public Builder withEncryption(final byte[] footerKeyBytes) {
+            this.footerKeyBytes = footerKeyBytes;
+            return this;
+        }
+
+        public Builder withCipher(final ParquetCipher parquetCipher) {
+            this.parquetCipher = parquetCipher;
+            return this;
+        }
+
+        public Builder withAADdPrefix(final byte[] aadPrefix) {
+            this.aadPrefix = aadPrefix;
+            return this;
+        }
+        
+        public Builder withoutAADPrefixStorage() {
+            this.storeAadPrefixInFile = false;
+            return this;
+        }
+
+        public Builder withCompleteColumnEncryption() {
+            this.completeColumnEncryption = true;
+            return this;
+        }
+
+        public Builder withEncryptedColumns(final Map<String, byte[]> columnKeyMap) {
+            this.columnKeyMap = columnKeyMap;
+            return this;
         }
 
         public Builder withCompressionCode(final CompressionCodec compressionCodec) {
