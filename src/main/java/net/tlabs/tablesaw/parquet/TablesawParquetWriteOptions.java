@@ -22,6 +22,7 @@ package net.tlabs.tablesaw.parquet;
 
 import java.io.File;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -99,6 +100,8 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         private boolean storeAadPrefixInFile = true;
         private boolean completeColumnEncryption = false;
         private boolean encryptedFooter = true;
+        private byte[] footerKeyMetadata;
+        private Map<String, byte[]> columnMetadataMap;
 
         public Builder(final String outputFile) {
             super((Writer) null);
@@ -109,6 +112,9 @@ public class TablesawParquetWriteOptions extends WriteOptions {
             if(footerKeyBytes == null) return null;
             final FileEncryptionProperties.Builder fileEncryptionPropertiesBuilder = 
                 FileEncryptionProperties.builder(footerKeyBytes);
+            if(footerKeyMetadata != null) {
+                fileEncryptionPropertiesBuilder.withFooterKeyMetadata(footerKeyMetadata);
+            }
             if(parquetCipher != null) {
                 fileEncryptionPropertiesBuilder.withAlgorithm(parquetCipher);
             }
@@ -121,8 +127,12 @@ public class TablesawParquetWriteOptions extends WriteOptions {
             if(columnKeyMap != null) {
                 final Map<ColumnPath, ColumnEncryptionProperties> columnProperties = new HashMap<>();
                 for(Entry<String, byte[]> entry : columnKeyMap.entrySet()) {
-                    columnProperties.put(ColumnPath.get(entry.getKey()),
-                        ColumnEncryptionProperties.builder(entry.getKey()).withKey(entry.getValue()).build());
+                    final ColumnEncryptionProperties.Builder columnEncryptionProperties =
+                        ColumnEncryptionProperties.builder(entry.getKey()).withKey(entry.getValue());
+                    if(columnMetadataMap != null) {
+                        columnEncryptionProperties.withKeyMetaData(columnMetadataMap.get(entry.getKey()));
+                    }
+                    columnProperties.put(ColumnPath.get(entry.getKey()), columnEncryptionProperties.build());
                 }
                 fileEncryptionPropertiesBuilder.withEncryptedColumns(columnProperties);
             }
@@ -233,6 +243,49 @@ public class TablesawParquetWriteOptions extends WriteOptions {
          */
         public Builder withPlainTextFooter() {
             this.encryptedFooter = false;
+            return this;
+        }
+        
+        /**
+         * Sets the footer key metadata for key retriever
+         * @param footerKeyMetadata the footer key metadata as bytes
+         * @return
+         */
+        public Builder withFooterKeyMetadata(final byte[] footerKeyMetadata) {
+            this.footerKeyMetadata = footerKeyMetadata;
+            return this;
+        }
+        
+        /**
+         * Sets the footer key metadata for key retriever
+         * @param footerKeyID the footer key metadata as string
+         * @return
+         */
+        public Builder withFooterKeyID(final String footerKeyId) {
+            this.footerKeyMetadata = footerKeyId.getBytes(StandardCharsets.UTF_8);
+            return this;
+        }
+
+        /**
+         * Sets the encrypted columns metadata
+         * @param columnMetadataMap map column names to column metadata as bytes
+         * @return this builder
+         */
+        public Builder withEncryptedColumnMetadata(final Map<String, byte[]> columnMetadataMap) {
+            this.columnMetadataMap = columnMetadataMap;
+            return this;
+        }
+
+        /**
+         * Sets the encrypted columns metadata
+         * @param columnMetadataMap map column names to column metadata as strings
+         * @return this builder
+         */
+        public Builder withEncryptedColumnID(final Map<String, String> columnIDMap) {
+            this.columnMetadataMap = new HashMap<>();
+            for(Map.Entry<String, String> entry : columnIDMap.entrySet()) {
+                this.columnMetadataMap.put(entry.getKey(), entry.getValue().getBytes(StandardCharsets.UTF_8));
+            }
             return this;
         }
 
