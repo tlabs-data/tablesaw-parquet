@@ -62,7 +62,9 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
         try (final ParquetWriter<Row> writer = new Builder(new Path(options.getOutputFile()), table)
                 .withCompressionCodec(CompressionCodecName.fromConf(options.getCompressionCodec().name()))
-                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE).withValidation(false)
+                .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
+                .withValidation(false)
+                .withEncryption(options.getFileEncryptionProperties())
                 .build()) {
             final long start = System.currentTimeMillis();
             for(final Row row : table) {

@@ -53,6 +53,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.TimeLogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
+import org.apache.parquet.schema.Type.Repetition;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.tools.read.SimpleRecordConverter;
 import tech.tablesaw.api.ColumnType;
@@ -205,6 +206,50 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
+    private final class RepeatedAsTextConverter extends PrimitiveConverter {
+        private final int col;
+
+        private RepeatedAsTextConverter(final int col) {
+            super();
+            this.col = col;
+        }
+        
+        private void addRepeatedValue(final String value) {
+            proxy.addRepeatedString(col, value);
+        }
+
+        @Override
+        public void addBinary(Binary value) {
+            addRepeatedValue(value.toStringUsingUTF8());
+        }
+
+        @Override
+        public void addBoolean(boolean value) {
+            addRepeatedValue(Boolean.toString(value));
+        }
+
+        @Override
+        public void addDouble(double value) {
+            addRepeatedValue(Double.toString(value));
+        }
+
+        @Override
+        public void addFloat(float value) {
+            addRepeatedValue(Float.toString(value));
+        }
+
+        @Override
+        public void addInt(int value) {
+            addRepeatedValue(Integer.toString(value));
+        }
+
+        @Override
+        public void addLong(long value) {
+            addRepeatedValue(Long.toString(value));
+        }
+
+    }
+    
     private final class GroupAsTextConverter extends SimpleRecordConverter {
         private final int col;
 
@@ -247,7 +292,11 @@ public class TablesawRecordConverter extends GroupConverter {
             final int fieldIndex = fileSchema.getFieldIndex(column.name());
             final Type type = fileSchema.getType(fieldIndex);
             if (type.isPrimitive()) {
-                converters[fieldIndex] = createConverter(i, columnType, type, options);
+                if (type.isRepetition(Repetition.REPEATED)) {
+                    converters[fieldIndex] = new RepeatedAsTextConverter(i);
+                } else {
+                    converters[fieldIndex] = createConverter(i, columnType, type, options);
+                }
             } else {
                 converters[fieldIndex] = new GroupAsTextConverter(type.asGroupType(), i);
             }

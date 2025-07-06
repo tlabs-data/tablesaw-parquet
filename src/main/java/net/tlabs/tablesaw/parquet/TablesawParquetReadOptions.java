@@ -27,17 +27,29 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.parquet.crypto.AADPrefixVerifier;
+import org.apache.parquet.crypto.ColumnDecryptionProperties;
+import org.apache.parquet.crypto.DecryptionKeyRetriever;
+import org.apache.parquet.crypto.FileDecryptionProperties;
+import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
+/**
+ * Options for reading parquet file in tablesaw.
+ * Use the static {@code builder} methods
+ */
 public class TablesawParquetReadOptions extends ReadOptions {
 
     public enum ManageGroupsAs {
@@ -57,6 +69,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     private final ManageGroupsAs manageGroupsAs;
     private final List<String> columns;
     private final URI inputURI;
+    private final FileDecryptionProperties fileDecryptionProperties;
 
     protected TablesawParquetReadOptions(final Builder builder) {
         super(builder);
@@ -67,6 +80,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         inputURI = builder.inputURI;
         shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
         floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
+        fileDecryptionProperties = builder.getFileDecryptionProperties();
     }
 
     public boolean isShortColumnTypeUsed() {
@@ -135,6 +149,10 @@ public class TablesawParquetReadOptions extends ReadOptions {
             .toString();
     }
 
+    public FileDecryptionProperties getFileDecryptionProperties() {
+        return fileDecryptionProperties;
+    }
+
     public static Builder builder(final File file) {
         return new Builder(file.toURI()).tableName(file.getName());
     }
@@ -165,6 +183,12 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private ManageGroupsAs manageGroupsAs = ManageGroupsAs.TEXT;
         private String[] columns = new String[0];
         private final URI inputURI;
+        private byte[] footerKey;
+        private Map<String, byte[]> columnKeyMap;
+        private byte[] aadPrefix;
+        private DecryptionKeyRetriever keyRetriever;
+        private boolean checkFooterIntegrity = true;
+        private AADPrefixVerifier aadPrefixVerifier;
 
         protected Builder(final URI inputURI) {
             super();
@@ -176,6 +200,37 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return new TablesawParquetReadOptions(this);
         }
 
+        protected FileDecryptionProperties getFileDecryptionProperties() {
+            if(footerKey == null && columnKeyMap == null && keyRetriever == null) {
+                return null;
+            }
+            final FileDecryptionProperties.Builder fdpBuilder = FileDecryptionProperties.builder();
+            if(footerKey != null) {
+                fdpBuilder.withFooterKey(footerKey);
+            }
+            if(columnKeyMap != null) {
+                final Map<ColumnPath, ColumnDecryptionProperties> columnProperties = new HashMap<>();
+                for(Entry<String, byte[]> entry : columnKeyMap.entrySet()) {
+                    columnProperties.put(ColumnPath.get(entry.getKey()),
+                        ColumnDecryptionProperties.builder(entry.getKey()).withKey(entry.getValue()).build());
+                }
+                fdpBuilder.withColumnKeys(columnProperties);
+            }
+            if(aadPrefix != null) {
+                fdpBuilder.withAADPrefix(aadPrefix);
+            }
+            if(keyRetriever != null) {
+                fdpBuilder.withKeyRetriever(keyRetriever);
+            }
+            if(!checkFooterIntegrity) {
+                fdpBuilder.withoutFooterSignatureVerification();
+            }
+            if(aadPrefixVerifier != null) {
+                fdpBuilder.withAADPrefixVerifier(aadPrefixVerifier);
+            }
+            return fdpBuilder.build();
+        }
+
         // Override super-class setters to return an instance of this class
 
         /** {@inheritDoc} This option is not used by TablesawParquetReadOptions */
@@ -185,6 +240,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return this;
         }
 
+        /**
+         * Set the table name
+         * @param tableName the table name
+         * @return this for chaining
+         */
         @Override
         public Builder tableName(final String tableName) {
             super.tableName(tableName);
@@ -286,7 +346,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
 
         /**
          * {@inheritDoc}
-         * If used in conjuntion with the {@link #withOnlyTheseColumns(String...)} options,
+         * If used in conjunction with the {@link #withOnlyTheseColumns(String...)} options,
          * the provided ColumnType array must contain only the selected columns in the order they were provided.
          */
         @Override
@@ -361,6 +421,67 @@ public class TablesawParquetReadOptions extends ReadOptions {
          */
         public Builder withOnlyTheseColumns(final String... columns) {
             this.columns = columns;
+            return this;
+        }
+        
+        /**
+         * Set the footer key used for encryption
+         * @param footerKey the footer key, must be either 16, 24 or 32 bytes.
+         * @return this builder
+         */
+        public Builder withFooterKey(final byte[] footerKey) {
+            this.footerKey = footerKey;
+            return this;
+        }
+        
+        /**
+         * Sets the keys for column encryption.
+         * @param columnKeyMap map column names to columns keys. Keys must be either 16, 24 or 32 bytes.
+         * @return this builder
+         */
+        public Builder withColumnKeys(final Map<String, byte[]> columnKeyMap) {
+            this.columnKeyMap = columnKeyMap;
+            return this;
+            
+        }
+        
+        /**
+         * Sets the AAD prefix. Required if it is not stored in the file.
+         * @param aadPrefix the AADPrefix
+         * @return this builder
+         */
+        public Builder withAADPrefix(final byte[] aadPrefix) {
+            this.aadPrefix = aadPrefix;
+            return this;
+        }
+        
+        /**
+         * Use a keyRetriever for fetching encryption keys
+         * @param keyRetriever
+         * @return this builder
+         */
+        public Builder withKeyRetriever(final DecryptionKeyRetriever keyRetriever) {
+            this.keyRetriever = keyRetriever;
+            return this;
+        }
+        
+        /**
+         * Do not check plain footer integrity in files without footer encryption
+         * @return this builder
+         */
+        public Builder withoutFooterSignatureVerification() {
+            this.checkFooterIntegrity = false;
+            return this;
+        }
+        
+        /**
+         * Set callback for verification of AAD Prefixes stored in file.
+         *
+         * @param aadPrefixVerifier AAD prefix verification object
+         * @return  this builder
+         */
+        public Builder withAADPrefixVerifier(final AADPrefixVerifier aadPrefixVerifier) {
+            this.aadPrefixVerifier = aadPrefixVerifier;
             return this;
         }
     }
