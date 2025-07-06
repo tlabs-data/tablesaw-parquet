@@ -39,6 +39,8 @@ import org.apache.parquet.crypto.AADPrefixVerifier;
 import org.apache.parquet.crypto.ColumnDecryptionProperties;
 import org.apache.parquet.crypto.DecryptionKeyRetriever;
 import org.apache.parquet.crypto.FileDecryptionProperties;
+import org.apache.parquet.filter2.compat.FilterCompat;
+import org.apache.parquet.filter2.compat.FilterCompat.Filter;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +72,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     private final List<String> columns;
     private final URI inputURI;
     private final FileDecryptionProperties fileDecryptionProperties;
+    private final Filter recordFilter;
 
     protected TablesawParquetReadOptions(final Builder builder) {
         super(builder);
@@ -81,6 +84,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
         floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
         fileDecryptionProperties = builder.getFileDecryptionProperties();
+        recordFilter = builder.recordFilter;
     }
 
     public boolean isShortColumnTypeUsed() {
@@ -152,6 +156,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
     public FileDecryptionProperties getFileDecryptionProperties() {
         return fileDecryptionProperties;
     }
+    
+    public Filter getRecordFilter() {
+        return recordFilter;
+    }
+
 
     public static Builder builder(final File file) {
         return new Builder(file.toURI()).tableName(file.getName());
@@ -189,6 +198,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private DecryptionKeyRetriever keyRetriever;
         private boolean checkFooterIntegrity = true;
         private AADPrefixVerifier aadPrefixVerifier;
+        private Filter recordFilter = FilterCompat.NOOP;
 
         protected Builder(final URI inputURI) {
             super();
@@ -484,5 +494,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
             this.aadPrefixVerifier = aadPrefixVerifier;
             return this;
         }
-    }
+
+        public Builder withRecordFilter(FilterCompat.Filter rowGroupFilter) {
+            this.recordFilter = rowGroupFilter;
+            return this;
+          }
+}
+
 }
