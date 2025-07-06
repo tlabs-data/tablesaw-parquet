@@ -29,11 +29,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.CompressionCodec;
 
+import org.apache.parquet.crypto.AADPrefixVerifier;
 import org.apache.parquet.crypto.ParquetCipher;
 import org.apache.parquet.crypto.ParquetCryptoRuntimeException;
 import org.apache.parquet.io.ParquetDecodingException;
@@ -560,4 +562,41 @@ class TestParquetWriter {
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
     
+    @Test
+    void testWriteReadFullEncryptedWithAADPrefixVerifier() {
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
+            .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
+            .withAADPrefixVerifier(new AADPrefixVerifier() {
+                @Override
+                public void verify(byte[] aadPrefix) throws ParquetCryptoRuntimeException {
+                    if(aadPrefix == null || !Arrays.equals(AAD_PREFIX, aadPrefix)) {
+                        throw new ParquetCryptoRuntimeException("Wrong AAD Prefix");
+                    }
+                }
+            })
+            .build());
+        assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
+    }
+
+    @Test
+    void testWriteAADPrefixVerifierFail() {
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
+            .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX).build());
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
+            .withAADPrefixVerifier(new AADPrefixVerifier() {
+                @Override
+                public void verify(byte[] aadPrefix) throws ParquetCryptoRuntimeException {
+                    if(aadPrefix == null || !Arrays.equals("wrong prefix".getBytes(), aadPrefix)) {
+                        throw new ParquetCryptoRuntimeException("Wrong AAD Prefix");
+                    }
+                }
+            })
+            .build();
+        assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
+    }
 }

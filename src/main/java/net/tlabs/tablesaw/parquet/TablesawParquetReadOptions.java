@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.apache.parquet.crypto.AADPrefixVerifier;
 import org.apache.parquet.crypto.ColumnDecryptionProperties;
 import org.apache.parquet.crypto.DecryptionKeyRetriever;
 import org.apache.parquet.crypto.FileDecryptionProperties;
@@ -187,6 +188,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         private byte[] aadPrefix;
         private DecryptionKeyRetriever keyRetriever;
         private boolean checkFooterIntegrity = true;
+        private AADPrefixVerifier aadPrefixVerifier;
 
         protected Builder(final URI inputURI) {
             super();
@@ -222,6 +224,9 @@ public class TablesawParquetReadOptions extends ReadOptions {
             }
             if(!checkFooterIntegrity) {
                 fdpBuilder.withoutFooterSignatureVerification();
+            }
+            if(aadPrefixVerifier != null) {
+                fdpBuilder.withAADPrefixVerifier(aadPrefixVerifier);
             }
             return fdpBuilder.build();
         }
@@ -453,7 +458,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         /**
          * Use a keyRetriever for fetching encryption keys
          * @param keyRetriever
-         * @return
+         * @return this builder
          */
         public Builder withKeyRetriever(final DecryptionKeyRetriever keyRetriever) {
             this.keyRetriever = keyRetriever;
@@ -462,10 +467,21 @@ public class TablesawParquetReadOptions extends ReadOptions {
         
         /**
          * Do not check plain footer integrity in files without footer encryption
-         * @return
+         * @return this builder
          */
         public Builder withoutFooterSignatureVerification() {
             this.checkFooterIntegrity = false;
+            return this;
+        }
+        
+        /**
+         * Set callback for verification of AAD Prefixes stored in file.
+         *
+         * @param aadPrefixVerifier AAD prefix verification object
+         * @return  this builder
+         */
+        public Builder withAADPrefixVerifier(final AADPrefixVerifier aadPrefixVerifier) {
+            this.aadPrefixVerifier = aadPrefixVerifier;
             return this;
         }
     }

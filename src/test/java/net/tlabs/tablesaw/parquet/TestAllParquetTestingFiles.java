@@ -47,6 +47,7 @@ class TestAllParquetTestingFiles {
         "double_field", COLUMN_ENCRYPTION_KEY1,
         "float_field", COLUMN_ENCRYPTION_KEY2);
     private static final StringKeyIdRetriever KEY_RETRIEVER = new StringKeyIdRetriever();
+    private static final String AAD_KEY = "tester";
     
     static {
         KEY_RETRIEVER.putKey("kf", FOOTER_ENCRYPTION_KEY);
@@ -110,7 +111,7 @@ class TestAllParquetTestingFiles {
             .withFooterKey(FOOTER_ENCRYPTION_KEY)
             .withColumnKeys(COLUMN_KEY_MAP);
         if(parquetFile.getName().contains("_aad_")) {
-            optionBuilder.withAADPrefix("tester".getBytes());
+            optionBuilder.withAADPrefix(AAD_KEY.getBytes());
         }
         final Table table = new TablesawParquetReader().read(optionBuilder.build());
         assertNotNull(table);
@@ -123,7 +124,7 @@ class TestAllParquetTestingFiles {
             .builder(parquetFile)
             .withKeyRetriever(KEY_RETRIEVER);
         if(parquetFile.getName().contains("_aad_")) {
-            optionBuilder.withAADPrefix("tester".getBytes());
+            optionBuilder.withAADPrefix(AAD_KEY.getBytes());
         }
         final Table table = new TablesawParquetReader().read(optionBuilder.build());
         assertNotNull(table);
