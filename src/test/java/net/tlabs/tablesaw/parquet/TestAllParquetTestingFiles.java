@@ -24,15 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.apache.parquet.crypto.DecryptionKeyRetriever;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -57,22 +54,6 @@ class TestAllParquetTestingFiles {
         KEY_RETRIEVER.putKey("kc2", COLUMN_ENCRYPTION_KEY2);
     }
 
-    // Simple key retriever, based on UTF8 strings as key identifiers
-    static class StringKeyIdRetriever implements DecryptionKeyRetriever{
-
-      private final Hashtable<String,byte[]> keyMap = new Hashtable<String,byte[]>();
-
-      public void putKey(String keyId, byte[] keyBytes) {
-        keyMap.put(keyId, keyBytes);
-      }
-
-      @Override
-      public byte[] getKey(byte[] keyMetaData) {
-        String keyId = new String(keyMetaData, StandardCharsets.UTF_8);
-        return keyMap.get(keyId);
-      }
-    }
-    
     private static Stream<Arguments> listParquetTestingFile() throws IOException {
         return Files.list(Paths.get(PARQUET_TESTING_FOLDER))
             .map(Path::toFile)
