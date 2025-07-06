@@ -83,7 +83,7 @@ public class TablesawRecordConverter extends GroupConverter {
         @Override
         public void addLong(final long value) {
             final long epochSecond = value / secondFactor;
-            proxy.appendDateTime(colIndex, LocalDateTime.ofEpochSecond(epochSecond,
+            proxy.setDateTime(colIndex, LocalDateTime.ofEpochSecond(epochSecond,
                 (int) ((value - (epochSecond * secondFactor)) * nanoFactor), ZoneOffset.UTC));
         }
         
@@ -105,7 +105,7 @@ public class TablesawRecordConverter extends GroupConverter {
             final long nanotime = buf.getLong();
             final int julianday = buf.getInt();
             final LocalDate date = LocalDate.ofEpochDay(0).with(JulianFields.JULIAN_DAY, julianday);
-            proxy.appendInstant(colIndex,
+            proxy.setInstant(colIndex,
                 ZonedDateTime.of(date.atStartOfDay(), ZoneOffset.UTC).toInstant().plus(nanotime, ChronoUnit.NANOS));
         }
     }
@@ -117,7 +117,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
         @Override
         public void addLong(final long value) {
-            proxy.appendInstant(colIndex, Instant.ofEpochMilli(value));
+            proxy.setInstant(colIndex, Instant.ofEpochMilli(value));
         }
     }
     
@@ -134,7 +134,7 @@ public class TablesawRecordConverter extends GroupConverter {
         @Override
         public void addLong(final long value) {
             final long millisFromValue = value / factor;
-            proxy.appendInstant(colIndex, Instant.ofEpochMilli(millisFromValue)
+            proxy.setInstant(colIndex, Instant.ofEpochMilli(millisFromValue)
                 .plus(value - millisFromValue * factor, chronoUnit));
         }
     }
@@ -148,12 +148,12 @@ public class TablesawRecordConverter extends GroupConverter {
 
         @Override
         public void addFloat(final float value) {
-            proxy.appendDouble(colIndex, value);
+            proxy.setDouble(colIndex, value);
         }
 
         @Override
         public void addDouble(final double value) {
-            proxy.appendDouble(colIndex, value);
+            proxy.setDouble(colIndex, value);
         }
     }
 
@@ -170,13 +170,13 @@ public class TablesawRecordConverter extends GroupConverter {
         @Override
         public void addInt(final int value) {
             // INT32 is always in MILLIS
-            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(MILLIS_TO_NANOS * value));
+            proxy.setTime(colIndex, LocalTime.ofNanoOfDay(MILLIS_TO_NANOS * value));
         }
         
         @Override
         public void addLong(final long value) {
             // INT64 is either MICROS or NANOS
-            proxy.appendTime(colIndex, LocalTime.ofNanoOfDay(value * longValueFactor));
+            proxy.setTime(colIndex, LocalTime.ofNanoOfDay(value * longValueFactor));
         }
     }
     
@@ -189,7 +189,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
         @Override
         public void addBinary(final Binary value) {
-            proxy.appendString(colIndex, value.toStringUsingUTF8());
+            proxy.setString(colIndex, value.toStringUsingUTF8());
         }
     }
 
@@ -202,7 +202,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
         @Override
         public void addBinary(final Binary value) {
-            proxy.appendString(colIndex, rawBytesToHexString(value.getBytes()));
+            proxy.setString(colIndex, rawBytesToHexString(value.getBytes()));
         }
     }
 
@@ -215,7 +215,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
         
         private void addRepeatedValue(final String value) {
-            proxy.addRepeatedString(col, value);
+            proxy.setRepeatedString(col, value);
         }
 
         @Override
@@ -260,7 +260,7 @@ public class TablesawRecordConverter extends GroupConverter {
 
         @Override
         public void end() {
-            proxy.appendString(col, this.record.toString());
+            proxy.setString(col, this.record.toString());
         }
     }
 
@@ -277,12 +277,12 @@ public class TablesawRecordConverter extends GroupConverter {
     private static final long MILLIS_TO_NANOS = 1_000_000L;
 
     private final Converter[] converters;
-    private final TableProxy proxy;
+    private final SingleRowTableProxy proxy;
 
     public TablesawRecordConverter(final Table table, final MessageType fileSchema,
         final TablesawParquetReadOptions options) {
         super();
-        this.proxy = new TableProxy(table);
+        this.proxy = new SingleRowTableProxy(table);
         this.converters = new Converter[fileSchema.getFieldCount()];
         final List<Column<?>> columns = table.columns();
         final int size = columns.size();
@@ -309,7 +309,7 @@ public class TablesawRecordConverter extends GroupConverter {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
-                    proxy.appendInt(colIndex, value);
+                    proxy.setInt(colIndex, value);
                 }
             };
         }
@@ -317,11 +317,11 @@ public class TablesawRecordConverter extends GroupConverter {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
-                    proxy.appendLong(colIndex, value);
+                    proxy.setLong(colIndex, value);
                 }
                 @Override
                 public void addLong(final long value) {
-                    proxy.appendLong(colIndex, value);
+                    proxy.setLong(colIndex, value);
                 }
             };
         }
@@ -334,7 +334,7 @@ public class TablesawRecordConverter extends GroupConverter {
             return new PrimitiveConverter() {
                 @Override
                 public void addBoolean(final boolean value) {
-                    proxy.appendBoolean(colIndex, value);
+                    proxy.setBoolean(colIndex, value);
                 }
             };
         }
@@ -347,7 +347,7 @@ public class TablesawRecordConverter extends GroupConverter {
             return new PrimitiveConverter() {
                 @Override
                 public void addFloat(final float value) {
-                    proxy.appendFloat(colIndex, value);
+                    proxy.setFloat(colIndex, value);
                 }
             };
         }
@@ -365,7 +365,7 @@ public class TablesawRecordConverter extends GroupConverter {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
-                    proxy.appendDate(colIndex, LocalDate.ofEpochDay(value));
+                    proxy.setDate(colIndex, LocalDate.ofEpochDay(value));
                 }
             };
         }
@@ -378,7 +378,7 @@ public class TablesawRecordConverter extends GroupConverter {
             return new PrimitiveConverter() {
                 @Override
                 public void addInt(final int value) {
-                    proxy.appendShort(colIndex, (short) value);
+                    proxy.setShort(colIndex, (short) value);
                 }
             };
         }
@@ -465,7 +465,7 @@ public class TablesawRecordConverter extends GroupConverter {
                             BINARY_INTERVAL_LENGTH_MESSAGE);
                         final ByteBuffer buf = value.toByteBuffer();
                         buf.order(ByteOrder.LITTLE_ENDIAN);
-                        proxy.appendString(colIndex,
+                        proxy.setString(colIndex,
                             Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
                                 + Duration.ofMillis(buf.getInt()).toString().substring(1));
                     }
@@ -482,7 +482,7 @@ public class TablesawRecordConverter extends GroupConverter {
                     @Override
                     public void addBinary(final Binary value) {
                         final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
-                        proxy.appendDouble(colIndex, bigd.doubleValue());
+                        proxy.setDouble(colIndex, bigd.doubleValue());
                     }
                 });
             }
@@ -527,4 +527,5 @@ public class TablesawRecordConverter extends GroupConverter {
     public Row getCurrentRow() {
         return proxy.getCurrentRow();
     }
+
 }

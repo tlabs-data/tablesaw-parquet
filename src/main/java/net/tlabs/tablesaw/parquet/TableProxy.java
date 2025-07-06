@@ -44,25 +44,25 @@ import tech.tablesaw.columns.Column;
 import tech.tablesaw.columns.dates.PackedLocalDate;
 import tech.tablesaw.columns.times.PackedLocalTime;
 
-final class TableProxy {
+class TableProxy {
 
-    private final Table table;
+    protected final Table table;
 
-    private final boolean[] rowColumnsSet;
-    private final BooleanColumn[] booleanColumns;
-    private final ShortColumn[] shortColumns;
-    private final IntColumn[] intColumns;
-    private final LongColumn[] longColumns;
-    private final FloatColumn[] floatColumns;
-    private final DoubleColumn[] doubleColumns;
-    private final DateColumn[] dateColumns;
-    private final TimeColumn[] timeColumns;
-    private final DateTimeColumn[] dateTimeColumns;
-    private final InstantColumn[] instantColumns;
-    private final StringColumn[] stringColumns;
+    protected final boolean[] rowColumnsSet;
+    protected final BooleanColumn[] booleanColumns;
+    protected final ShortColumn[] shortColumns;
+    protected final IntColumn[] intColumns;
+    protected final LongColumn[] longColumns;
+    protected final FloatColumn[] floatColumns;
+    protected final DoubleColumn[] doubleColumns;
+    protected final DateColumn[] dateColumns;
+    protected final TimeColumn[] timeColumns;
+    protected final DateTimeColumn[] dateTimeColumns;
+    protected final InstantColumn[] instantColumns;
+    protected final StringColumn[] stringColumns;
 
     private Row currentRow = null;
-    private int currentRownum;
+    protected int currentRownum;
 
     TableProxy(final Table table) {
         super();
@@ -114,7 +114,8 @@ final class TableProxy {
             throw new IllegalArgumentException("Unsupported ColumnType " + columnType);
         }
     }
-
+    
+    // TODO: set whether to keep appendXXX methods
     void appendInstant(final int colIndex, final Instant value) {
         instantColumns[colIndex].append(value);
         rowColumnsSet[colIndex] = true;

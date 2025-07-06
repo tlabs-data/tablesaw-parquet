@@ -41,6 +41,7 @@ import org.apache.parquet.crypto.DecryptionKeyRetriever;
 import org.apache.parquet.crypto.FileDecryptionProperties;
 import org.apache.parquet.filter2.compat.FilterCompat;
 import org.apache.parquet.filter2.compat.FilterCompat.Filter;
+import org.apache.parquet.filter2.predicate.FilterPredicate;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -495,8 +496,8 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return this;
         }
 
-        public Builder withRecordFilter(FilterCompat.Filter rowGroupFilter) {
-            this.recordFilter = rowGroupFilter;
+        public Builder withRecordFilter(FilterPredicate rowGroupFilter) {
+            this.recordFilter = FilterCompat.get(rowGroupFilter);
             return this;
           }
 }
