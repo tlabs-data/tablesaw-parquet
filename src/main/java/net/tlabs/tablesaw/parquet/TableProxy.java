@@ -115,7 +115,6 @@ class TableProxy {
         }
     }
     
-    // TODO: set whether to keep appendXXX methods
     void appendInstant(final int colIndex, final Instant value) {
         instantColumns[colIndex].append(value);
         rowColumnsSet[colIndex] = true;
@@ -203,11 +202,11 @@ class TableProxy {
         return currentRow;
     }
 
-    boolean getBoolean(final int colIndex, final int rowIndex) {
+    Boolean getBoolean(final int colIndex, final int rowIndex) {
         return booleanColumns[colIndex].get(rowIndex);
     }
 
-    int getShort(final int colIndex, final int rowIndex) {
+    short getShort(final int colIndex, final int rowIndex) {
         return shortColumns[colIndex].getShort(rowIndex);
     }
 
@@ -234,20 +233,90 @@ class TableProxy {
     int getDateAsEpochDay(final int colIndex, final int rowIndex) {
         return (int) PackedLocalDate.toEpochDay(dateColumns[colIndex].getIntInternal(rowIndex));
     }
+    
+    LocalDate getDate(final int colIndex, final int rowIndex) {
+        return dateColumns[colIndex].get(rowIndex);
+    }
+    
+    int getDateInternal(final int colIndex, final int rowIndex) {
+        return dateColumns[colIndex].getIntInternal(rowIndex);
+    }
 
     int getTimeAsMilliOfDay(final int colIndex, final int rowIndex) {
       return PackedLocalTime.getMillisecondOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
     }
 
+    LocalTime getTime(final int colIndex, final int rowIndex) {
+        return timeColumns[colIndex].get(rowIndex);
+    }
+    
+    int getTimeInternal(final int colIndex, final int rowIndex) {
+        return timeColumns[colIndex].getIntInternal(rowIndex);
+    }
+    
     long getInstantAsEpochMilli(final int colIndex, final int rowIndex) {
         return instantColumns[colIndex].get(rowIndex).toEpochMilli();
+    }
+    
+    Instant getInstant(final int colIndex, final int rowIndex) {
+        return instantColumns[colIndex].get(rowIndex);
+    }
+
+    long getInstantInternal(final int colIndex, final int rowIndex) {
+        return instantColumns[colIndex].getLongInternal(rowIndex);
     }
 
     long getDateTimeAsEpochMilli(final int colIndex, final int rowIndex) {
         return dateTimeColumns[colIndex].get(rowIndex).toInstant(ZoneOffset.UTC).toEpochMilli();
     }
+    
+    LocalDateTime getDateTime(final int colIndex, final int rowIndex) {
+        return dateTimeColumns[colIndex].get(rowIndex);
+    }
+
+    long getDateTimeInternal(final int colIndex, final int rowIndex) {
+        return dateTimeColumns[colIndex].getLongInternal(rowIndex);
+    }
 
     Column<?> column(final int colIndex) {
         return table.column(colIndex);
+    }
+
+    void appendRow(final SingleRowTableProxy singleRowProxy) {
+        startRow();
+        // TODO: loop on table columns, append values from singleRowProxy to this proxy
+        final List<Column<?>> columns = table.columns();
+        final int size = columns.size();
+        for (int i = 0; i < size; i++) {
+            final ColumnType columnType = columns.get(i).type();
+            if (ColumnType.BOOLEAN.equals(columnType)) {
+                booleanColumns[i].append(singleRowProxy.getBoolean(i, 0));
+            } else if (ColumnType.SHORT.equals(columnType)) {
+                shortColumns[i].append(singleRowProxy.getShort(i, 0));
+            } else if (ColumnType.INTEGER.equals(columnType)) {
+                intColumns[i].append(singleRowProxy.getInt(i, 0));
+            } else if (ColumnType.LONG.equals(columnType)) {
+                longColumns[i].append(singleRowProxy.getLong(i, 0));
+            } else if (ColumnType.FLOAT.equals(columnType)) {
+                floatColumns[i].append(singleRowProxy.getFloat(i, 0));
+            } else if (ColumnType.DOUBLE.equals(columnType)) {
+                doubleColumns[i].append(singleRowProxy.getDouble(i, 0));
+            } else if (ColumnType.LOCAL_TIME.equals(columnType)) {
+                timeColumns[i].appendInternal(singleRowProxy.getTimeInternal(i, 0));
+            } else if (ColumnType.LOCAL_DATE.equals(columnType)) {
+                dateColumns[i].appendInternal(singleRowProxy.getDateInternal(i, 0));
+            } else if (ColumnType.LOCAL_DATE_TIME.equals(columnType)) {
+                dateTimeColumns[i].appendInternal(singleRowProxy.getDateTimeInternal(i, 0));
+            } else if (ColumnType.INSTANT.equals(columnType)) {
+                instantColumns[i].appendInternal(singleRowProxy.getInstantInternal(i, 0));
+            } else if (ColumnType.STRING.equals(columnType)) {
+                stringColumns[i].append(singleRowProxy.getString(i, 0));
+            } else {
+                throw new IllegalArgumentException("Unsupported ColumnType " + columnType);
+            }
+            rowColumnsSet[i] = true;
+
+        }
+        endRow();
     }
 }

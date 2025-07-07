@@ -527,5 +527,9 @@ public class TablesawRecordConverter extends GroupConverter {
     public Row getCurrentRow() {
         return proxy.getCurrentRow();
     }
+    
+    public SingleRowTableProxy getTableProxy() {
+        return proxy;
+    }
 
 }

@@ -29,20 +29,19 @@ import tech.tablesaw.api.Table;
 public class TablesawRecordMaterializer extends RecordMaterializer<Row> {
 
     private final TablesawRecordConverter recordConverter;
-    private final Table table;
+    private final TableProxy proxy;
 
     public TablesawRecordMaterializer(final Table table, final MessageType fileSchema,
             final TablesawParquetReadOptions options) {
         super();
-        this.table = table;
-        this.recordConverter = new TablesawRecordConverter(this.table, fileSchema, options);
+        this.proxy = new TableProxy(table);
+        this.recordConverter = new TablesawRecordConverter(table, fileSchema, options);
     }
 
     @Override
     public Row getCurrentRecord() {
-        final Row currentRow = recordConverter.getCurrentRow();
-        this.table.append(currentRow); // TODO: implement faster solution
-        return currentRow;
+        this.proxy.appendRow(recordConverter.getTableProxy());
+        return recordConverter.getCurrentRow();
     }
 
     @Override
