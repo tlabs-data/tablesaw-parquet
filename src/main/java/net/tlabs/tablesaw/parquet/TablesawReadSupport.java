@@ -67,6 +67,7 @@ import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs
 public class TablesawReadSupport extends ReadSupport<Row> {
 
     private final TablesawParquetReadOptions options;
+    private TablesawRecordMaterializer tablesawRecordMaterializer;
     private Table table = null;
 
     public TablesawReadSupport(final TablesawParquetReadOptions options) {
@@ -109,7 +110,8 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     @Override
     public RecordMaterializer<Row> prepareForRead(final Configuration configuration,
             final Map<String, String> keyValueMetaData, final MessageType fileSchema, final ReadContext readContext) {
-        return new TablesawRecordMaterializer(this.table, readContext.getRequestedSchema(), this.options);
+        tablesawRecordMaterializer = new TablesawRecordMaterializer(this.table, readContext.getRequestedSchema(), this.options);
+        return tablesawRecordMaterializer;
     }
     
     private boolean acceptFieldName(final Type type) {
@@ -300,6 +302,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     }
 
     public Table getTable() {
-        return table;
+        return tablesawRecordMaterializer == null ? null : tablesawRecordMaterializer.getTable();
     }
 }

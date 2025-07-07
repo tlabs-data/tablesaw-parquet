@@ -44,25 +44,26 @@ import tech.tablesaw.columns.Column;
 import tech.tablesaw.columns.dates.PackedLocalDate;
 import tech.tablesaw.columns.times.PackedLocalTime;
 
-class TableProxy {
+final class TableProxy {
 
-    protected final Table table;
+    private final Table table;
 
-    protected final boolean[] rowColumnsSet;
-    protected final BooleanColumn[] booleanColumns;
-    protected final ShortColumn[] shortColumns;
-    protected final IntColumn[] intColumns;
-    protected final LongColumn[] longColumns;
-    protected final FloatColumn[] floatColumns;
-    protected final DoubleColumn[] doubleColumns;
-    protected final DateColumn[] dateColumns;
-    protected final TimeColumn[] timeColumns;
-    protected final DateTimeColumn[] dateTimeColumns;
-    protected final InstantColumn[] instantColumns;
-    protected final StringColumn[] stringColumns;
+    private final boolean[] rowColumnsSet;
+    private final BooleanColumn[] booleanColumns;
+    private final ShortColumn[] shortColumns;
+    private final IntColumn[] intColumns;
+    private final LongColumn[] longColumns;
+    private final FloatColumn[] floatColumns;
+    private final DoubleColumn[] doubleColumns;
+    private final DateColumn[] dateColumns;
+    private final TimeColumn[] timeColumns;
+    private final DateTimeColumn[] dateTimeColumns;
+    private final InstantColumn[] instantColumns;
+    private final StringColumn[] stringColumns;
 
     private Row currentRow = null;
-    protected int currentRownum;
+    private int currentRownum;
+    private boolean rowSkipped = false;
 
     TableProxy(final Table table) {
         super();
@@ -114,38 +115,62 @@ class TableProxy {
             throw new IllegalArgumentException("Unsupported ColumnType " + columnType);
         }
     }
-    
+
     void appendInstant(final int colIndex, final Instant value) {
-        instantColumns[colIndex].append(value);
+        if(rowSkipped) {
+            instantColumns[colIndex].set(currentRownum, value);            
+        } else {
+            instantColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendDateTime(final int colIndex, final LocalDateTime value) {
-        dateTimeColumns[colIndex].append(value);
+        if(rowSkipped) {
+            dateTimeColumns[colIndex].set(currentRownum, value);            
+        } else {
+            dateTimeColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendFloat(final int colIndex, final float value) {
-        floatColumns[colIndex].append(value);
+        if(rowSkipped) {
+            floatColumns[colIndex].set(currentRownum, value);            
+        } else {
+            floatColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendDouble(final int colIndex, final double value) {
-        doubleColumns[colIndex].append(value);
+        if(rowSkipped) {
+            doubleColumns[colIndex].set(currentRownum, value);            
+        } else {
+            doubleColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendTime(final int colIndex, final LocalTime value) {
-        timeColumns[colIndex].append(value);
+        if(rowSkipped) {
+            timeColumns[colIndex].set(currentRownum, value);            
+        } else {
+            timeColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendString(final int colIndex, final String value) {
-        stringColumns[colIndex].append(value);
+        if(rowSkipped) {
+            stringColumns[colIndex].set(currentRownum, value);            
+        } else {
+            stringColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
-    void addRepeatedString(final int colIndex, final String value) {
+    void appendRepeatedString(final int colIndex, final String value) {
         if(rowColumnsSet[colIndex]) {
             final String initialContent = getString(colIndex, currentRownum);
             stringColumns[colIndex].set(currentRownum, "[" + initialContent.substring(1, initialContent.length() - 1) + ", " + value + "]");
@@ -155,27 +180,47 @@ class TableProxy {
     }
 
     void appendBoolean(final int colIndex, final boolean value) {
-        booleanColumns[colIndex].append(value);
+        if(rowSkipped) {
+            booleanColumns[colIndex].set(currentRownum, value);            
+        } else {
+            booleanColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendShort(final int colIndex, final short value) {
-        shortColumns[colIndex].append(value);
+        if(rowSkipped) {
+            shortColumns[colIndex].set(currentRownum, value);            
+        } else {
+            shortColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendInt(final int colIndex, final int value) {
-        intColumns[colIndex].append(value);
+        if(rowSkipped) {
+            intColumns[colIndex].set(currentRownum, value);            
+        } else {
+            intColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendLong(final int colIndex, final long value) {
-        longColumns[colIndex].append(value);
+        if(rowSkipped) {
+            longColumns[colIndex].set(currentRownum, value);            
+        } else {
+            longColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendDate(final int colIndex, final LocalDate value) {
-        dateColumns[colIndex].append(value);
+        if(rowSkipped) {
+            dateColumns[colIndex].set(currentRownum, value);            
+        } else {
+            dateColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
@@ -186,11 +231,16 @@ class TableProxy {
     void endRow() {
         for (int i = 0; i < rowColumnsSet.length; i++) {
             if (!rowColumnsSet[i]) {
-                table.column(i).appendMissing();
+                if(rowSkipped) {
+                    table.column(i).setMissing(currentRownum); 
+                } else {
+                    table.column(i).appendMissing();
+                }
             } else {
                 rowColumnsSet[i] = false;
             }
         }
+        rowSkipped = false;
     }
 
     Row getCurrentRow() {
@@ -233,90 +283,30 @@ class TableProxy {
     int getDateAsEpochDay(final int colIndex, final int rowIndex) {
         return (int) PackedLocalDate.toEpochDay(dateColumns[colIndex].getIntInternal(rowIndex));
     }
-    
-    LocalDate getDate(final int colIndex, final int rowIndex) {
-        return dateColumns[colIndex].get(rowIndex);
-    }
-    
-    int getDateInternal(final int colIndex, final int rowIndex) {
-        return dateColumns[colIndex].getIntInternal(rowIndex);
-    }
 
     int getTimeAsMilliOfDay(final int colIndex, final int rowIndex) {
       return PackedLocalTime.getMillisecondOfDay(timeColumns[colIndex].getIntInternal(rowIndex));
     }
 
-    LocalTime getTime(final int colIndex, final int rowIndex) {
-        return timeColumns[colIndex].get(rowIndex);
-    }
-    
-    int getTimeInternal(final int colIndex, final int rowIndex) {
-        return timeColumns[colIndex].getIntInternal(rowIndex);
-    }
-    
     long getInstantAsEpochMilli(final int colIndex, final int rowIndex) {
         return instantColumns[colIndex].get(rowIndex).toEpochMilli();
-    }
-    
-    Instant getInstant(final int colIndex, final int rowIndex) {
-        return instantColumns[colIndex].get(rowIndex);
-    }
-
-    long getInstantInternal(final int colIndex, final int rowIndex) {
-        return instantColumns[colIndex].getLongInternal(rowIndex);
     }
 
     long getDateTimeAsEpochMilli(final int colIndex, final int rowIndex) {
         return dateTimeColumns[colIndex].get(rowIndex).toInstant(ZoneOffset.UTC).toEpochMilli();
-    }
-    
-    LocalDateTime getDateTime(final int colIndex, final int rowIndex) {
-        return dateTimeColumns[colIndex].get(rowIndex);
-    }
-
-    long getDateTimeInternal(final int colIndex, final int rowIndex) {
-        return dateTimeColumns[colIndex].getLongInternal(rowIndex);
     }
 
     Column<?> column(final int colIndex) {
         return table.column(colIndex);
     }
 
-    void appendRow(final SingleRowTableProxy singleRowProxy) {
-        startRow();
-        // TODO: loop on table columns, append values from singleRowProxy to this proxy
-        final List<Column<?>> columns = table.columns();
-        final int size = columns.size();
-        for (int i = 0; i < size; i++) {
-            final ColumnType columnType = columns.get(i).type();
-            if (ColumnType.BOOLEAN.equals(columnType)) {
-                booleanColumns[i].append(singleRowProxy.getBoolean(i, 0));
-            } else if (ColumnType.SHORT.equals(columnType)) {
-                shortColumns[i].append(singleRowProxy.getShort(i, 0));
-            } else if (ColumnType.INTEGER.equals(columnType)) {
-                intColumns[i].append(singleRowProxy.getInt(i, 0));
-            } else if (ColumnType.LONG.equals(columnType)) {
-                longColumns[i].append(singleRowProxy.getLong(i, 0));
-            } else if (ColumnType.FLOAT.equals(columnType)) {
-                floatColumns[i].append(singleRowProxy.getFloat(i, 0));
-            } else if (ColumnType.DOUBLE.equals(columnType)) {
-                doubleColumns[i].append(singleRowProxy.getDouble(i, 0));
-            } else if (ColumnType.LOCAL_TIME.equals(columnType)) {
-                timeColumns[i].appendInternal(singleRowProxy.getTimeInternal(i, 0));
-            } else if (ColumnType.LOCAL_DATE.equals(columnType)) {
-                dateColumns[i].appendInternal(singleRowProxy.getDateInternal(i, 0));
-            } else if (ColumnType.LOCAL_DATE_TIME.equals(columnType)) {
-                dateTimeColumns[i].appendInternal(singleRowProxy.getDateTimeInternal(i, 0));
-            } else if (ColumnType.INSTANT.equals(columnType)) {
-                instantColumns[i].appendInternal(singleRowProxy.getInstantInternal(i, 0));
-            } else if (ColumnType.STRING.equals(columnType)) {
-                stringColumns[i].append(singleRowProxy.getString(i, 0));
-            } else {
-                throw new IllegalArgumentException("Unsupported ColumnType " + columnType);
-            }
-            rowColumnsSet[i] = true;
-
-        }
-        endRow();
+    void skipCurrentRow() {
+        rowSkipped = true;
+        currentRownum--;
+    }
+    
+    Table getTable() {
+        if(rowSkipped) return table.dropRows(currentRownum + 1);
+        return table;
     }
 }
