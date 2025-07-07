@@ -252,6 +252,7 @@ final class TableProxy {
         return currentRow;
     }
 
+    // Needs to be Boolean as null is returned for missing value
     Boolean getBoolean(final int colIndex, final int rowIndex) {
         return booleanColumns[colIndex].get(rowIndex);
     }
