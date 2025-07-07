@@ -54,7 +54,6 @@ class TestRowFiltering {
     void testIntFilter() {
         final TablesawParquetReadOptions options =
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-            .withConvertInt96ToTimestamp(true)
             .withRecordFilter(gt(longColumn("bigint_col"), 5l))
             .build();
         final Table table = PARQUET_READER.read(options);
@@ -65,7 +64,6 @@ class TestRowFiltering {
     void testDoubleFilter() {
         final TablesawParquetReadOptions options =
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-            .withConvertInt96ToTimestamp(true)
             .withRecordFilter(ltEq(doubleColumn("double_col"), 5d))
             .build();
         final Table table = PARQUET_READER.read(options);
@@ -76,7 +74,6 @@ class TestRowFiltering {
     void testStringFilter() {
         final TablesawParquetReadOptions options =
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-            .withConvertInt96ToTimestamp(true)
             .withRecordFilter(gt(binaryColumn("date_string_col"), Binary.fromString("02/01/09")))
             .build();
         final Table table = PARQUET_READER.read(options);
@@ -89,7 +86,6 @@ class TestRowFiltering {
             .toEpochSecond(ZoneOffset.UTC) * 1000; // MILLIS
         final TablesawParquetReadOptions options =
             TablesawParquetReadOptions.builder(PANDAS_PYARROW)
-            .withConvertInt96ToTimestamp(true)
             .withRecordFilter(gt(longColumn("datetime"), dateTimeLongValue))
             .build();
         final Table table = PARQUET_READER.read(options);
@@ -100,7 +96,6 @@ class TestRowFiltering {
     void testCombinedFilter() {
         final TablesawParquetReadOptions options =
             TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN)
-            .withConvertInt96ToTimestamp(true)
             .withRecordFilter(and(
                 gt(binaryColumn("date_string_col"), Binary.fromString("02/01/09")),
                 eq(booleanColumn("bool_col"), Boolean.TRUE)))
