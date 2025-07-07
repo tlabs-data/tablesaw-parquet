@@ -249,9 +249,11 @@ Other compression codecs *might* work when reading parquet files depending on yo
 
 #### Predicate pushdown
 
-Predicate pushdown is not supported when reading parquet files.
+Predicate pushdown when reading parquet files is supported since `v0.13.0`. It uses the [parquet-java FilterApi](https://javadoc.io/static/org.apache.parquet/parquet-column/1.15.2/org/apache/parquet/filter2/predicate/FilterApi.html).
 
-Parquet files written with tablesaw-parquet contain the statistics needed for predicate pushdown when reading files with other parquet readers.
+Filtering on boolean and numbers is straightforward. Filtering on strings requires to use `binaryColumn` and provide the `String` as a `Binary` (e.g. `Binary.fromString("myString")`). Filtering on date and time columns requires knowledge of the encoding (internal type and precision). Examples can be found in the [tests](https://github.com/tlabs-data/tablesaw-parquet/blob/master/src/test/java/net/tlabs/tablesaw/parquet/TestRowFiltering.java).
+
+Parquet files written with tablesaw-parquet contain the statistics needed for predicate pushdown when reading the files with other parquet readers.
 
 #### Encryption
 

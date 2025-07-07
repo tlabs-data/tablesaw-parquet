@@ -215,7 +215,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
         
         private void addRepeatedValue(final String value) {
-            proxy.addRepeatedString(col, value);
+            proxy.appendRepeatedString(col, value);
         }
 
         @Override
@@ -527,4 +527,13 @@ public class TablesawRecordConverter extends GroupConverter {
     public Row getCurrentRow() {
         return proxy.getCurrentRow();
     }
+
+    public void skipCurrentRecord() {
+        proxy.skipCurrentRow();
+    }
+    
+    public Table getTable() {
+        return proxy.getTable();
+    }
+
 }

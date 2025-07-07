@@ -34,8 +34,8 @@ import java.util.Set;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.hadoop.fs.Path;
-import org.apache.parquet.crypto.FileDecryptionProperties;
 import org.apache.parquet.hadoop.ParquetReader;
+import org.apache.parquet.hadoop.ParquetReader.Builder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     @Override
     public Table read(final TablesawParquetReadOptions options) {
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-        try (final ParquetReader<Row> reader = makeReader(options.getInputURI(), readSupport, options.getFileDecryptionProperties())) {
+        try (final ParquetReader<Row> reader = makeReader(options.getInputURI(), readSupport, options)) {
             return readInternal(reader, readSupport, options.getSanitizedinputPath());
         } catch (IOException e) {
             throw new RuntimeIOException(e);
@@ -77,9 +77,10 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     }
     
     private static Table readFromStream(final InputStream inStream) {
-        final TablesawReadSupport readSupport = new TablesawReadSupport(TablesawParquetReadOptions.builderForStream().build());
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builderForStream().build();
+        final TablesawReadSupport readSupport = new TablesawReadSupport(options);
         try {
-            return readInternal(makeReaderFromStream(inStream, readSupport, null), readSupport, "stream");
+            return readInternal(makeReaderFromStream(inStream, readSupport, options), readSupport, "stream");
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
@@ -98,7 +99,7 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     }
     
     private static ParquetReader<Row> makeReader(final URI uri, final TablesawReadSupport readSupport,
-            final FileDecryptionProperties fileDecryptionProperties) throws IOException {
+            final TablesawParquetReadOptions options) throws IOException {
         final String scheme = uri.getScheme();
         if(scheme != null) {
             switch(scheme) {
@@ -107,22 +108,26 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
                 case "ftp":    // fall through
                 case "ftps":   // fall through
                     try(final InputStream inStream = uri.toURL().openStream()) {
-                        return makeReaderFromStream(inStream, readSupport, fileDecryptionProperties);
+                        return makeReaderFromStream(inStream, readSupport, options);
                     }
                 default:
                     // fall through
             }
         }
-        return ParquetReader.builder(readSupport, new Path(uri)).withDecryption(fileDecryptionProperties).build();
+        final Builder<Row> parquetReader = ParquetReader.builder(readSupport, new Path(uri))
+            .withDecryption(options.getFileDecryptionProperties())
+            .withFilter(options.getRecordFilter());
+        
+        return parquetReader.build();
     }
 
     private static ParquetReader<Row> makeReaderFromStream(final InputStream inStream, final TablesawReadSupport readSupport,
-            final FileDecryptionProperties fileDecryptionProperties) throws IOException {
+            final TablesawParquetReadOptions options) throws IOException {
         final File tmpFile = createSecureTempFile("tablesaw-parquet", "parquet");
         tmpFile.deleteOnExit();
         try(final FileOutputStream outStream = new FileOutputStream(tmpFile)) {
             IOUtils.copyLarge(inStream, outStream);
-            return ParquetReader.builder(readSupport, new Path(tmpFile.toURI())).withDecryption(fileDecryptionProperties).build();
+            return makeReader(tmpFile.toURI(), readSupport, options);
         }
     }
     

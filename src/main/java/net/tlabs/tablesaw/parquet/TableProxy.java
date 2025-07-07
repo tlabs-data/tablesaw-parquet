@@ -63,6 +63,7 @@ final class TableProxy {
 
     private Row currentRow = null;
     private int currentRownum;
+    private boolean rowSkipped = false;
 
     TableProxy(final Table table) {
         super();
@@ -116,36 +117,60 @@ final class TableProxy {
     }
 
     void appendInstant(final int colIndex, final Instant value) {
-        instantColumns[colIndex].append(value);
+        if(rowSkipped) {
+            instantColumns[colIndex].set(currentRownum, value);            
+        } else {
+            instantColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendDateTime(final int colIndex, final LocalDateTime value) {
-        dateTimeColumns[colIndex].append(value);
+        if(rowSkipped) {
+            dateTimeColumns[colIndex].set(currentRownum, value);            
+        } else {
+            dateTimeColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendFloat(final int colIndex, final float value) {
-        floatColumns[colIndex].append(value);
+        if(rowSkipped) {
+            floatColumns[colIndex].set(currentRownum, value);            
+        } else {
+            floatColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendDouble(final int colIndex, final double value) {
-        doubleColumns[colIndex].append(value);
+        if(rowSkipped) {
+            doubleColumns[colIndex].set(currentRownum, value);            
+        } else {
+            doubleColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendTime(final int colIndex, final LocalTime value) {
-        timeColumns[colIndex].append(value);
+        if(rowSkipped) {
+            timeColumns[colIndex].set(currentRownum, value);            
+        } else {
+            timeColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendString(final int colIndex, final String value) {
-        stringColumns[colIndex].append(value);
+        if(rowSkipped) {
+            stringColumns[colIndex].set(currentRownum, value);            
+        } else {
+            stringColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
-    void addRepeatedString(final int colIndex, final String value) {
+    void appendRepeatedString(final int colIndex, final String value) {
         if(rowColumnsSet[colIndex]) {
             final String initialContent = getString(colIndex, currentRownum);
             stringColumns[colIndex].set(currentRownum, "[" + initialContent.substring(1, initialContent.length() - 1) + ", " + value + "]");
@@ -155,27 +180,47 @@ final class TableProxy {
     }
 
     void appendBoolean(final int colIndex, final boolean value) {
-        booleanColumns[colIndex].append(value);
+        if(rowSkipped) {
+            booleanColumns[colIndex].set(currentRownum, value);            
+        } else {
+            booleanColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendShort(final int colIndex, final short value) {
-        shortColumns[colIndex].append(value);
+        if(rowSkipped) {
+            shortColumns[colIndex].set(currentRownum, value);            
+        } else {
+            shortColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendInt(final int colIndex, final int value) {
-        intColumns[colIndex].append(value);
+        if(rowSkipped) {
+            intColumns[colIndex].set(currentRownum, value);            
+        } else {
+            intColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendLong(final int colIndex, final long value) {
-        longColumns[colIndex].append(value);
+        if(rowSkipped) {
+            longColumns[colIndex].set(currentRownum, value);            
+        } else {
+            longColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
     void appendDate(final int colIndex, final LocalDate value) {
-        dateColumns[colIndex].append(value);
+        if(rowSkipped) {
+            dateColumns[colIndex].set(currentRownum, value);            
+        } else {
+            dateColumns[colIndex].append(value);
+        }
         rowColumnsSet[colIndex] = true;
     }
 
@@ -186,11 +231,16 @@ final class TableProxy {
     void endRow() {
         for (int i = 0; i < rowColumnsSet.length; i++) {
             if (!rowColumnsSet[i]) {
-                table.column(i).appendMissing();
+                if(rowSkipped) {
+                    table.column(i).setMissing(currentRownum); 
+                } else {
+                    table.column(i).appendMissing();
+                }
             } else {
                 rowColumnsSet[i] = false;
             }
         }
+        rowSkipped = false;
     }
 
     Row getCurrentRow() {
@@ -202,11 +252,12 @@ final class TableProxy {
         return currentRow;
     }
 
-    boolean getBoolean(final int colIndex, final int rowIndex) {
+    // Needs to be Boolean as null is returned for missing value
+    Boolean getBoolean(final int colIndex, final int rowIndex) {
         return booleanColumns[colIndex].get(rowIndex);
     }
 
-    int getShort(final int colIndex, final int rowIndex) {
+    short getShort(final int colIndex, final int rowIndex) {
         return shortColumns[colIndex].getShort(rowIndex);
     }
 
@@ -248,5 +299,15 @@ final class TableProxy {
 
     Column<?> column(final int colIndex) {
         return table.column(colIndex);
+    }
+
+    void skipCurrentRow() {
+        rowSkipped = true;
+        currentRownum--;
+    }
+    
+    Table getTable() {
+        if(rowSkipped) return table.dropRows(currentRownum + 1);
+        return table;
     }
 }
