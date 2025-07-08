@@ -50,7 +50,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <tablesaw.version>0.44.1</tablesaw.version>
+    <tablesaw.version>0.44.4</tablesaw.version>
     <parquet.version>1.15.2</parquet.version>
     <hadoop.version>3.4.1</hadoop.version>
     <slf4j.version>2.0.17</slf4j.version>
