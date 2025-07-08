@@ -10,9 +10,11 @@ Efforts to avoid depending on hadoop libraries can be followed on this [open iss
 
 ## Exclude transitive dependencies from hadoop libraries
 
-The hadoop libraries come with many transitive dependencies. If needed, some of them can probably be safely excluded from your project. See [issue #69](https://github.com/tlabs-data/tablesaw-parquet/issues/69) for a discussion on the topic.
+The hadoop libraries come with many transitive dependencies. Since `v0.13.0` those listed below are excluded from `tablesaw-parquet`.
 
-The following exclusions were successfully tested with `v0.10.0`:
+For previous versions, you will need to exclude them on your side as shown below:
+
+The following transitive dependencies exclusions were successfully tested with all versions since `v0.10.0`:
 
 ```xml
     <dependency>
