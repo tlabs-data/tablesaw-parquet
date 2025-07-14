@@ -174,7 +174,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 |----------------------|----------------------|-------|
 | STRING  | StringColumn |  |
 | ENUM | StringColumn |  |
-| UUID | StringColumn | *Not formatted as a UUID.*  __Not tested__  |
+| UUID | StringColumn | Lowercase hexadecimal values in the 8-4-4-4-12 format (since v0.14) |
 | Signed Integers | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | Unsigned Integers  | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | DECIMAL | DoubleColumn |  |
@@ -188,7 +188,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 
 Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a StringColumn. The same *withManageGroupsAs* option is used to change this behavior.
 
-Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, UUID, JSON, BSON).
+Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, JSON, BSON).
 
 Keep in mind that all tablesaw columns storing time (TimeColumn, DateTimeColumn and InstantColumn) use MILLIS precision, if read from a parquet file with better time precision (MICROS or NANOS) the values will be truncated (in the current tablesaw implementation).
 
