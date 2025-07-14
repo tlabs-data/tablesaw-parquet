@@ -36,6 +36,8 @@ import java.time.temporal.ChronoUnit;
 import java.time.temporal.JulianFields;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.io.api.Binary;
@@ -51,6 +53,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.LogicalTypeAnnotationVisi
 import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.UUIDLogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type.Repetition;
@@ -67,6 +70,8 @@ public class TablesawRecordConverter extends GroupConverter {
     private static final String BINARY_INSTANT_LENGTH_MESSAGE = "Must be 12 bytes";
     private static final int BINARY_INTERVAL_LENGTH_VALUE = 12;
     private static final String BINARY_INTERVAL_LENGTH_MESSAGE = "Must be 12 bytes";
+    private static final int BINARY_UUID_LENGTH_VALUE = 16;
+    private static final String BINARY_UUID_LENGTH_MESSAGE = "Must be 16 bytes";
 
     private final class DateTimePrimitiveConverter extends PrimitiveConverter {
         private final int colIndex;
@@ -468,6 +473,19 @@ public class TablesawRecordConverter extends GroupConverter {
                         proxy.appendString(colIndex,
                             Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
                                 + Duration.ofMillis(buf.getInt()).toString().substring(1));
+                    }
+                });
+            }
+            @Override
+            public Optional<Converter> visit(UUIDLogicalTypeAnnotation uuidLogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    @Override
+                    public void addBinary(final Binary value) {
+                        Preconditions.checkArgument(value.length() == BINARY_UUID_LENGTH_VALUE,
+                            BINARY_UUID_LENGTH_MESSAGE);
+                        final ByteBuffer buf = value.toByteBuffer();
+                        buf.order(ByteOrder.BIG_ENDIAN);
+                        proxy.appendString(colIndex, new UUID(buf.getLong(), buf.getLong()).toString());
                     }
                 });
             }

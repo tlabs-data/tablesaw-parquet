@@ -53,6 +53,7 @@ class TestParquetReader {
     private static final String APACHE_FIXED_LENGTH_DECIMAL_LEGACY = "fixed_length_decimal_legacy.parquet";
     private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
     private static final String APACHE_NULLS_SNAPPY = "nulls.snappy.parquet";
+    private static final String GUID_PARQUET = "target/test-classes/guid.parquet";
 
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
@@ -348,5 +349,12 @@ class TestParquetReader {
         final Table table = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_NULLS_SNAPPY).withManageGroupAs(ManageGroupsAs.SKIP).build());
         validateTable(table, 0, 0, APACHE_NULLS_SNAPPY);
+    }
+    
+    @Test
+    void testUUIDColumn() {
+        final Table table = PARQUET_READER.read(TablesawParquetReadOptions.builder(GUID_PARQUET).build());
+        assertEquals(ColumnType.STRING, table.column(1).type(), "UUID not encoded as string");
+        assertEquals("d730d4db-da39-a943-a674-074f2ce33211", table.column(1).getString(0), "Error decoding UUID");
     }
 }
