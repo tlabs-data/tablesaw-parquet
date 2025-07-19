@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import org.apache.parquet.crypto.ColumnEncryptionProperties;
 import org.apache.parquet.crypto.FileEncryptionProperties;
 import org.apache.parquet.crypto.ParquetCipher;
+import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
 
 import tech.tablesaw.io.WriteOptions;
@@ -49,6 +50,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     private final boolean overwrite;
     private final boolean writeChecksum;
     private final FileEncryptionProperties fileEncryptionProperties;
+    private final long rowGroupSize;
 
     public static Builder builder(final File file) {
         return new Builder(file.getAbsolutePath());
@@ -65,6 +67,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         this.overwrite = builder.overwrite;
         this.writeChecksum = builder.writeChecksum;
         this.fileEncryptionProperties = builder.getEncryptionProperties();
+        this.rowGroupSize = builder.rowGroupSize;
     }
 
     public String getOutputFile() {
@@ -87,6 +90,10 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         return fileEncryptionProperties;
     }
 
+    public long getRowGroupSize() {
+        return rowGroupSize;
+    }
+
     public static class Builder extends WriteOptions.Builder {
 
         private final String outputFile;
@@ -102,6 +109,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         private boolean encryptedFooter = true;
         private byte[] footerKeyMetadata;
         private Map<String, byte[]> columnMetadataMap;
+        private long rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
 
         public Builder(final String outputFile) {
             super((Writer) null);
@@ -290,6 +298,17 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         }
 
         /**
+         * Set the Parquet format row group size used by the constructed writer.
+         *
+         * @param rowGroupSize a long size in bytes
+         * @return this builder for method chaining.
+         */
+        public Builder withRowGroupSize(final long rowGroupSize) {
+          this.rowGroupSize = rowGroupSize;
+          return this;
+        }
+
+        /**
          * Build the {@link net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions}
          * @return the options
          */
@@ -298,4 +317,5 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         }
 
     }
+
 }

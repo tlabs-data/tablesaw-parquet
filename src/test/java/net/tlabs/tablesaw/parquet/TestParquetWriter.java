@@ -599,4 +599,15 @@ class TestParquetWriter {
             .build();
         assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
     }
+
+    @Test
+    void testRowGroupSizeOption() {
+        final Table orig = Table.create(BooleanColumn.create("boolean", true, false));
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withRowGroupSize(2l * 1024 * 1024).build();
+        assertEquals(2l * 1024 * 1024, options.getRowGroupSize());
+        PARQUET_WRITER.write(orig, options);
+        final File checksumFile = new File(OUTPUT_FILE);
+        assertTrue(checksumFile.exists(), "Error writing smaller group size");
+    }
 }
