@@ -65,6 +65,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
                 .withWriteMode(options.isOverwrite() ? Mode.OVERWRITE : Mode.CREATE)
                 .withValidation(false)
                 .withEncryption(options.getFileEncryptionProperties())
+                .withRowGroupSize(options.getRowGroupSize())
                 .build()) {
             final long start = System.currentTimeMillis();
             for(final Row row : table) {
