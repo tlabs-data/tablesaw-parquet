@@ -109,7 +109,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         private boolean encryptedFooter = true;
         private byte[] footerKeyMetadata;
         private Map<String, byte[]> columnMetadataMap;
-        public long rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
+        private long rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
 
         public Builder(final String outputFile) {
             super((Writer) null);
