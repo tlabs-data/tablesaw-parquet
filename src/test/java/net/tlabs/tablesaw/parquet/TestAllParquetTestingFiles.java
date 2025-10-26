@@ -69,12 +69,15 @@ class TestAllParquetTestingFiles {
         if (!filename.endsWith(".parquet")) return false;
         // brotli not supported
         if(filename.contains("brotli")) return false;
-        // lz4 issue
+        // identified as LZ4 instead of LZ4_RAW
+        // see https://github.com/apache/parquet-testing/pull/14
         if(filename.equals("non_hadoop_lz4_compressed.parquet")) return false;
         // parquet-java reader fails on these ones
+        // see https://github.com/apache/parquet-java/issues/3336
         if(filename.equals("nation.dict-malformed.parquet")) return false;
         if(filename.equals("fixed_length_byte_array.parquet")) return false;
         // null logicalType
+        // see https://github.com/apache/parquet-java/issues/2709
         if(filename.equals("unknown-logical-type.parquet")) return false;
         return true;
     }

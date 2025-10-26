@@ -79,8 +79,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     private static Table readFromStream(final InputStream inStream) {
         final TablesawParquetReadOptions options = TablesawParquetReadOptions.builderForStream().build();
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-        try {
-            return readInternal(makeReaderFromStream(inStream, readSupport, options), readSupport, "stream");
+        try (final ParquetReader<Row> reader = makeReaderFromStream(inStream, readSupport, options)){
+            return readInternal(reader, readSupport, "stream");
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
