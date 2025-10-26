@@ -90,13 +90,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
             final String displayName) throws IOException {
         final long start = System.currentTimeMillis();
         int i = 0;
-        try {
-            while (reader.read() != null) {
-                i++;
-            }
-        } catch(Exception e) {
-            LOG.error("Error reading row {}: {} - {}", i, e.getClass().getSimpleName(), e.getMessage());
-            throw e;
+        while (reader.read() != null) {
+            i++;
         }
         final long end = System.currentTimeMillis();
         LOG.debug("Finished reading {} rows from {} in {} ms", i, displayName, (end - start));
