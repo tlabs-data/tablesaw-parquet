@@ -79,8 +79,8 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
     private static Table readFromStream(final InputStream inStream) {
         final TablesawParquetReadOptions options = TablesawParquetReadOptions.builderForStream().build();
         final TablesawReadSupport readSupport = new TablesawReadSupport(options);
-        try {
-            return readInternal(makeReaderFromStream(inStream, readSupport, options), readSupport, "stream");
+        try (final ParquetReader<Row> reader = makeReaderFromStream(inStream, readSupport, options)){
+            return readInternal(reader, readSupport, "stream");
         } catch (IOException e) {
             throw new RuntimeIOException(e);
         }
@@ -90,8 +90,13 @@ public class TablesawParquetReader implements DataReader<TablesawParquetReadOpti
             final String displayName) throws IOException {
         final long start = System.currentTimeMillis();
         int i = 0;
-        while (reader.read() != null) {
-            i++;
+        try {
+            while (reader.read() != null) {
+                i++;
+            }
+        } catch(Exception e) {
+            LOG.error("Error reading row {}: {} - {}", i, e.getClass().getSimpleName(), e.getMessage());
+            throw e;
         }
         final long end = System.currentTimeMillis();
         LOG.debug("Finished reading {} rows from {} in {} ms", i, displayName, (end - start));
