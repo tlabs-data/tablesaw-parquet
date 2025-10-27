@@ -85,7 +85,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
         manageGroupsAs = builder.manageGroupsAs;
         columns = Collections.unmodifiableList(Arrays.asList(builder.columns));
         final int nbCols = columns.size();
-        columnIndex = new Object2IntOpenHashMap<String>(nbCols);
+        columnIndex = new Object2IntOpenHashMap<>(nbCols);
         for(int i = nbCols; --i >= 0; ) {
             columnIndex.put(columns.get(i), i);
         }
