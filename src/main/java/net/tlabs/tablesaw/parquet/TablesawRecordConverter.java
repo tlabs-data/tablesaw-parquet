@@ -48,6 +48,8 @@ import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.GeographyLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.GeometryLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.LogicalTypeAnnotationVisitor;
 import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
@@ -59,6 +61,10 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type.Repetition;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.tools.read.SimpleRecordConverter;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKBReader;
+
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
@@ -269,6 +275,29 @@ public class TablesawRecordConverter extends GroupConverter {
         }
     }
 
+    private final class GeospatialPrimitiveConverter extends PrimitiveConverter {
+        private static final String BINARY_INVALID = "<INVALID>";
+        private final int colIndex;
+        private final WKBReader reader = new WKBReader();
+
+        private GeospatialPrimitiveConverter(final int colIndex) {
+            this.colIndex = colIndex;
+        }
+
+        @Override
+        public void addBinary(Binary value) {
+            String valueStr = BINARY_INVALID;
+            try {
+                final Geometry geometry = reader.read(value.getBytesUnsafe());
+                valueStr = geometry.toText();
+              } catch (ParseException e) {
+                  // uses invalid string
+              }
+            proxy.appendString(colIndex, valueStr);
+        }
+    }
+
+    
     private static final long SECOND_TO_MILLIS = 1_000L;
 
     private static final long SECOND_TO_MICROS = 1_000_000L;
@@ -476,6 +505,7 @@ public class TablesawRecordConverter extends GroupConverter {
                     }
                 });
             }
+            
             @Override
             public Optional<Converter> visit(UUIDLogicalTypeAnnotation uuidLogicalType) {
                 return Optional.of(new PrimitiveConverter() {
@@ -489,6 +519,16 @@ public class TablesawRecordConverter extends GroupConverter {
                     }
                 });
             }
+
+            @Override
+            public Optional<Converter> visit(GeometryLogicalTypeAnnotation geometryLogicalType) {
+                return Optional.of(new GeospatialPrimitiveConverter(colIndex));
+            }
+            
+            @Override
+            public Optional<Converter> visit(GeographyLogicalTypeAnnotation geographyLogicalType) {
+                return Optional.of(new GeospatialPrimitiveConverter(colIndex));
+            }           
         });
     }
 

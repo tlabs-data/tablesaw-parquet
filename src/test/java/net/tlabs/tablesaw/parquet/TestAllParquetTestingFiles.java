@@ -20,6 +20,7 @@ package net.tlabs.tablesaw.parquet;
  * #L%
  */
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.File;
@@ -35,6 +36,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.Builder;
+import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
 
 class TestAllParquetTestingFiles {
@@ -131,4 +133,29 @@ class TestAllParquetTestingFiles {
         final Table table = new TablesawParquetReader().read(optionBuilder.build());
         assertNotNull(table);
     }
+    
+    private static Stream<Arguments> listGeospatialFile() throws IOException {
+        return Files.list(Paths.get(PARQUET_TESTING_FOLDER + "geospatial/"))
+            .map(Path::toFile)
+            .filter(TestAllParquetTestingFiles::filterGeospatialdParquet)
+            .map(Arguments::of);
+    }
+
+    private static boolean filterGeospatialdParquet(final File file) {
+        if (!file.isFile()) return false;
+        final String filename = file.getName();
+        // keep only parquet files
+        if (!filename.endsWith(".parquet")) return false;
+        return true;
+    }
+
+    @ParameterizedTest
+    @MethodSource("listGeospatialFile")
+    void testGeospatialFiles(final File parquetFile) {
+        final Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(parquetFile).build());
+        assertNotNull(table);
+        final int columnCount = table.columnCount();
+        assertEquals(ColumnType.STRING, table.column(columnCount - 1).type());
+    }
+    
 }

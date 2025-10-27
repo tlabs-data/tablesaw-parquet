@@ -36,6 +36,8 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.BsonLogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.GeographyLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.GeometryLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.JsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.LogicalTypeAnnotationVisitor;
@@ -243,6 +245,16 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             @Override
             public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
                 return Optional.of(DoubleColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(GeometryLogicalTypeAnnotation geometryLogicalType) {
+                return Optional.of(StringColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(GeographyLogicalTypeAnnotation geographyLogicalType) {
+                return Optional.of(StringColumn.create(fieldName));
             }
         });
     }
