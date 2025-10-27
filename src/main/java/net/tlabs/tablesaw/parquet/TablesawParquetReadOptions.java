@@ -46,6 +46,8 @@ import org.apache.parquet.hadoop.metadata.ColumnPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.io.ReadOptions;
 
@@ -71,6 +73,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
     private final boolean floatColumnTypeUsed;
     private final ManageGroupsAs manageGroupsAs;
     private final List<String> columns;
+    private final Object2IntMap<String> columnIndex;
     private final URI inputURI;
     private final FileDecryptionProperties fileDecryptionProperties;
     private final Filter recordFilter;
@@ -81,6 +84,11 @@ public class TablesawParquetReadOptions extends ReadOptions {
         unnanotatedBinaryAs = builder.unnanotatedBinaryAs;
         manageGroupsAs = builder.manageGroupsAs;
         columns = Collections.unmodifiableList(Arrays.asList(builder.columns));
+        final int nbCols = columns.size();
+        columnIndex = new Object2IntOpenHashMap<>(nbCols);
+        for(int i = nbCols; --i >= 0; ) {
+            columnIndex.put(columns.get(i), i);
+        }
         inputURI = builder.inputURI;
         shortColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.SHORT);
         floatColumnTypeUsed = this.columnTypesToDetect.contains(ColumnType.FLOAT);
@@ -124,7 +132,16 @@ public class TablesawParquetReadOptions extends ReadOptions {
      */
     public boolean hasColumn(final String columnName) {
         if(columns.isEmpty()) return true;
-        return columns.contains(columnName);
+        return columnIndex.containsKey(columnName);
+    }
+    
+    /**
+     * Returns the index of the given column name or -1 if not in the column list
+     * @param columnName the column name to get the index for
+     * @return the column index or -1 if not in the list
+     */
+    public int indexOfColumn(final String columnName) {
+        return columnIndex.getOrDefault(columnName, -1);
     }
 
     public URI getInputURI() {

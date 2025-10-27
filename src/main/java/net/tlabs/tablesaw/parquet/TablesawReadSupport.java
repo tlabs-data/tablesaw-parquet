@@ -86,8 +86,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             // because full mapping by idx is done on the filtered fields only
             // sort is stable for an empty column list
             .boxed()
-            .sorted(Comparator.comparingInt(i -> options.getColumns()
-                .indexOf(initialFields.get(i).getName())))
+            .sorted(Comparator.comparingInt(i -> options.indexOfColumn(initialFields.get(i).getName())))
             .collect(Collectors.toList());
         // mapping by idx uses filtered column index
         final List<Integer> projectedFieldsIndices = IntStream.range(0, filteredFieldsIndices.size())
