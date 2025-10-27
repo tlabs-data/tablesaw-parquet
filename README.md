@@ -184,8 +184,8 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
 | JSON | StringColumn |  __Not tested__  |
 | BSON |  __Not read__  |  __Not tested__  |
-| GEOMETRY |  StringColumn  |  Well-known text (WKT) representation of the geometry  |
-| GEOGRAPHY |  StringColumn  |  Well-known text (WKT) representation of the geography  |
+| GEOMETRY |  StringColumn  |  Well-known text (WKT) representation of the geometry (since v0.15)  |
+| GEOGRAPHY |  StringColumn  |  Well-known text (WKT) representation of the geography (since v0.15)  |
 | Nested Types | StringColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
 
 Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a StringColumn. The same *withManageGroupsAs* option is used to change this behavior.
