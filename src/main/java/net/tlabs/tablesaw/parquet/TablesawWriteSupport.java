@@ -20,9 +20,13 @@ package net.tlabs.tablesaw.parquet;
  * #L%
  */
 
+import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.UUID;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.api.Binary;
@@ -91,6 +95,19 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
                 recordConsumer.addBinary(Binary.fromString(tableProxy.getString(colIndex, rowNumber)));
             }
         },
+        UUID(ColumnType.STRING) {
+            private final ByteBuffer buffer = ByteBuffer.allocateDirect(16);
+            @Override
+            void recordValue(RecordConsumer recordConsumer, TableProxy tableProxy, int colIndex, int rowNumber) {
+                final UUID uuid = java.util.UUID.fromString(tableProxy.getString(colIndex, rowNumber));
+                buffer
+                    .clear()
+                    .putLong(uuid.getMostSignificantBits())
+                    .putLong(uuid.getLeastSignificantBits())
+                    .rewind();
+                recordConsumer.addBinary(Binary.fromReusedByteBuffer(buffer));
+            }
+        },
         LOCAL_DATE(ColumnType.LOCAL_DATE) {
             @Override
             void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
@@ -128,6 +145,13 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         
         abstract void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                 final int colIndex, final int rowNumber);
+
+        void validate(final ColumnType type) {
+            if(!this.columnType.equals(type)) {
+                throw new IllegalArgumentException(this.name() + " recorder needs a " 
+                        + columnType.name() + " column, not a " + type.name() + " column");
+            }
+        }
         
     }
     
@@ -135,11 +159,14 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     private static final Map<ColumnType, PrimitiveTypeName> PRIMITIVE_MAPPING;
     private static final Map<ColumnType, LogicalTypeAnnotation> ANNOTATION_MAPPING;
     private static final Map<ColumnType, FieldRecorder> RECORDER_MAPPING;
+    private static final Map<LogicalTypeAnnotation, FieldRecorder> LOGICALTYPE_RECORDER_MAPPING;
+    private static final Map<LogicalTypeAnnotation, PrimitiveTypeName> LOGICALTYPE_MAPPING;
     private final TableProxy proxy;
     private final MessageType schema;
     private final int nbfields;
     private RecordConsumer recordConsumer;
-    private FieldRecorder[] fieldRecorders;
+    private final FieldRecorder[] fieldRecorders;
+    private final Map<String, LogicalTypeAnnotation> typeMap;
 
     static {
         PRIMITIVE_MAPPING = new HashMap<>();
@@ -173,41 +200,56 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         RECORDER_MAPPING.put(ColumnType.LOCAL_DATE_TIME, FieldRecorder.LOCAL_DATE_TIME);
         RECORDER_MAPPING.put(ColumnType.INSTANT, FieldRecorder.INSTANT);
         RECORDER_MAPPING.put(ColumnType.STRING, FieldRecorder.STRING);
+        LOGICALTYPE_MAPPING = new HashMap<>();
+        LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.uuidType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
+        LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
+        LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
     }
 
     public TablesawWriteSupport(final Table table) {
+        this(table, Collections.emptyMap());
+    }
+
+    public TablesawWriteSupport(final Table table, final Map<String, LogicalTypeAnnotation> typeMap) {
         super();
         this.proxy = new TableProxy(table);
+        this.typeMap = typeMap;
         this.schema = internalCreateSchema(table);
         this.nbfields = schema.getFieldCount();
         this.fieldRecorders = internalCreateRecorders(table);
     }
 
-    private static FieldRecorder[] internalCreateRecorders(final Table table) {
+    private MessageType internalCreateSchema(final Table table) {
+        final String tableName = table.name();
+        return new MessageType(tableName == null ? "message" : tableName,
+            table.columns().stream()
+            .map(this::createType)
+            .collect(Collectors.toList()));
+    }
+
+    private Type createType(final Column<?> column) {
+        final ColumnType type = column.type();
+        final String name = column.name();
+        return Types
+            .optional(LOGICALTYPE_MAPPING.getOrDefault(typeMap.getOrDefault(column.name(), null), PRIMITIVE_MAPPING.get(type)))
+            .as(typeMap.getOrDefault(name, ANNOTATION_MAPPING.get(type)))
+            .named(name);
+    }
+
+    private FieldRecorder[] internalCreateRecorders(final Table table) {
         return table.columns().stream()
-            .map(Column::type)
-            .map(RECORDER_MAPPING::get)
+            .map(this::createRecorder)
             .collect(Collectors.toList())
             .toArray(new FieldRecorder[0]);
     }
     
-    public static MessageType createSchema(final Table table) {
-        return internalCreateSchema(table);
+    private FieldRecorder createRecorder(final Column<?> column) {
+        final FieldRecorder recorder = LOGICALTYPE_RECORDER_MAPPING
+            .getOrDefault(typeMap.getOrDefault(column.name(), null), RECORDER_MAPPING.get(column.type()));
+        recorder.validate(column.type());
+        return recorder;
     }
-
-    private static MessageType internalCreateSchema(final Table table) {
-        final String tableName = table.name();
-        return new MessageType(tableName == null ? "message" : tableName,
-            table.columns().stream()
-            .map(TablesawWriteSupport::createType)
-            .collect(Collectors.toList()));
-    }
-
-    private static Type createType(final Column<?> column) {
-        final ColumnType type = column.type();
-        return Types.optional(PRIMITIVE_MAPPING.get(type)).as(ANNOTATION_MAPPING.get(type)).named(column.name());
-    }
-
+    
     @SuppressWarnings("deprecation")
     @Override
     public WriteContext init(final Configuration configuration) {
