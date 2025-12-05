@@ -21,6 +21,8 @@ package net.tlabs.tablesaw.parquet;
  */
 
 import java.io.IOException;
+import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -28,6 +30,7 @@ import org.apache.parquet.hadoop.ParquetFileWriter.Mode;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tech.tablesaw.api.Row;
@@ -66,6 +69,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
                 .withValidation(false)
                 .withEncryption(options.getFileEncryptionProperties())
                 .withRowGroupSize(options.getRowGroupSize())
+                .withLogicalTypes(options.getLogicalTypes())
                 .build()) {
             final long start = System.currentTimeMillis();
             for(final Row row : table) {
@@ -82,11 +86,17 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
     protected static class Builder extends ParquetWriter.Builder<Row, Builder> {
 
         private final Table table;
-
+        private Map<String, LogicalTypeAnnotation> logicalTypes;
+        
         @SuppressWarnings("deprecation")
         protected Builder(final Path path, final Table table) {
             super(path);
             this.table = table;
+        }
+
+        protected Builder withLogicalTypes(Map<String, LogicalTypeAnnotation> logicalTypes) {
+            this.logicalTypes = logicalTypes;
+            return self();
         }
 
         @Override
@@ -97,7 +107,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
         @SuppressWarnings("deprecation")
         @Override
         protected WriteSupport<Row> getWriteSupport(final Configuration conf) {
-            return new TablesawWriteSupport(this.table);
+            return new TablesawWriteSupport(this.table, this.logicalTypes);
         }
     }
 }

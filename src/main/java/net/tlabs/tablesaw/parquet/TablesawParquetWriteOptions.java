@@ -23,16 +23,18 @@ package net.tlabs.tablesaw.parquet;
 import java.io.File;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.parquet.crypto.ColumnEncryptionProperties;
 import org.apache.parquet.crypto.FileEncryptionProperties;
 import org.apache.parquet.crypto.ParquetCipher;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.ColumnPath;
-
+import org.apache.parquet.schema.LogicalTypeAnnotation;
 import tech.tablesaw.io.WriteOptions;
 
 /**
@@ -44,6 +46,20 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     public enum CompressionCodec {
         UNCOMPRESSED, SNAPPY, GZIP, ZSTD, LZ4
     }
+    
+    public enum LogicalType {
+        UUID(LogicalTypeAnnotation.uuidType());
+        
+        final LogicalTypeAnnotation logicalType;
+        
+        LogicalType(final LogicalTypeAnnotation logicalType) {
+            this.logicalType = logicalType;
+        }
+        
+        LogicalTypeAnnotation getLogicalTypeAnnotation() {
+            return this.logicalType;
+        }
+    }
 
     private final String outputFile;
     private final CompressionCodec compressionCodec;
@@ -51,6 +67,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     private final boolean writeChecksum;
     private final FileEncryptionProperties fileEncryptionProperties;
     private final long rowGroupSize;
+    private final Map<String, LogicalTypeAnnotation> logicalTypes;
 
     public static Builder builder(final File file) {
         return new Builder(file.getAbsolutePath());
@@ -68,6 +85,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         this.writeChecksum = builder.writeChecksum;
         this.fileEncryptionProperties = builder.getEncryptionProperties();
         this.rowGroupSize = builder.rowGroupSize;
+        this.logicalTypes = Collections.unmodifiableMap(builder.logicalTypes);
     }
 
     public String getOutputFile() {
@@ -94,6 +112,10 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         return rowGroupSize;
     }
 
+    public Map<String, LogicalTypeAnnotation> getLogicalTypes() {
+        return logicalTypes;
+    }
+
     public static class Builder extends WriteOptions.Builder {
 
         private final String outputFile;
@@ -110,6 +132,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         private byte[] footerKeyMetadata;
         private Map<String, byte[]> columnMetadataMap;
         private long rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
+        private Map<String, LogicalTypeAnnotation> logicalTypes = new HashMap<>();
 
         public Builder(final String outputFile) {
             super((Writer) null);
@@ -306,6 +329,20 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         public Builder withRowGroupSize(final long rowGroupSize) {
           this.rowGroupSize = rowGroupSize;
           return this;
+        }
+        
+        /**
+         * Set the logical type to use for some columns when writing parquet file.
+         * Intended to write parquet files using native type for columns liks UUID or geometry
+         * that are read as StringColumn in tablesaw.
+         * Accumulative method, can be called multiple times. Type accumulate in the internal map. 
+         * @param logicalTypes map of column names to {{@link #logicalTypes}
+         * @return this builder for method chaining.
+         */
+        public Builder withLogicalTypes(final Map<String, LogicalType> logicalTypes) {
+            this.logicalTypes.putAll(logicalTypes.entrySet().stream().collect(
+                Collectors.toMap(e -> e.getKey(), e -> e.getValue().getLogicalTypeAnnotation())));
+            return this;
         }
 
         /**

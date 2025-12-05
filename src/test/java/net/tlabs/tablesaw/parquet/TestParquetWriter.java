@@ -23,7 +23,9 @@ package net.tlabs.tablesaw.parquet;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -34,11 +36,19 @@ import java.util.List;
 import java.util.Map;
 
 import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.CompressionCodec;
+import net.tlabs.tablesaw.parquet.TablesawParquetWriteOptions.LogicalType;
 
 import org.apache.parquet.crypto.AADPrefixVerifier;
 import org.apache.parquet.crypto.ParquetCipher;
 import org.apache.parquet.crypto.ParquetCryptoRuntimeException;
+import org.apache.parquet.hadoop.ParquetFileReader;
+import org.apache.parquet.io.LocalInputFile;
 import org.apache.parquet.io.ParquetDecodingException;
+import org.apache.parquet.schema.LogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.UUIDLogicalTypeAnnotation;
+import org.apache.parquet.schema.PrimitiveType;
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
+import org.apache.parquet.schema.Type;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.BooleanColumn;
@@ -72,6 +82,7 @@ class TestParquetWriter {
     private static final File OUTPUT_FILE = new File(OUTPUT_FILE_NAME);
     private static final String CRC_FILE_NAME = "target/test/results/.out.parquet.crc";
     private static final File CRC_FILE = new File(CRC_FILE_NAME);
+    private static final String UUID_PARQUET = "target/test-classes/uuid.parquet";
 
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
@@ -619,4 +630,29 @@ class TestParquetWriter {
         final File checksumFile = new File(OUTPUT_FILE_NAME);
         assertTrue(checksumFile.exists(), "Error writing smaller group size");
     }
+    
+    @Test
+    void testUUIDLogicalType() throws IOException {
+        final UUIDLogicalTypeAnnotation uuidType = LogicalTypeAnnotation.uuidType();
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(UUID_PARQUET).build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("uuid_req1", LogicalType.UUID)).build();
+        assertEquals(Map.of("uuid_req1", uuidType), options.getLogicalTypes());
+        PARQUET_WRITER.write(orig, options);
+        ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
+        final Type type = reader.getFileMetaData().getSchema().getType("uuid_req1");
+        assertTrue(type.isPrimitive());
+        final PrimitiveType primitiveType = type.asPrimitiveType();
+        assertEquals(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, primitiveType.getPrimitiveTypeName());
+        final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
+        assertEquals(uuidType, logicalTypeAnnotation);
+    }
+
+    @Test
+    void testUUIDLogicalTypeWrongColumnType() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("bool_col", LogicalType.UUID)).build();
+        assertThrows(IllegalArgumentException.class, () -> PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, options));
+    }
+
 }
