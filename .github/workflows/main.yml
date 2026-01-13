@@ -42,7 +42,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Windows download
         if: runner.os == 'Windows'
-        uses: carlosperate/download-file-action@v2
+        uses: carlosperate/download-file-action@3ec6fcef61e19eaaa0236a95fbaf333f2baf341e
         with:
           file-url: 'https://github.com/cdarlint/winutils/raw/master/hadoop-3.2.2/bin/winutils.exe'
           location: '${{github.workspace}}/hadoop/bin'
