@@ -83,6 +83,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
 
         private final Table table;
 
+        @SuppressWarnings("deprecation")
         protected Builder(final Path path, final Table table) {
             super(path);
             this.table = table;
