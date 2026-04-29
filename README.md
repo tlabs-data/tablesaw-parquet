@@ -138,7 +138,7 @@ Table table = new TablesawParquetReader().read(new Source(INPUTSTREAM));
 
 The short answer is: **no, you don't need to install hadoop to use this library**.
 
-The slightly longer answer: we are using a parquet reader from [parquet-mr](https://github.com/apache/parquet-mr) that requires 
+The slightly longer answer: we are using a parquet reader from [parquet-java](https://github.com/apache/parquet-java) that requires 
 we provide a couple of additional hadoop Java libraries. See [hadoop dependency](docs/hadoop_dependency.md) for more details, if you want to exclude some hadoop transitive 
 dependencies, or if you are using this library on Windows.
 
