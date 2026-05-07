@@ -39,6 +39,7 @@ import org.apache.parquet.crypto.AADPrefixVerifier;
 import org.apache.parquet.crypto.ParquetCipher;
 import org.apache.parquet.crypto.ParquetCryptoRuntimeException;
 import org.apache.parquet.io.ParquetDecodingException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.BooleanColumn;
 import tech.tablesaw.api.ColumnType;
@@ -67,8 +68,10 @@ class TestParquetWriter {
     private static final String APACHE_FIXED_LENGTH_DECIMAL = "fixed_length_decimal.parquet";
     private static final String APACHE_BYTE_ARRAY_DECIMAL = "byte_array_decimal.parquet";
     private static final String APACHE_DATAPAGEV2 = "datapage_v2.snappy.parquet";
-    private static final String OUTPUT_FILE = "target/test/results/out.parquet";
-    private static final String OUTPUT_CRC_FILE = "target/test/results/.out.parquet.crc";
+    private static final String OUTPUT_FILE_NAME = "target/test/results/out.parquet";
+    private static final File OUTPUT_FILE = new File(OUTPUT_FILE_NAME);
+    private static final String CRC_FILE_NAME = "target/test/results/.out.parquet.crc";
+    private static final File CRC_FILE = new File(CRC_FILE_NAME);
 
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
@@ -123,11 +126,17 @@ class TestParquetWriter {
             }
         }
     }
+    
+    @AfterEach
+    void cleanup() {
+        OUTPUT_FILE.delete();
+        CRC_FILE.delete();
+    }
 
     @Test
     void testReadWriteAllTypeDict() {
-        PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_DICT_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
@@ -135,23 +144,23 @@ class TestParquetWriter {
     void testReadWriteAllTypeDictMinimized() {
         final Table orig = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_DICT).minimizeColumnSizes().build());
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
         final Table dest = PARQUET_READER
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).minimizeColumnSizes().build());
+            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).minimizeColumnSizes().build());
         assertTableEquals(orig, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testReadWriteAllTypeDictToFile() {
-        PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE)).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(ALL_TYPE_DICT_TABLE, TablesawParquetWriteOptions.builder(new File(OUTPUT_FILE_NAME)).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_DICT_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testReadWriteAllTypePlain() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_PLAIN + " reloaded");
     }
 
@@ -159,8 +168,8 @@ class TestParquetWriter {
     void testReadWriteAllTypeSnappy() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_SNAPPY).build());
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(orig, dest, APACHE_ALL_TYPES_SNAPPY + " reloaded");
     }
 
@@ -168,8 +177,8 @@ class TestParquetWriter {
     void testInt96AsTimestamp() {
         final Table orig = PARQUET_READER.read(TablesawParquetReadOptions
             .builder(PARQUET_TESTING_FOLDER + APACHE_ALL_TYPES_PLAIN).withConvertInt96ToTimestamp(true).build());
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(orig, dest, APACHE_ALL_TYPES_PLAIN + " with Int96 as Timestamp reloaded");
     }
 
@@ -177,8 +186,8 @@ class TestParquetWriter {
     void testFixedLengthDecimal() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL).build());
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(orig, dest, APACHE_FIXED_LENGTH_DECIMAL + " reloaded");
     }
 
@@ -186,8 +195,8 @@ class TestParquetWriter {
     void testBinaryDecimal() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL).build());
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(orig, dest, APACHE_BYTE_ARRAY_DECIMAL + " reloaded");
     }
 
@@ -195,16 +204,16 @@ class TestParquetWriter {
     void testDatapageV2() {
         final Table orig = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_DATAPAGEV2).build());
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(orig, dest, APACHE_DATAPAGEV2 + " reloaded");
     }
 
     @Test
     void testOverwriteOption() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
         final TablesawParquetWriteOptions options = TablesawParquetWriteOptions
-            .builder(OUTPUT_FILE)
+            .builder(OUTPUT_FILE_NAME)
             .withOverwrite(false).build();
         assertThrows(RuntimeIOException.class, () -> PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, options));
     }
@@ -212,40 +221,40 @@ class TestParquetWriter {
     @Test
     void testGZIPCompressor() {
         PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.GZIP).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).withCompressionCode(CompressionCodec.GZIP).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_PLAIN + " gzip reloaded");
     }
 
     @Test
     void testPLAINCompressor() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withCompressionCode(CompressionCodec.UNCOMPRESSED).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_PLAIN + " plain reloaded");
     }
 
     @Test
     void testSNAPPYCompressor() {
         PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.SNAPPY).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).withCompressionCode(CompressionCodec.SNAPPY).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_PLAIN + " snappy reloaded");
     }
 
     @Test
     void testZSTDCompressor() {
         PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.ZSTD).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).withCompressionCode(CompressionCodec.ZSTD).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_PLAIN + " zstd reloaded");
     }
 
     @Test
     void testLZ4Compressor() {
         PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE,
-            TablesawParquetWriteOptions.builder(OUTPUT_FILE).withCompressionCode(CompressionCodec.LZ4).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+            TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).withCompressionCode(CompressionCodec.LZ4).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_PLAIN + " lz4 reloaded");
     }
 
@@ -271,9 +280,9 @@ class TestParquetWriter {
             StringColumn.create("string", "", "abdce"),
             StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
         final Table dest = PARQUET_READER
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).minimizeColumnSizes().build());
+            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).minimizeColumnSizes().build());
         assertTableEquals(orig, dest, "All ColumnTypes reloaded");
     }
 
@@ -293,12 +302,12 @@ class TestParquetWriter {
             StringColumn.create("string", "", "abdce"),
             StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
 
         orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
         orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
 
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build());
         assertTableEquals(orig, dest, "All ColumnTypes reloaded");
     }
 
@@ -318,13 +327,13 @@ class TestParquetWriter {
             StringColumn.create("string", "", "abdce"),
             StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
 
         orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
         orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
 
         final Table dest = PARQUET_READER
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(new ArrayList<>()).build());
+            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).columnTypesToDetect(new ArrayList<>()).build());
         assertTableEquals(orig, dest, "All ColumnTypes reloaded");
     }
 
@@ -344,14 +353,14 @@ class TestParquetWriter {
             StringColumn.create("string", "", "abdce"),
             StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
 
         orig.replaceColumn("short", orig.shortColumn("short").asIntColumn().setName("short"));
 
         final List<ColumnType> types = new ArrayList<>();
         types.add(ColumnType.FLOAT);
         final Table dest = PARQUET_READER
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
+            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).columnTypesToDetect(types).build());
         assertTableEquals(orig, dest, "All ColumnTypes reloaded");
     }
 
@@ -371,14 +380,14 @@ class TestParquetWriter {
             StringColumn.create("string", "", "abdce"),
             StringColumn.create("text", "abdceabdceabdceabdceabdceabdceabdceabdceabdce", ""));
 
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
 
         orig.replaceColumn("float", orig.floatColumn("float").asDoubleColumn().setName("float"));
 
         final List<ColumnType> types = new ArrayList<>();
         types.add(ColumnType.SHORT);
         final Table dest = PARQUET_READER
-            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE).columnTypesToDetect(types).build());
+            .read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).columnTypesToDetect(types).build());
         assertTableEquals(orig, dest, "All ColumnTypes reloaded");
     }
     
@@ -389,101 +398,101 @@ class TestParquetWriter {
     @Test
     void testWriteDefaultNoChecksum() {
         final Table orig = Table.create(BooleanColumn.create("boolean", true, false));
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final File checksumFile = new File(OUTPUT_CRC_FILE);
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final File checksumFile = new File(CRC_FILE_NAME);
         assertFalse(checksumFile.exists(), "Default option for checksum is not false");
     }
 
     @Test
     void testWriteOptionWithChecksum() {
         final Table orig = Table.create(BooleanColumn.create("boolean", true, false));
-        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE).withWriteChecksum(true).build());
-        final File checksumFile = new File(OUTPUT_CRC_FILE);
+        PARQUET_WRITER.write(orig, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).withWriteChecksum(true).build());
+        final File checksumFile = new File(CRC_FILE_NAME);
         assertTrue(checksumFile.exists(), "Option with checksum does not generate checksum");
     }
     
     @Test
     void testWriteReadAllEncrypted() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testWriteReadAllEncryptedFail() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).build());
-        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE).build();
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME).build();
         assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
     }
     
     @Test
     void testWriteReadSomeEncrypted() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
     
     @Test
     void testWriteReadSomeEncryptedFail() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP).build());
-        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).build();
         assertThrows(ParquetDecodingException.class, () -> PARQUET_READER.read(options));
     }
 
     @Test
     void testWriteReadFullEncrypted() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testWriteReadFullEncryptedCipher() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withCipher(ParquetCipher.AES_GCM_CTR_V1).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testWriteReadFullEncryptedFail() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().build());
-        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).build();
         assertThrows(ParquetDecodingException.class, () -> PARQUET_READER.read(options));
     }
 
     @Test
     void testWriteReadFullEncryptedWithAADPrefix() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testWriteReadFullEncryptedWithAADPrefixNoStorage() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX)
             .withoutAADPrefixStorage().build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
             .withAADPrefix(AAD_PREFIX).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
@@ -491,22 +500,22 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadFullEncryptedWithAADPrefixFail() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX)
             .withoutAADPrefixStorage().build());
-        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP).build();
         assertThrows(ParquetCryptoRuntimeException.class, () -> PARQUET_READER.read(options));
     }
 
     @Test
     void testWriteReadNoFooterEncryption() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withPlainTextFooter()
             .withEncryptedColumns(COLUMN_KEY_MAP).withAADdPrefix(AAD_PREFIX)
             .build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
             .build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
@@ -514,11 +523,11 @@ class TestParquetWriter {
 
     @Test
     void testWriteReadNoFooterEncryptionNoCheck() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withPlainTextFooter()
             .withEncryptedColumns(COLUMN_KEY_MAP).withAADdPrefix(AAD_PREFIX)
             .build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withoutFooterSignatureVerification().withColumnKeys(COLUMN_KEY_MAP)
             .build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
@@ -526,48 +535,48 @@ class TestParquetWriter {
 
     @Test
     void testAllEncryptedWithMetadata() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withFooterKeyMetadata(FOOTER_METADATA).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withKeyRetriever(KEY_RETRIEVER).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testEncryptedColumnWithMetadata() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withFooterKeyMetadata(FOOTER_METADATA)
             .withEncryptedColumns(COLUMN_KEY_MAP).withEncryptedColumnMetadata(COLUMN_KEY_METADATA_MAP).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withKeyRetriever(KEY_RETRIEVER).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
     
     @Test
     void testAllEncryptedWithID() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withFooterKeyID(FOOTER_KEY_ID).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withKeyRetriever(KEY_RETRIEVER).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
 
     @Test
     void testEncryptedColumnWithID() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withFooterKeyID(FOOTER_KEY_ID)
             .withEncryptedColumns(COLUMN_KEY_MAP).withEncryptedColumnID(COLUMN_KEY_ID_MAP).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withKeyRetriever(KEY_RETRIEVER).build());
         assertTableEquals(ALL_TYPE_PLAIN_TABLE, dest, APACHE_ALL_TYPES_DICT + " reloaded");
     }
     
     @Test
     void testWriteReadFullEncryptedWithAADPrefixVerifier() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX).build());
-        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
             .withAADPrefixVerifier(new AADPrefixVerifier() {
                 @Override
@@ -583,10 +592,10 @@ class TestParquetWriter {
 
     @Test
     void testWriteAADPrefixVerifierFail() {
-        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withEncryption(FOOTER_ENCRYPTION_KEY).withEncryptedColumns(COLUMN_KEY_MAP)
             .withCompleteColumnEncryption().withAADdPrefix(AAD_PREFIX).build());
-        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE)
+        final TablesawParquetReadOptions options = TablesawParquetReadOptions.builder(OUTPUT_FILE_NAME)
             .withFooterKey(FOOTER_ENCRYPTION_KEY).withColumnKeys(COLUMN_KEY_MAP)
             .withAADPrefixVerifier(new AADPrefixVerifier() {
                 @Override
@@ -603,11 +612,11 @@ class TestParquetWriter {
     @Test
     void testRowGroupSizeOption() {
         final Table orig = Table.create(BooleanColumn.create("boolean", true, false));
-        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME)
             .withRowGroupSize(2l * 1024 * 1024).build();
         assertEquals(2l * 1024 * 1024, options.getRowGroupSize());
         PARQUET_WRITER.write(orig, options);
-        final File checksumFile = new File(OUTPUT_FILE);
+        final File checksumFile = new File(OUTPUT_FILE_NAME);
         assertTrue(checksumFile.exists(), "Error writing smaller group size");
     }
 }
