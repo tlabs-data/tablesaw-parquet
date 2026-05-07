@@ -29,8 +29,6 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -73,9 +71,9 @@ class TestParquetReadFromFTP {
     }
     
     @Test
-    void testReadParquetFromFTPUsingURL() throws MalformedURLException {
+    void testReadParquetFromFTPUsingURL() throws MalformedURLException, URISyntaxException  {
         final Table table = new TablesawParquetReader().read(
-            TablesawParquetReadOptions.builder(new URL("ftp://user:pwd@localhost:9021/pandas_pyarrow.parquet")).build());
+            TablesawParquetReadOptions.builder(new URI("ftp://user:pwd@localhost:9021/pandas_pyarrow.parquet").toURL()).build());
         assertNotNull(table, "Table is null");
         assertEquals("ftp://localhost:9021/pandas_pyarrow.parquet", table.name());
     }
