@@ -3,10 +3,10 @@ Dependency on hadoop libraries
 
 **You don't need to install hadoop to use this library.**
 
-We are using the parquet reader from [parquet-hadoop](https://github.com/apache/parquet-mr/tree/master/parquet-hadoop) to read
+We are using the parquet reader from [parquet-hadoop](https://github.com/apache/parquet-java/tree/master/parquet-hadoop) to read
 parquet files. This package depends on the `hadoop-common` and `hadoop-mapreduce-client-core` Java libraries with a `provided` scope - this is why these libraries are included here.
 
-Efforts to avoid depending on hadoop libraries can be followed on this [open issue on the parquet-mr JIRA](https://issues.apache.org/jira/browse/PARQUET-1126).
+Efforts to avoid depending on hadoop libraries can be followed on this [open issue on the parquet-java project](https://github.com/apache/parquet-java/issues/1497).
 
 ## Exclude transitive dependencies from hadoop libraries
 

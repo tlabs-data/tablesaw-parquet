@@ -118,7 +118,7 @@ Parquet files from http or ftp servers can be read using:
 Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(URL).build());
 ```
 
-You can also register the parquet reader and use the  __tablesaw__  read method. For this to work, the URL  __must__  end with  __".parquet"__  as there is currently no [parquet MIME type](https://issues.apache.org/jira/browse/PARQUET-1889):
+You can also register the parquet reader and use the  __tablesaw__  read method. For this to work, the URL  __must__  end with  __".parquet"__  as there is currently no [parquet MIME type](https://github.com/apache/parquet-format/issues/381):
 
 ```java
 TablesawParquet.register();
