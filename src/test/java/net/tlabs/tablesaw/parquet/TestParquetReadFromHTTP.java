@@ -33,8 +33,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -79,9 +77,9 @@ class TestParquetReadFromHTTP {
     }
     
     @Test
-    void testParquetFileFromHTTPUsingURL() throws MalformedURLException {
+    void testParquetFileFromHTTPUsingURL() throws MalformedURLException, URISyntaxException {
         final Table table = new TablesawParquetReader().read(
-            TablesawParquetReadOptions.builder(new URL(FILE_URL)).build());
+            TablesawParquetReadOptions.builder(new URI(FILE_URL).toURL()).build());
         assertNotNull(table, "Table is null");
     }
 
