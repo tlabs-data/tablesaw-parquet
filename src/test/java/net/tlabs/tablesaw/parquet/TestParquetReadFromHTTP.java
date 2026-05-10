@@ -46,7 +46,9 @@ class TestParquetReadFromHTTP {
 
     private static final int HTTP_PORT = 1080;
     private static final String HTTP_PATH = "/download/pandas_pyarrow.parquet";
+    private static final String HTTP_PATH_NOEXT = "/download/pandas_pyarrow";
     private static final String FILE_URL = "http://localhost:" + HTTP_PORT + HTTP_PATH;
+    private static final String FILE_URL_NOEXT = "http://localhost:" + HTTP_PORT + HTTP_PATH_NOEXT;
     private static ClientAndServer mockServer;
 
     @BeforeAll
@@ -67,7 +69,21 @@ class TestParquetReadFromHTTP {
                         header("Content-Type", "binary/octet-stream")
                     )
                     .withBody(binary(fileBytes))
-            );   
+            );
+            mockServer
+            .when(
+                request()
+                    .withPath(HTTP_PATH_NOEXT)
+            )
+            .respond(
+                response()
+                    .withStatusCode(HttpStatusCode.OK_200.code())
+                    .withHeaders(
+                        header("Content-Disposition", "inline"),
+                        header("Content-Type", "application/vnd.apache.parquet")
+                    )
+                    .withBody(binary(fileBytes))
+            );
         }
     }
  
@@ -94,6 +110,13 @@ class TestParquetReadFromHTTP {
     void testParquetFileFromHTTPUsingURI() throws URISyntaxException {
         final Table table = new TablesawParquetReader().read(
             TablesawParquetReadOptions.builder(new URI(FILE_URL)).build());
+        assertNotNull(table, "Table is null");
+    }
+
+    @Test
+    void testParquetFileFromHTTPUsingMimeType() {
+        TablesawParquet.registerReader();
+        final Table table = Table.read().url(FILE_URL_NOEXT);
         assertNotNull(table, "Table is null");
     }
 }
