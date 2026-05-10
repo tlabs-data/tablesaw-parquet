@@ -28,6 +28,8 @@ import tech.tablesaw.api.Table;
  */
 public class TablesawParquet {
 
+    private static final String PARQUET_EXTENSION = "parquet";
+
     private TablesawParquet() {
         super();
     }
@@ -48,7 +50,7 @@ public class TablesawParquet {
     public static void registerReader() {
         final TablesawParquetReader registeredInstance = new TablesawParquetReader();
         Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, registeredInstance);
-        Table.defaultReaderRegistry.registerExtension("parquet", registeredInstance);
+        Table.defaultReaderRegistry.registerExtension(PARQUET_EXTENSION, registeredInstance);
     }
 
     /**

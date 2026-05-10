@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.File;
 import java.net.MalformedURLException;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -36,11 +37,17 @@ class TestTablesawRegistry {
 
     private static final String PANDAS_PYARROW = "target/test-classes/pandas_pyarrow.parquet";
     private static final String WRONG_PARQUET_FILE = "target/test-classes/thisisnota.parquet";
-    private static final String OUTPUT_FILE = "target/test/results/out.parquet";
+    private static final String OUTPUT_FILE_NAME = "target/test/results/out.parquet";
+    private static final File OUTPUT_FILE = new File(OUTPUT_FILE_NAME);
 
     @BeforeAll
     static void init() {
         TablesawParquet.register();
+    }
+    
+    @AfterEach
+    void cleanup() {
+        OUTPUT_FILE.delete();
     }
 
     @Test
@@ -103,8 +110,8 @@ class TestTablesawRegistry {
     @Test
     void testRegistryWriteUsingOptions() {
         final Table table = Table.read().file(PANDAS_PYARROW);
-        table.write().usingOptions(TablesawParquetWriteOptions.builder(OUTPUT_FILE).build());
-        final Table readTable = Table.read().file(OUTPUT_FILE);
+        table.write().usingOptions(TablesawParquetWriteOptions.builder(OUTPUT_FILE_NAME).build());
+        final Table readTable = Table.read().file(OUTPUT_FILE_NAME);
         assertNotNull(readTable, "Read table is null");
     }
 
@@ -112,14 +119,14 @@ class TestTablesawRegistry {
     void testRegistryWriteFilename() {
         final Table table = Table.read().file(PANDAS_PYARROW);
         final DataFrameWriter dfw = table.write();
-        assertThrows(NullPointerException.class, () -> dfw.toFile(OUTPUT_FILE));
+        assertThrows(NullPointerException.class, () -> dfw.toFile(OUTPUT_FILE_NAME));
     }
 
     @Test
     void testRegistryWriteFile() {
         final Table table = Table.read().file(PANDAS_PYARROW);
         final DataFrameWriter dfw = table.write();
-        final File file = new File(OUTPUT_FILE);
+        final File file = new File(OUTPUT_FILE_NAME);
         assertThrows(NullPointerException.class, () -> dfw.toFile(file));
     }
 }
