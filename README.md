@@ -29,8 +29,8 @@ __maven:__
 
 ```xml
 <properties>
-    <tablesaw.version>0.42.0</tablesaw.version>
-    <tablesaw-parquet.version>0.10.0</tablesaw-parquet.version>
+    <tablesaw.version>0.44.4</tablesaw.version>
+    <tablesaw-parquet.version>0.14.1</tablesaw-parquet.version>
 </properties>
 
 <dependencies>
@@ -51,8 +51,8 @@ __gradle:__
 
 ```groovy
 ext {
-    tablesawVersion = "0.42.0"
-    tablesawParquetVersion = "0.10.0"
+    tablesawVersion = "0.44.4"
+    tablesawParquetVersion = "0.14.1"
 }
 
 dependencies {
@@ -118,7 +118,7 @@ Parquet files from http or ftp servers can be read using:
 Table table = new TablesawParquetReader().read(TablesawParquetReadOptions.builder(URL).build());
 ```
 
-You can also register the parquet reader and use the  __tablesaw__  read method. For this to work, the URL  __must__  end with  __".parquet"__  as there is currently no [parquet MIME type](https://github.com/apache/parquet-format/issues/381):
+You can also register the parquet reader and use the  __tablesaw__  read method. For this to work, the URL  __must__  end with  __".parquet"__  or the Content-Type  __must__  be the [official parquet MIME type](https://www.iana.org/assignments/media-types/application/vnd.apache.parquet) `application/vnd.apache.parquet`:
 
 ```java
 TablesawParquet.register();

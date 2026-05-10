@@ -29,6 +29,7 @@ import tech.tablesaw.api.Table;
 public class TablesawParquet {
 
     private static final String PARQUET_EXTENSION = "parquet";
+    private static final String PARQUET_MIME_TYPE = "application/vnd.apache.parquet";
 
     private TablesawParquet() {
         super();
@@ -51,6 +52,7 @@ public class TablesawParquet {
         final TablesawParquetReader registeredInstance = new TablesawParquetReader();
         Table.defaultReaderRegistry.registerOptions(TablesawParquetReadOptions.class, registeredInstance);
         Table.defaultReaderRegistry.registerExtension(PARQUET_EXTENSION, registeredInstance);
+        Table.defaultReaderRegistry.registerMimeType(PARQUET_MIME_TYPE, registeredInstance);
     }
 
     /**
