@@ -225,8 +225,8 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         }
 
         /**
-         * Allows the writer to override existing files. Default is false.
-         * @param overwrite sets whether the writer can override existing files. Default is false
+         * Allows the writer to override existing files. Default is true.
+         * @param overwrite sets whether the writer can override existing files. Default is true
          * @return this builder
          */
         public Builder withOverwrite(final boolean overwrite) {
