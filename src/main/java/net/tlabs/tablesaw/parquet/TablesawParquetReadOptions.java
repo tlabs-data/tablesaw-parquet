@@ -239,8 +239,9 @@ public class TablesawParquetReadOptions extends ReadOptions {
             if(columnKeyMap != null) {
                 final Map<ColumnPath, ColumnDecryptionProperties> columnProperties = new HashMap<>();
                 for(Entry<String, byte[]> entry : columnKeyMap.entrySet()) {
-                    columnProperties.put(ColumnPath.get(entry.getKey()),
-                        ColumnDecryptionProperties.builder(entry.getKey()).withKey(entry.getValue()).build());
+                    final ColumnPath columnPath = ColumnPath.fromDotString(entry.getKey());
+                    columnProperties.put(columnPath,
+                        ColumnDecryptionProperties.builder(columnPath).withKey(entry.getValue()).build());
                 }
                 fdpBuilder.withColumnKeys(columnProperties);
             }
