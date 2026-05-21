@@ -164,7 +164,7 @@ class TestAllParquetTestingFiles {
     }
     
     private static Stream<Arguments> listGeospatialFile() throws IOException {
-        return Files.list(Paths.get(PARQUET_TESTING_FOLDER + "geospatial/"))
+        return Files.list(Paths.get(PARQUET_TESTING_FOLDER, "geospatial/"))
             .map(Path::toFile)
             .filter(TestAllParquetTestingFiles::filterGeospatialdParquet)
             .map(Arguments::of);
@@ -188,7 +188,7 @@ class TestAllParquetTestingFiles {
     }
     
     private static Stream<Arguments> listAES256TestingFile() throws IOException {
-        return Files.list(Paths.get(PARQUET_TESTING_FOLDER + "aes256/"))
+        return Files.list(Paths.get(PARQUET_TESTING_FOLDER, "aes256/"))
             .map(Path::toFile)
             .filter(TestAllParquetTestingFiles::filterAES256Parquet)
             .map(Arguments::of);
