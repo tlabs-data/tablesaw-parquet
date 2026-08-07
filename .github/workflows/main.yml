@@ -4,9 +4,10 @@ name: Build
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for master or release branch
+  # Triggers the workflow on push or pull request events but only for master or release branch (only on tags)
   push:
-    branches: [ master, 'release/**' ]
+    branches: [ master ]
+    tags: [ '*' ]
   pull_request:
     branches: [ master, 'release/**' ]
 
