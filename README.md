@@ -182,7 +182,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | TIME | TimeColumn |  |
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
 | INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
-| JSON | StringColumn |  __Not tested__  |
+| JSON | StringColumn |  |
 | BSON |  __Not read__  |  __Not tested__  |
 | GEOMETRY |  StringColumn  |  Well-known text (WKT) representation of the geometry (since v0.14)  |
 | GEOGRAPHY |  StringColumn  |  Well-known text (WKT) representation of the geography (since v0.14)  |
@@ -190,7 +190,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 
 Parquet also supports repeated fields (multiple values for the same field); we handle these as the Nested Types: by default a string representation of the repeated fields is stored in a StringColumn. The same *withManageGroupsAs* option is used to change this behavior.
 
-Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, JSON, BSON).
+Due to the lack of parquet files for testing, some logical type conversion are currently not tested (INTERVAL, BSON).
 
 Keep in mind that all tablesaw columns storing time (TimeColumn, DateTimeColumn and InstantColumn) use MILLIS precision, if read from a parquet file with better time precision (MICROS or NANOS) the values will be truncated (in the current tablesaw implementation).
 
