@@ -55,6 +55,7 @@ class TestParquetReader {
     private static final String APACHE_NULLS_SNAPPY = "nulls.snappy.parquet";
     private static final String GUID_PARQUET = "target/test-classes/guid.parquet";
     private static final String UUID_PARQUET = "target/test-classes/uuid.parquet";
+    private static final String JSON_PARQUET = "json.parquet";
 
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
@@ -366,4 +367,13 @@ class TestParquetReader {
         assertEquals("2ba1324b-b69c-4cd6-a4ea-6f3834d53946", table.column(0).getString(0), "Error decoding UUID");
     }
 
+    @Test
+    void testJsonColumn() {
+        final Table table = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + JSON_PARQUET).build());
+        assertEquals(ColumnType.STRING, table.column(0).type(), "Json not encoded as string");      
+        assertEquals("{\"a\":1}", table.column(0).getString(0), "Error decoding Json");
+        assertEquals("{\"a\":1,\"b\":null}", table.column(0).getString(1), "Error decoding Json");
+        assertEquals("[1,null,3]", table.column(0).getString(2), "Error decoding Json");
+        assertTrue(table.column(0).isMissing(3));
+    }
 }
