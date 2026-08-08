@@ -51,6 +51,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeographyLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeometryLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.JsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.LogicalTypeAnnotationVisitor;
 import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeLogicalTypeAnnotation;
@@ -528,7 +529,13 @@ public class TablesawRecordConverter extends GroupConverter {
             @Override
             public Optional<Converter> visit(GeographyLogicalTypeAnnotation geographyLogicalType) {
                 return Optional.of(new GeospatialPrimitiveConverter(colIndex));
-            }           
+            }
+
+            @Override
+            public Optional<Converter> visit(JsonLogicalTypeAnnotation jsonLogicalType) {
+                return Optional.of(new StringPrimitiveConverter(colIndex));
+            }
+
         });
     }
 
