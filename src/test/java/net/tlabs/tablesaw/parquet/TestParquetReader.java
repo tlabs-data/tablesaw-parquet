@@ -376,4 +376,15 @@ class TestParquetReader {
         assertEquals("[1,null,3]", table.column(0).getString(2), "Error decoding Json");
         assertTrue(table.column(0).isMissing(3));
     }
+
+    @Test
+    void testJsonColumnWithOption() {
+        final Table table = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + JSON_PARQUET)
+            .withUnnanotatedBinaryAs(UnnanotatedBinaryAs.HEXSTRING).build());
+        assertEquals(ColumnType.STRING, table.column(0).type(), "Json not encoded as string");      
+        assertEquals("{\"a\":1}", table.column(0).getString(0), "Error decoding Json");
+        assertEquals("{\"a\":1,\"b\":null}", table.column(0).getString(1), "Error decoding Json");
+        assertEquals("[1,null,3]", table.column(0).getString(2), "Error decoding Json");
+        assertTrue(table.column(0).isMissing(3));
+    }
 }
