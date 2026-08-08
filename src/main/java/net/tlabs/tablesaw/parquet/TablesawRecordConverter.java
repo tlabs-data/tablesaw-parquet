@@ -46,6 +46,7 @@ import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.io.api.PrimitiveConverter;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.BsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeographyLogicalTypeAnnotation;
@@ -62,6 +63,11 @@ import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type.Repetition;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.tools.read.SimpleRecordConverter;
+import org.bson.BsonBinaryReader;
+import org.bson.BsonReader;
+import org.bson.codecs.DecoderContext;
+import org.bson.codecs.DocumentCodec;
+import org.bson.json.JsonWriterSettings;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKBReader;
@@ -536,6 +542,21 @@ public class TablesawRecordConverter extends GroupConverter {
                 return Optional.of(new StringPrimitiveConverter(colIndex));
             }
 
+            @Override
+            public Optional<Converter> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    private final DocumentCodec documentReader = new DocumentCodec();
+                    private final DecoderContext context = DecoderContext.builder().build();
+                    private final JsonWriterSettings settings = new JsonWriterSettings();
+                    private final DocumentCodec codec = new DocumentCodec();
+                    @Override
+                    public void addBinary(final Binary value) {
+                        final BsonReader reader = new BsonBinaryReader(value.toByteBuffer());
+                        proxy.appendString(colIndex, documentReader.decode(reader, context).toJson(settings, codec));
+                    }
+                    
+                });
+            }  
         });
     }
 

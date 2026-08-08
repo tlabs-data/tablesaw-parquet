@@ -141,15 +141,6 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 if(type.getLogicalTypeAnnotation() == null) {
                     return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
                 }
-                // Filtering out BSON
-                return Optional.ofNullable(type.getLogicalTypeAnnotation())
-                    .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
-                        @Override
-                        public Optional<Boolean> visit(final BsonLogicalTypeAnnotation bsonLogicalType) {
-                            return Optional.of(Boolean.FALSE);
-                        }
-                    }))
-                    .orElse(Boolean.TRUE);
                 //$CASES-OMITTED$
             default:
                 return true;
@@ -239,6 +230,11 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
             @Override
             public Optional<Column<?>> visit(final JsonLogicalTypeAnnotation jsonLogicalType) {
+                return Optional.of(StringColumn.create(fieldName));
+            }
+
+            @Override
+            public Optional<Column<?>> visit(final BsonLogicalTypeAnnotation bsonLogicalType) {
                 return Optional.of(StringColumn.create(fieldName));
             }
 

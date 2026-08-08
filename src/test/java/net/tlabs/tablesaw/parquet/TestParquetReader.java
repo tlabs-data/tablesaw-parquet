@@ -32,6 +32,8 @@ import java.nio.charset.StandardCharsets;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.Builder;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.ManageGroupsAs;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
+
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Table;
@@ -56,6 +58,7 @@ class TestParquetReader {
     private static final String GUID_PARQUET = "target/test-classes/guid.parquet";
     private static final String UUID_PARQUET = "target/test-classes/uuid.parquet";
     private static final String JSON_PARQUET = "json.parquet";
+    private static final String BSON_PARQUET = "bson.parquet";
 
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
 
@@ -386,5 +389,15 @@ class TestParquetReader {
         assertEquals("{\"a\":1,\"b\":null}", table.column(0).getString(1), "Error decoding Json");
         assertEquals("[1,null,3]", table.column(0).getString(2), "Error decoding Json");
         assertTrue(table.column(0).isMissing(3));
+    }
+
+    @Test
+    void testBsonColumn() {
+        final Table table = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + BSON_PARQUET).build());
+        assertEquals(ColumnType.STRING, table.column(0).type(), "Bson not encoded as string");
+        // Json formatting is different than in original file once decoded
+        assertEquals("{\"a\":1}", StringUtils.deleteWhitespace(table.column(0).getString(0)), "Error decoding Bson");
+        assertEquals("{\"a\":1,\"b\":null}", StringUtils.deleteWhitespace(table.column(0).getString(1)), "Error decoding Bson");
+        assertTrue(table.column(0).isMissing(2));
     }
 }
