@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.provider.Arguments;
@@ -74,8 +75,8 @@ class TestDefaultReadPyArrow extends AbstractTableParameterizedTest {
             Arguments.of(9, 1, 1.0d, "double"),
             Arguments.of(10, 0, 0.0d, "double"),
             Arguments.of(10, 1, null, "double"),
-            Arguments.of(11, 0, LocalDateTime.of(2021, 4, 23, 0, 0), "LocalDateTime"),
-            Arguments.of(11, 1, LocalDateTime.of(2021, 4, 23, 0, 0, 1), "LocalDateTime"),
+            Arguments.of(11, 0, LocalDateTime.of(2021, Month.APRIL, 23, 0, 0), "LocalDateTime"),
+            Arguments.of(11, 1, LocalDateTime.of(2021, Month.APRIL, 23, 0, 0, 1), "LocalDateTime"),
             Arguments.of(12, 0, "string1", "String"),
             Arguments.of(12, 1, "string2", "String"));
     }
