@@ -547,7 +547,7 @@ public class TablesawRecordConverter extends GroupConverter {
                 return Optional.of(new PrimitiveConverter() {
                     private final DocumentCodec documentReader = new DocumentCodec();
                     private final DecoderContext context = DecoderContext.builder().build();
-                    private final JsonWriterSettings settings = new JsonWriterSettings();
+                    private final JsonWriterSettings settings = JsonWriterSettings.builder().build();
                     private final DocumentCodec codec = new DocumentCodec();
                     @Override
                     public void addBinary(final Binary value) {
