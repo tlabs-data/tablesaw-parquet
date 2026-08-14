@@ -143,14 +143,12 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     private boolean acceptSimplePrimitives(final Type type) {
         switch (type.asPrimitiveType().getPrimitiveTypeName()) {
             case FIXED_LEN_BYTE_ARRAY:
-                if(type.getLogicalTypeAnnotation() == null) {
-                    return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
-                }
-                return true;
+                // Fall through
             case BINARY:
                 if(type.getLogicalTypeAnnotation() == null) {
                     return this.options.getUnnanotatedBinaryAs() != UnnanotatedBinaryAs.SKIP;
                 }
+                return true;
                 //$CASES-OMITTED$
             default:
                 return true;
@@ -186,7 +184,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
             case SKIP:
                 throw new IllegalStateException("Skipped group " + name + " still in schema");
             case TEXT:
-                // CASCADE
+                // Fall through
             default:
                 return StringColumn.create(name);
         }
