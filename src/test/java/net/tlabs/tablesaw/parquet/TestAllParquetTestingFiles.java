@@ -112,9 +112,6 @@ class TestAllParquetTestingFiles {
         // parquet-java reader fails on this one
         // see https://github.com/apache/parquet-java/issues/3336
         if(filename.equals("nation.dict-malformed.parquet")) return false;
-        // null logicalType
-        // see https://github.com/apache/parquet-java/issues/2709
-        if(filename.equals("unknown-logical-type.parquet")) return false;
         return true;
     }
     
