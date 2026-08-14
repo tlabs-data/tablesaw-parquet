@@ -183,7 +183,8 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
 | INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
 | JSON | StringColumn |  |
-| BSON |  StringColumn  |  As a Json String (Since v0.16)  |
+| BSON |  StringColumn  |  As a Json String (since v0.16)  |
+| VARIANT |  __Not supported__  |  Column is skipped  |
 | GEOMETRY |  StringColumn  |  Well-known text (WKT) representation of the geometry (since v0.14)  |
 | GEOGRAPHY |  StringColumn  |  Well-known text (WKT) representation of the geography (since v0.14)  |
 | Nested Types | StringColumn | Textual representation of the nested type, see *withManageGroupsAs* option |
