@@ -28,12 +28,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.Builder;
 import tech.tablesaw.api.ColumnType;
@@ -42,6 +46,7 @@ import tech.tablesaw.api.Table;
 class TestAllParquetTestingFiles {
 
     private static final String PARQUET_TESTING_FOLDER = "target/test/data/parquet-testing-master/data/";
+    private static final String PARQUET_VARIANT_FOLDER = "target/test/data/parquet-testing-master/shredded_variant/";
     private static final byte[] FOOTER_ENCRYPTION_KEY = new String("0123456789012345").getBytes();
     private static final byte[] COLUMN_ENCRYPTION_KEY1 = new String("1234567890123450").getBytes();
     private static final byte[] COLUMN_ENCRYPTION_KEY2 = new String("1234567890123451").getBytes();
@@ -229,5 +234,38 @@ class TestAllParquetTestingFiles {
         }
         final Table table = new TablesawParquetReader().read(optionBuilder.build());
         assertNotNull(table);
+    }
+
+    private static Stream<Arguments> listVarianrTestingFile() throws IOException {
+        final File caseFile = Path.of(PARQUET_VARIANT_FOLDER, "cases.json").toFile();
+        final List<Map<String, Object>> testCases = new ObjectMapper().readValue(caseFile,
+            new TypeReference<List<Map<String, Object>>>() {});
+        return testCases.stream()
+            .filter(TestAllParquetTestingFiles::filterVariantCase)
+            // Test only the 1st valid one as all are processed the same
+            .limit(1)
+            .map(c -> Path.of(PARQUET_VARIANT_FOLDER, c.get("parquet_file").toString()).toFile())
+            .map(Arguments::of);
+    }
+    
+    private static boolean filterVariantCase(final Map<String, Object> testCase) {
+        // filter out errors
+        if(testCase.containsKey("error_message")) return false;
+        // filter out invalid files
+        final Object filename = testCase.get("parquet_file");
+        // filter out missing case
+        if(filename == null) return false;
+        // filter out invalid files
+        if (filename.toString().contains("-INVALID")) return false;
+        return true;
+    }
+
+    @ParameterizedTest
+    @MethodSource("listVarianrTestingFile")
+    void testVariantTestingFile(final File parquetFile) {
+        final Builder optionBuilder = TablesawParquetReadOptions.builder(parquetFile);
+        final Table table = new TablesawParquetReader().read(optionBuilder.build());
+        assertNotNull(table);
+        assertEquals(1, table.columnCount(), "Variant column should be skipped");
     }
 }

@@ -44,6 +44,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.LogicalTypeAnnotationVisi
 import org.apache.parquet.schema.LogicalTypeAnnotation.StringLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimestampLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.VariantLogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Type.Repetition;
@@ -120,10 +121,19 @@ public class TablesawReadSupport extends ReadSupport<Row> {
     }
     
     private boolean acceptFieldType(final Type type) {
-        if(type.isPrimitive() && !type.isRepetition(Repetition.REPEATED)) {
-            return acceptSimplePrimitives(type);
+        // Primitive types: accept based on options
+        if(type.isPrimitive()) {
+            return type.isRepetition(Repetition.REPEATED) ? acceptGroupsAndRepeatedFields() : acceptSimplePrimitives(type);
         }
-        return acceptGroupsAndRepeatedFields();
+        // Group type: reject VARIANT, accept other groups based on options
+        return Optional.ofNullable(type.getLogicalTypeAnnotation())
+            .flatMap(a -> a.accept(new LogicalTypeAnnotationVisitor<Boolean>() {
+                @Override
+                public Optional<Boolean> visit(final VariantLogicalTypeAnnotation variantLogicalType) {
+                    return Optional.of(Boolean.FALSE);
+                }
+            }))
+            .orElse(acceptGroupsAndRepeatedFields());
     }
 
     private boolean acceptGroupsAndRepeatedFields() {
