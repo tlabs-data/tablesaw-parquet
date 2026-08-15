@@ -506,9 +506,26 @@ public class TablesawRecordConverter extends GroupConverter {
                             BINARY_INTERVAL_LENGTH_MESSAGE);
                         final ByteBuffer buf = value.toByteBuffer();
                         buf.order(ByteOrder.LITTLE_ENDIAN);
-                        proxy.appendString(colIndex,
-                            Period.ofMonths(buf.getInt()).plusDays(buf.getInt()).toString()
-                                + Duration.ofMillis(buf.getInt()).toString().substring(1));
+                        final int months = buf.getInt();
+                        final int days = buf.getInt();
+                        final int millis = buf.getInt();
+                        final StringBuilder builder = new StringBuilder();
+                        // Handle case where all values are 0, as P is not a valid period
+                        if(months == 0 && days == 0 && millis == 0) {
+                            builder.append("P0D");
+                        } else {
+                            if (months != 0 || days != 0) {
+                                builder.append(Period.ofMonths(months).plusDays(days).toString());
+                            } else {
+                                // No Duration, requires the P header
+                                builder.append("P");
+                            }
+                            // Skip time block if 0
+                            if(millis != 0) {
+                                builder.append(Duration.ofMillis(millis).toString().substring(1));
+                            }
+                        }
+                        proxy.appendString(colIndex, builder.toString());
                     }
                 });
             }
