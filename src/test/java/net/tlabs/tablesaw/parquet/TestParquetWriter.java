@@ -45,7 +45,6 @@ import org.apache.parquet.hadoop.ParquetFileReader;
 import org.apache.parquet.io.LocalInputFile;
 import org.apache.parquet.io.ParquetDecodingException;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
-import org.apache.parquet.schema.LogicalTypeAnnotation.UUIDLogicalTypeAnnotation;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
@@ -83,6 +82,7 @@ class TestParquetWriter {
     private static final String CRC_FILE_NAME = "target/test/results/.out.parquet.crc";
     private static final File CRC_FILE = new File(CRC_FILE_NAME);
     private static final String UUID_PARQUET = "target/test-classes/uuid.parquet";
+    private static final String JSON_PARQUET = "json.parquet";
 
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
@@ -627,17 +627,22 @@ class TestParquetWriter {
             .withRowGroupSize(2l * 1024 * 1024).build();
         assertEquals(2l * 1024 * 1024, options.getRowGroupSize());
         PARQUET_WRITER.write(orig, options);
-        final File checksumFile = new File(OUTPUT_FILE_NAME);
-        assertTrue(checksumFile.exists(), "Error writing smaller group size");
+        final File outputFile = new File(OUTPUT_FILE_NAME);
+        assertTrue(outputFile.exists(), "Error writing smaller group size");
     }
-    
+
     @Test
-    void testUUIDLogicalType() throws IOException {
-        final UUIDLogicalTypeAnnotation uuidType = LogicalTypeAnnotation.uuidType();
+    void testUUIDLogicalTypeOption() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("uuid_req1", LogicalType.UUID)).build();
+        assertEquals(Map.of("uuid_req1", LogicalTypeAnnotation.uuidType()), options.getLogicalTypes());
+    }
+
+    @Test
+    void testUUIDLogicalTypeWriting() throws IOException {
         final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(UUID_PARQUET).build());
         final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
             .withLogicalTypes(Map.of("uuid_req1", LogicalType.UUID)).build();
-        assertEquals(Map.of("uuid_req1", uuidType), options.getLogicalTypes());
         PARQUET_WRITER.write(orig, options);
         ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
         final Type type = reader.getFileMetaData().getSchema().getType("uuid_req1");
@@ -645,7 +650,17 @@ class TestParquetWriter {
         final PrimitiveType primitiveType = type.asPrimitiveType();
         assertEquals(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, primitiveType.getPrimitiveTypeName());
         final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
-        assertEquals(uuidType, logicalTypeAnnotation);
+        assertEquals(LogicalTypeAnnotation.uuidType(), logicalTypeAnnotation);
+    }
+    
+    @Test
+    void testUUIDReloading() {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(UUID_PARQUET).build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("uuid_req1", LogicalType.UUID)).build();
+        PARQUET_WRITER.write(orig, options);
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        assertTableEquals(orig, dest, UUID_PARQUET);
     }
 
     @Test
@@ -655,4 +670,35 @@ class TestParquetWriter {
         assertThrows(IllegalArgumentException.class, () -> PARQUET_WRITER.write(ALL_TYPE_PLAIN_TABLE, options));
     }
 
+    @Test
+    void testJsonLogicalTypeOption() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("json", LogicalType.JSON)).build();
+        assertEquals(Map.of("json", LogicalTypeAnnotation.jsonType()), options.getLogicalTypes());
+    }
+
+    @Test
+    void testJsonLogicalTypeWriting() throws IOException {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + JSON_PARQUET).build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("json_field", LogicalType.JSON)).build();
+        PARQUET_WRITER.write(orig, options);
+        ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
+        final Type type = reader.getFileMetaData().getSchema().getType("json_field");
+        assertTrue(type.isPrimitive());
+        final PrimitiveType primitiveType = type.asPrimitiveType();
+        assertEquals(PrimitiveTypeName.BINARY, primitiveType.getPrimitiveTypeName());
+        final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.jsonType(), logicalTypeAnnotation);
+    }
+
+    @Test
+    void testJsonReloading() {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + JSON_PARQUET).build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("json_field", LogicalType.JSON)).build();
+        PARQUET_WRITER.write(orig, options);
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        assertTableEquals(orig, dest, UUID_PARQUET);
+    }
 }

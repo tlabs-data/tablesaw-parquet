@@ -98,7 +98,8 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         UUID(ColumnType.STRING) {
             private final ByteBuffer buffer = ByteBuffer.allocateDirect(16);
             @Override
-            void recordValue(RecordConsumer recordConsumer, TableProxy tableProxy, int colIndex, int rowNumber) {
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
+                    final int colIndex, final int rowNumber) {
                 final UUID uuid = java.util.UUID.fromString(tableProxy.getString(colIndex, rowNumber));
                 buffer
                     .clear()
@@ -202,8 +203,10 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         RECORDER_MAPPING.put(ColumnType.STRING, FieldRecorder.STRING);
         LOGICALTYPE_MAPPING = new HashMap<>();
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.uuidType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
+        LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.jsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
+        LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.jsonType(), FieldRecorder.STRING);
     }
 
     public TablesawWriteSupport(final Table table) {
@@ -231,7 +234,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         final ColumnType type = column.type();
         final String name = column.name();
         return Types
-            .optional(LOGICALTYPE_MAPPING.getOrDefault(typeMap.getOrDefault(column.name(), null), PRIMITIVE_MAPPING.get(type)))
+            .optional(LOGICALTYPE_MAPPING.getOrDefault(typeMap.get(name), PRIMITIVE_MAPPING.get(type)))
             .as(typeMap.getOrDefault(name, ANNOTATION_MAPPING.get(type)))
             .named(name);
     }
@@ -245,7 +248,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     
     private FieldRecorder createRecorder(final Column<?> column) {
         final FieldRecorder recorder = LOGICALTYPE_RECORDER_MAPPING
-            .getOrDefault(typeMap.getOrDefault(column.name(), null), RECORDER_MAPPING.get(column.type()));
+            .getOrDefault(typeMap.get(column.name()), RECORDER_MAPPING.get(column.type()));
         recorder.validate(column.type());
         return recorder;
     }
