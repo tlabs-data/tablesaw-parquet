@@ -83,6 +83,7 @@ class TestParquetWriter {
     private static final File CRC_FILE = new File(CRC_FILE_NAME);
     private static final String UUID_PARQUET = "target/test-classes/uuid.parquet";
     private static final String JSON_PARQUET = "json.parquet";
+    private static final String BSON_PARQUET = "bson.parquet";
 
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
@@ -140,8 +141,8 @@ class TestParquetWriter {
     
     @AfterEach
     void cleanup() {
-        OUTPUT_FILE.delete();
-        CRC_FILE.delete();
+//        OUTPUT_FILE.delete();
+//        CRC_FILE.delete();
     }
 
     @Test
@@ -699,6 +700,38 @@ class TestParquetWriter {
             .withLogicalTypes(Map.of("json_field", LogicalType.JSON)).build();
         PARQUET_WRITER.write(orig, options);
         final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
-        assertTableEquals(orig, dest, UUID_PARQUET);
+        assertTableEquals(orig, dest, JSON_PARQUET);
+    }
+
+    @Test
+    void testBsonLogicalTypeOption() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("bson", LogicalType.BSON)).build();
+        assertEquals(Map.of("bson", LogicalTypeAnnotation.bsonType()), options.getLogicalTypes());
+    }
+
+    @Test
+    void testBsonLogicalTypeWriting() throws IOException {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + BSON_PARQUET).build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("bson_field", LogicalType.BSON)).build();
+        PARQUET_WRITER.write(orig, options);
+        ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
+        final Type type = reader.getFileMetaData().getSchema().getType("bson_field");
+        assertTrue(type.isPrimitive());
+        final PrimitiveType primitiveType = type.asPrimitiveType();
+        assertEquals(PrimitiveTypeName.BINARY, primitiveType.getPrimitiveTypeName());
+        final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.bsonType(), logicalTypeAnnotation);
+    }
+
+    @Test
+    void testBsonReloading() {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + BSON_PARQUET).build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("bson_field", LogicalType.BSON)).build();
+        PARQUET_WRITER.write(orig, options);
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        assertTableEquals(orig, dest, BSON_PARQUET);
     }
 }
