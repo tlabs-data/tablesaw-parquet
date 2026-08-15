@@ -545,14 +545,13 @@ public class TablesawRecordConverter extends GroupConverter {
             @Override
             public Optional<Converter> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
                 return Optional.of(new PrimitiveConverter() {
-                    private final DocumentCodec documentReader = new DocumentCodec();
                     private final DecoderContext context = DecoderContext.builder().build();
                     private final JsonWriterSettings settings = JsonWriterSettings.builder().build();
                     private final DocumentCodec codec = new DocumentCodec();
                     @Override
                     public void addBinary(final Binary value) {
                         final BsonReader reader = new BsonBinaryReader(value.toByteBuffer());
-                        proxy.appendString(colIndex, documentReader.decode(reader, context).toJson(settings, codec));
+                        proxy.appendString(colIndex, codec.decode(reader, context).toJson(settings, codec));
                     }
                     
                 });
