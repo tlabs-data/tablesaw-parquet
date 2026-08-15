@@ -37,6 +37,11 @@ import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
+import org.bson.BsonBinaryWriter;
+import org.bson.Document;
+import org.bson.codecs.DocumentCodec;
+import org.bson.codecs.EncoderContext;
+import org.bson.io.BasicOutputBuffer;
 
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
@@ -107,6 +112,19 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
                     .putLong(uuid.getLeastSignificantBits())
                     .rewind();
                 recordConsumer.addBinary(Binary.fromReusedByteBuffer(buffer));
+            }
+        },
+        BSON(ColumnType.STRING) {
+            private final DocumentCodec codec = new DocumentCodec();
+            private final BasicOutputBuffer buffer = new BasicOutputBuffer();
+            private final EncoderContext encoderContext = EncoderContext.builder().build();
+            @Override
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy, 
+                    final int colIndex, final int rowNumber) {
+                final Document doc = Document.parse(tableProxy.getString(colIndex, rowNumber));
+                buffer.truncateToPosition(0);
+                codec.encode(new BsonBinaryWriter(buffer), doc, encoderContext);
+                recordConsumer.addBinary(Binary.fromReusedByteArray(buffer.getInternalBuffer()));
             }
         },
         LOCAL_DATE(ColumnType.LOCAL_DATE) {
@@ -204,9 +222,11 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         LOGICALTYPE_MAPPING = new HashMap<>();
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.uuidType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.jsonType(), PrimitiveTypeName.BINARY);
+        LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.bsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.jsonType(), FieldRecorder.STRING);
+        LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.bsonType(), FieldRecorder.BSON);
     }
 
     public TablesawWriteSupport(final Table table) {

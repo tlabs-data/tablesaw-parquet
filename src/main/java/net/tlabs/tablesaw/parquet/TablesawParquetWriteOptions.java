@@ -49,7 +49,8 @@ public class TablesawParquetWriteOptions extends WriteOptions {
     
     public enum LogicalType {
         UUID(LogicalTypeAnnotation.uuidType()),
-        JSON(LogicalTypeAnnotation.jsonType());
+        JSON(LogicalTypeAnnotation.jsonType()),
+        BSON(LogicalTypeAnnotation.bsonType());
         
         final LogicalTypeAnnotation logicalType;
         
