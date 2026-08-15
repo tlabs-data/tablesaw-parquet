@@ -134,15 +134,15 @@ class TestParquetWriter {
         for (int rowIndex = 0; rowIndex < numberOfRows; rowIndex++) {
             for (int columnIndex = 0; columnIndex < numberOfColumns; columnIndex++) {
                 assertEquals(expected.get(rowIndex, columnIndex), actual.get(rowIndex, columnIndex),
-                    header + " cells[" + rowIndex + ", " + columnIndex + "] do not match");
+                    header + " cell [" + rowIndex + ", " + columnIndex + "] does not match");
             }
         }
     }
     
     @AfterEach
     void cleanup() {
-//        OUTPUT_FILE.delete();
-//        CRC_FILE.delete();
+        OUTPUT_FILE.delete();
+        CRC_FILE.delete();
     }
 
     @Test
@@ -730,6 +730,40 @@ class TestParquetWriter {
         final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + BSON_PARQUET).build());
         final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
             .withLogicalTypes(Map.of("bson_field", LogicalType.BSON)).build();
+        PARQUET_WRITER.write(orig, options);
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        assertTableEquals(orig, dest, BSON_PARQUET);
+    }
+
+    @Test
+    void testIntervalLogicalTypeOption() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("interval", LogicalType.INTERVAL)).build();
+        assertEquals(Map.of("interval", LogicalTypeAnnotation.intervalType()), options.getLogicalTypes());
+    }
+
+    @Test
+    void testIntervalLogicalTypeWriting() throws IOException {
+        final Table orig = Table.create().addColumns(StringColumn.create("interval",
+            "P6M4DT12H30M5S", "P23DT23H", "P1M", "PT1M"));
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("interval", LogicalType.INTERVAL)).build();
+        PARQUET_WRITER.write(orig, options);
+        ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
+        final Type type = reader.getFileMetaData().getSchema().getType("interval");
+        assertTrue(type.isPrimitive());
+        final PrimitiveType primitiveType = type.asPrimitiveType();
+        assertEquals(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, primitiveType.getPrimitiveTypeName());
+        final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.intervalType(), logicalTypeAnnotation);
+    }
+
+    @Test
+    void testIntervalReloading() {
+        final Table orig = Table.create().addColumns(StringColumn.create("interval",
+            "P6M4DT12H30M5S", "P0D", "P1M", "PT1M", "P-6MT-6H", "PT-6M", "P-6D", "PT1M1.001S"));
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("interval", LogicalType.INTERVAL)).build();
         PARQUET_WRITER.write(orig, options);
         final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
         assertTableEquals(orig, dest, BSON_PARQUET);

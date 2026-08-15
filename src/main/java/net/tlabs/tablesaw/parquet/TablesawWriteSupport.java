@@ -21,6 +21,9 @@ package net.tlabs.tablesaw.parquet;
  */
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.time.Duration;
+import java.time.Period;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,9 +37,11 @@ import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeUnit;
 import org.apache.parquet.schema.MessageType;
+import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
 import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
+import org.apache.parquet.schema.Types.PrimitiveBuilder;
 import org.bson.BsonBinaryWriter;
 import org.bson.Document;
 import org.bson.codecs.DocumentCodec;
@@ -154,6 +159,28 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addLong(tableProxy.getInstantAsEpochMilli(colIndex, rowNumber));
             }
+        },
+        INTERVAL(ColumnType.STRING) {
+            private final ByteBuffer buffer = ByteBuffer.allocateDirect(12).order(ByteOrder.LITTLE_ENDIAN);
+            private final Period emptyPeriod = Period.of(0, 0, 0);
+            private final Duration emptyDuration = Duration.ofMillis(0);
+            @Override
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy, 
+                    final int colIndex, final int rowNumber) {
+                final String[] values = tableProxy.getString(colIndex, rowNumber).split("T");
+                // Handle no period only duration (PTxxx) case, as "P" is not a valid Period
+                final Period period = values[0].length() > 1 ? Period.parse(values[0]) : emptyPeriod;
+                // Handle no duration only period (Pxxx) case, as T is omitted
+                final Duration duration = values.length > 1 ?
+                    Duration.parse(new StringBuilder("PT").append(values[1]).toString()) : emptyDuration;
+                buffer
+                    .clear()
+                    .putInt(period.getMonths())
+                    .putInt(period.getDays())
+                    .putInt((int)duration.toMillis())
+                    .rewind();
+                recordConsumer.addBinary(Binary.fromReusedByteBuffer(buffer));
+            }
         };
 
         final ColumnType columnType;
@@ -180,6 +207,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     private static final Map<ColumnType, FieldRecorder> RECORDER_MAPPING;
     private static final Map<LogicalTypeAnnotation, FieldRecorder> LOGICALTYPE_RECORDER_MAPPING;
     private static final Map<LogicalTypeAnnotation, PrimitiveTypeName> LOGICALTYPE_MAPPING;
+    private static final Map<LogicalTypeAnnotation, Integer> LOGICALTYPE_FIELD_LENGTH;
     private final TableProxy proxy;
     private final MessageType schema;
     private final int nbfields;
@@ -223,10 +251,15 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.uuidType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.jsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.bsonType(), PrimitiveTypeName.BINARY);
+        LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.intervalType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
+        LOGICALTYPE_FIELD_LENGTH = new HashMap<>();
+        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.uuidType(), 16);
+        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.intervalType(), 12);
         LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.jsonType(), FieldRecorder.STRING);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.bsonType(), FieldRecorder.BSON);
+        LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.intervalType(), FieldRecorder.INTERVAL);
     }
 
     public TablesawWriteSupport(final Table table) {
@@ -251,12 +284,21 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
     }
 
     private Type createType(final Column<?> column) {
-        final ColumnType type = column.type();
+        final ColumnType columnType = column.type();
         final String name = column.name();
-        return Types
-            .optional(LOGICALTYPE_MAPPING.getOrDefault(typeMap.get(name), PRIMITIVE_MAPPING.get(type)))
-            .as(typeMap.getOrDefault(name, ANNOTATION_MAPPING.get(type)))
-            .named(name);
+        final PrimitiveTypeName primitiveType = LOGICALTYPE_MAPPING.getOrDefault(
+            typeMap.get(name), PRIMITIVE_MAPPING.get(columnType));
+        final PrimitiveBuilder<PrimitiveType> parquetType = Types
+            .optional(primitiveType);
+        final LogicalTypeAnnotation logicalType = typeMap.getOrDefault(name, ANNOTATION_MAPPING.get(columnType));
+        // All FIXED_LEN_BYTE_ARRAY columns must have a logical type and a length entry
+        if(primitiveType == PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY) {
+            parquetType.length(LOGICALTYPE_FIELD_LENGTH.get(logicalType));
+        }
+        if(logicalType != null) {
+            parquetType.as(logicalType);
+        }
+        return parquetType.named(name);
     }
 
     private FieldRecorder[] internalCreateRecorders(final Table table) {
