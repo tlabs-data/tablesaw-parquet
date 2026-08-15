@@ -23,6 +23,7 @@ package net.tlabs.tablesaw.parquet;
 import java.io.File;
 import static org.junit.jupiter.api.Assertions.*;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import tech.tablesaw.api.DoubleColumn;
@@ -30,12 +31,19 @@ import tech.tablesaw.api.Table;
 
 class TestColumnTypeInitialization {
 
+    private static final String TEST_OUTPUT = "target/test/results/test.parquet";
+
+    @AfterEach
+    void cleanup() {
+        new File(TEST_OUTPUT).delete();
+    }
+    
     @Test
     void testColumnTypeNotInitializedBug() {
         //tech.tablesaw.api.ColumnType.values(); // Workaround
         Table table = Table.create("t").addColumns(DoubleColumn.create("c", 1, 2, 3));
-        new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder("target/test/results/test.parquet").build());
-        assertTrue(new File("target/test/results/test.parquet").exists(), "File not written");
+        new TablesawParquetWriter().write(table, TablesawParquetWriteOptions.builder(TEST_OUTPUT).build());
+        assertTrue(new File(TEST_OUTPUT).exists(), "File not written");
     }
 
 }
