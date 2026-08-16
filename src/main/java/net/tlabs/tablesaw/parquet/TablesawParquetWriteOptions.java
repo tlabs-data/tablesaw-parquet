@@ -53,14 +53,14 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         BSON(LogicalTypeAnnotation.bsonType()),
         INTERVAL(LogicalTypeAnnotation.intervalType());
         
-        final LogicalTypeAnnotation logicalType;
+        final LogicalTypeAnnotation logicalTypeAnnotation;
         
-        LogicalType(final LogicalTypeAnnotation logicalType) {
-            this.logicalType = logicalType;
+        LogicalType(final LogicalTypeAnnotation logicalTypeAnnotation) {
+            this.logicalTypeAnnotation = logicalTypeAnnotation;
         }
         
         LogicalTypeAnnotation getLogicalTypeAnnotation() {
-            return this.logicalType;
+            return this.logicalTypeAnnotation;
         }
     }
 
@@ -344,7 +344,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
          */
         public Builder withLogicalTypes(final Map<String, LogicalType> logicalTypes) {
             this.logicalTypes.putAll(logicalTypes.entrySet().stream().collect(
-                Collectors.toMap(e -> e.getKey(), e -> e.getValue().getLogicalTypeAnnotation())));
+                Collectors.toMap(Entry::getKey, e -> e.getValue().getLogicalTypeAnnotation())));
             return this;
         }
 

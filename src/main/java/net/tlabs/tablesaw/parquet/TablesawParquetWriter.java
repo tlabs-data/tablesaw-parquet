@@ -94,7 +94,7 @@ public class TablesawParquetWriter implements DataWriter<TablesawParquetWriteOpt
             this.table = table;
         }
 
-        protected Builder withLogicalTypes(Map<String, LogicalTypeAnnotation> logicalTypes) {
+        protected Builder withLogicalTypes(final Map<String, LogicalTypeAnnotation> logicalTypes) {
             this.logicalTypes = logicalTypes;
             return self();
         }
