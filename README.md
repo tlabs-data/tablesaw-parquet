@@ -181,7 +181,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | DATE | DateColumn |  |
 | TIME | TimeColumn |  |
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
-| INTERVAL | StringColumn | ISO String representation of the interval.  __Not tested__  |
+| INTERVAL | StringColumn | ISO 8601 String representation of the interval.  |
 | JSON | StringColumn |  |
 | BSON |  StringColumn  |  As a Json String (since v0.16)  |
 | VARIANT |  __Not supported__  |  Column is skipped  |
@@ -216,15 +216,17 @@ Note that the `ColumnType.SKIP` column type can be used with these options to fi
 | LongColumn | INT64 |  |
 | FloatColumn | FLOAT |  |
 | DoubleColumn | DOUBLE |  |
-| StringColumn | BINARY (STRING) |  |
+| StringColumn | BINARY (STRING) |  Can be configured by the *withLogicalTypes* option (since v0.16, see below)  |
 | TimeColumn | INT32 (TIME: MILLIS, not UTC) | *Changed in v0.11.0, was INT64 (TIME: NANOS, not UTC) before* |
 | DateColumn | INT32 (DATE) |  |
 | DateTimeColumn | INT64 (TIMESTAMP: MILLIS, not UTC) |  |
 | InstantColumn | INT64 (TIMESTAMP: MILLIS, UTC) |  |
 
-Note that a tablesaw Table written to parquet and read back with default conversion will have the following changes:
+Note that a tablesaw Table written to parquet and read back with default options will have Floats changed to Doubles and Shorts to Integers, as the *minimizeColumnSizes* reader option is false by default.
 
-* If the *minimizeColumnSizes* option is not set (which is the default), Floats will be changed to Doubles and Shorts to Integers.
+Since v0.16, the `TablesawParquetWriteOptions.withLogicalTypes` method allows to specify a different Logical Type for StringColum. Available types are UUID, INTERVAL, JSON, and BSON. The column values must be valid representations of these types and no validation is done before converting data. If the option is used with another tablesaw column type than StringColumn, an `IllegalArgumentException` is raised when writing.
+
+Note that parquet INTERVAL only supports Month and Days for the Period part, and the Duration part does not support Days and has MILLI precision only.
 
 ## Features
 
