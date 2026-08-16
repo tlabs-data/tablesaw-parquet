@@ -167,12 +167,12 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             @Override
             void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy, 
                     final int colIndex, final int rowNumber) {
-                final String[] values = tableProxy.getString(colIndex, rowNumber).split("T");
+                final String[] values = tableProxy.getString(colIndex, rowNumber).split(INTERVAL_TIME_DESIGNATOR);
                 // Handle no period only duration (PTxxx) case, as "P" is not a valid Period
                 final Period period = values[0].length() > 1 ? Period.parse(values[0]) : emptyPeriod;
                 // Handle no duration only period (Pxxx) case, as T is omitted
                 final Duration duration = values.length > 1 ?
-                    Duration.parse(new StringBuilder("PT").append(values[1]).toString()) : emptyDuration;
+                    Duration.parse(new StringBuilder(INTERVAL_TIME_ONLY_DESIGNATOR).append(values[1]).toString()) : emptyDuration;
                 buffer
                     .clear()
                     .putInt(period.getMonths())
@@ -183,6 +183,8 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             }
         };
 
+        private static final String INTERVAL_TIME_ONLY_DESIGNATOR = "PT";
+        private static final String INTERVAL_TIME_DESIGNATOR = "T";
         final ColumnType columnType;
         
         private FieldRecorder(final ColumnType columnType) {
