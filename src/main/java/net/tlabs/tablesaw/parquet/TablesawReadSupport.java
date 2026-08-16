@@ -36,6 +36,7 @@ import org.apache.parquet.schema.LogicalTypeAnnotation.BsonLogicalTypeAnnotation
 import org.apache.parquet.schema.LogicalTypeAnnotation.DateLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.Float16LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeographyLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeometryLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntLogicalTypeAnnotation;
@@ -263,12 +264,16 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         });
     }
 
-    private static Optional<Column<?>> annotatedFixedLenBinaryColumn(final LogicalTypeAnnotation annotation,
+    private Optional<Column<?>> annotatedFixedLenBinaryColumn(final LogicalTypeAnnotation annotation,
             final String fieldName) {
         return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
             @Override
             public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
                 return Optional.of(DoubleColumn.create(fieldName));
+            }
+            @Override
+            public Optional<Column<?>> visit(final Float16LogicalTypeAnnotation float16LogicalType) {
+                return Optional.of(options.isFloatColumnTypeUsed() ? FloatColumn.create(fieldName) : DoubleColumn.create(fieldName));
             }
         });
     }

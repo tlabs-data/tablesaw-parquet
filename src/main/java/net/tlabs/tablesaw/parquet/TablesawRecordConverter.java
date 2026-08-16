@@ -44,11 +44,13 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.Converter;
 import org.apache.parquet.io.api.GroupConverter;
 import org.apache.parquet.io.api.PrimitiveConverter;
+import org.apache.parquet.schema.Float16Util;
 import org.apache.parquet.schema.GroupType;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.BsonLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.DecimalLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.EnumLogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.Float16LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeographyLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.GeometryLogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.IntervalLogicalTypeAnnotation;
@@ -239,32 +241,32 @@ public class TablesawRecordConverter extends GroupConverter {
         }
 
         @Override
-        public void addBinary(Binary value) {
+        public void addBinary(final Binary value) {
             addRepeatedValue(value.toStringUsingUTF8());
         }
 
         @Override
-        public void addBoolean(boolean value) {
+        public void addBoolean(final boolean value) {
             addRepeatedValue(Boolean.toString(value));
         }
 
         @Override
-        public void addDouble(double value) {
+        public void addDouble(final double value) {
             addRepeatedValue(Double.toString(value));
         }
 
         @Override
-        public void addFloat(float value) {
+        public void addFloat(final float value) {
             addRepeatedValue(Float.toString(value));
         }
 
         @Override
-        public void addInt(int value) {
+        public void addInt(final int value) {
             addRepeatedValue(Integer.toString(value));
         }
 
         @Override
-        public void addLong(long value) {
+        public void addLong(final long value) {
             addRepeatedValue(Long.toString(value));
         }
 
@@ -294,7 +296,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
 
         @Override
-        public void addBinary(Binary value) {
+        public void addBinary(final Binary value) {
             String valueStr = BINARY_INVALID;
             try {
                 final Geometry geometry = reader.read(value.getBytesUnsafe());
@@ -391,6 +393,10 @@ public class TablesawRecordConverter extends GroupConverter {
                 @Override
                 public void addFloat(final float value) {
                     proxy.appendFloat(colIndex, value);
+                }
+                @Override
+                public void addBinary(final Binary value) {
+                    proxy.appendFloat(colIndex, Float16Util.toFloat(value));
                 }
             };
         }
@@ -533,7 +539,7 @@ public class TablesawRecordConverter extends GroupConverter {
             }
             
             @Override
-            public Optional<Converter> visit(UUIDLogicalTypeAnnotation uuidLogicalType) {
+            public Optional<Converter> visit(final UUIDLogicalTypeAnnotation uuidLogicalType) {
                 return Optional.of(new PrimitiveConverter() {
                     @Override
                     public void addBinary(final Binary value) {
@@ -547,22 +553,22 @@ public class TablesawRecordConverter extends GroupConverter {
             }
 
             @Override
-            public Optional<Converter> visit(GeometryLogicalTypeAnnotation geometryLogicalType) {
+            public Optional<Converter> visit(final GeometryLogicalTypeAnnotation geometryLogicalType) {
                 return Optional.of(new GeospatialPrimitiveConverter(colIndex));
             }
             
             @Override
-            public Optional<Converter> visit(GeographyLogicalTypeAnnotation geographyLogicalType) {
+            public Optional<Converter> visit(final GeographyLogicalTypeAnnotation geographyLogicalType) {
                 return Optional.of(new GeospatialPrimitiveConverter(colIndex));
             }
 
             @Override
-            public Optional<Converter> visit(JsonLogicalTypeAnnotation jsonLogicalType) {
+            public Optional<Converter> visit(final JsonLogicalTypeAnnotation jsonLogicalType) {
                 return Optional.of(new StringPrimitiveConverter(colIndex));
             }
 
             @Override
-            public Optional<Converter> visit(BsonLogicalTypeAnnotation bsonLogicalType) {
+            public Optional<Converter> visit(final BsonLogicalTypeAnnotation bsonLogicalType) {
                 return Optional.of(new PrimitiveConverter() {
                     private final DecoderContext context = DecoderContext.builder().build();
                     private final JsonWriterSettings settings = JsonWriterSettings.builder().build();
@@ -587,6 +593,15 @@ public class TablesawRecordConverter extends GroupConverter {
                     public void addBinary(final Binary value) {
                         final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
                         proxy.appendDouble(colIndex, bigd.doubleValue());
+                    }
+                });
+            }
+            @Override
+            public Optional<Converter> visit(final Float16LogicalTypeAnnotation float16LogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    @Override
+                    public void addBinary(final Binary value) {
+                        proxy.appendDouble(colIndex, Float16Util.toFloat(value));
                     }
                 });
             }
