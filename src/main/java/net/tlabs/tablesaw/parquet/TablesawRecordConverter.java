@@ -83,6 +83,8 @@ public class TablesawRecordConverter extends GroupConverter {
     private static final String BINARY_INSTANT_LENGTH_MESSAGE = "Must be 12 bytes";
     private static final int BINARY_INTERVAL_LENGTH_VALUE = 12;
     private static final String BINARY_INTERVAL_LENGTH_MESSAGE = "Must be 12 bytes";
+    private static final String INTERVAL_PERIOD_DESIGNATOR = "P";
+    private static final String INTERVAL_ZERO_STRING_REPRESENTATION = "P0D";
     private static final int BINARY_UUID_LENGTH_VALUE = 16;
     private static final String BINARY_UUID_LENGTH_MESSAGE = "Must be 16 bytes";
 
@@ -512,13 +514,13 @@ public class TablesawRecordConverter extends GroupConverter {
                         final StringBuilder builder = new StringBuilder();
                         // Handle case where all values are 0, as P is not a valid period
                         if(months == 0 && days == 0 && millis == 0) {
-                            builder.append("P0D");
+                            builder.append(INTERVAL_ZERO_STRING_REPRESENTATION);
                         } else {
                             if (months != 0 || days != 0) {
                                 builder.append(Period.ofMonths(months).plusDays(days).toString());
                             } else {
                                 // No Duration, requires the P header
-                                builder.append("P");
+                                builder.append(INTERVAL_PERIOD_DESIGNATOR);
                             }
                             // Skip time block if 0
                             if(millis != 0) {
