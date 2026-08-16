@@ -178,6 +178,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | Signed Integers | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | Unsigned Integers  | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | DECIMAL | DoubleColumn |  |
+| FLOAT16 | DoubleColumn (default) or FloatColumn |  Managed by the *minimizeColumnSizes* option  |
 | DATE | DateColumn |  |
 | TIME | TimeColumn |  |
 | TIMESTAMP | DateTimeColumn or InstantColumn | Timestamps normalized to UTC are converted to Instant, others as LocalDateTime |
