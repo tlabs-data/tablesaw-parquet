@@ -51,7 +51,8 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         UUID(LogicalTypeAnnotation.uuidType()),
         JSON(LogicalTypeAnnotation.jsonType()),
         BSON(LogicalTypeAnnotation.bsonType()),
-        INTERVAL(LogicalTypeAnnotation.intervalType());
+        INTERVAL(LogicalTypeAnnotation.intervalType()),
+        FLOAT16(LogicalTypeAnnotation.float16Type());
         
         final LogicalTypeAnnotation logicalTypeAnnotation;
         

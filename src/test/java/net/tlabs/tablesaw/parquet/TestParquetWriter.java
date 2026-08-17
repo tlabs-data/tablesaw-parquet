@@ -84,6 +84,7 @@ class TestParquetWriter {
     private static final String UUID_PARQUET = "target/test-classes/uuid.parquet";
     private static final String JSON_PARQUET = "json.parquet";
     private static final String BSON_PARQUET = "bson.parquet";
+    private static final String FLOAT16_PARQUET = "float16_nonzeros_and_nans.parquet";
 
     private static final TablesawParquetWriter PARQUET_WRITER = new TablesawParquetWriter();
     private static final TablesawParquetReader PARQUET_READER = new TablesawParquetReader();
@@ -767,5 +768,40 @@ class TestParquetWriter {
         PARQUET_WRITER.write(orig, options);
         final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
         assertTableEquals(orig, dest, BSON_PARQUET);
+    }
+
+    @Test
+    void testFloat16LogicalTypeOption() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("float", LogicalType.FLOAT16)).build();
+        assertEquals(Map.of("float", LogicalTypeAnnotation.float16Type()), options.getLogicalTypes());
+    }
+
+    @Test
+    void testFloat16LogicalTypeWriting() throws IOException {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + FLOAT16_PARQUET)
+            .minimizeColumnSizes().build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("x", LogicalType.FLOAT16)).build();
+        PARQUET_WRITER.write(orig, options);
+        ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
+        final Type type = reader.getFileMetaData().getSchema().getType("x");
+        assertTrue(type.isPrimitive());
+        final PrimitiveType primitiveType = type.asPrimitiveType();
+        assertEquals(PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY, primitiveType.getPrimitiveTypeName());
+        final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.float16Type(), logicalTypeAnnotation);
+    }
+
+    @Test
+    void testFloat16Reloading() {
+        final Table orig = PARQUET_READER.read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + FLOAT16_PARQUET)
+            .minimizeColumnSizes().build());
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("x", LogicalType.FLOAT16)).build();
+        PARQUET_WRITER.write(orig, options);
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE)
+            .minimizeColumnSizes().build());
+        assertTableEquals(orig, dest, FLOAT16_PARQUET);
     }
 }
