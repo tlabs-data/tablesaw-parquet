@@ -34,6 +34,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.parquet.hadoop.api.WriteSupport;
 import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
+import org.apache.parquet.schema.Float16Util;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeUnit;
 import org.apache.parquet.schema.MessageType;
@@ -96,6 +97,18 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
                 recordConsumer.addDouble(tableProxy.getDouble(colIndex, rowNumber));
+            }
+        },
+        FLOAT16 (ColumnType.FLOAT) {
+            private final ByteBuffer buffer = ByteBuffer.allocateDirect(2).order(ByteOrder.LITTLE_ENDIAN);
+            @Override
+            void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy, 
+                    final int colIndex, final int rowNumber) {
+                buffer
+                   .clear()
+                   .putShort(Float16Util.toFloat16(tableProxy.getFloat(colIndex, rowNumber)))
+                   .rewind();
+                recordConsumer.addBinary(Binary.fromReusedByteBuffer(buffer));
             }
         },
         STRING(ColumnType.STRING) {
@@ -254,14 +267,17 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.jsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.bsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.intervalType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
+        LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.float16Type(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
         LOGICALTYPE_FIELD_LENGTH = new HashMap<>();
         LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.uuidType(), 16);
         LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.intervalType(), 12);
+        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.float16Type(), 2);
         LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.jsonType(), FieldRecorder.STRING);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.bsonType(), FieldRecorder.BSON);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.intervalType(), FieldRecorder.INTERVAL);
+        LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.float16Type(), FieldRecorder.FLOAT16);
     }
 
     public TablesawWriteSupport(final Table table) {

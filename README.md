@@ -215,7 +215,7 @@ Note that the `ColumnType.SKIP` column type can be used with these options to fi
 | ShortColumn | INT32 (Integer: 16 bits, signed)|  |
 | IntColumn | INT32 |  |
 | LongColumn | INT64 |  |
-| FloatColumn | FLOAT |  |
+| FloatColumn | FLOAT |  Can be set to FLOAT16 using the *withLogicalTypes* option (since v0.16)  |
 | DoubleColumn | DOUBLE |  |
 | StringColumn | BINARY (STRING) |  Can be configured by the *withLogicalTypes* option (since v0.16, see below)  |
 | TimeColumn | INT32 (TIME: MILLIS, not UTC) | *Changed in v0.11.0, was INT64 (TIME: NANOS, not UTC) before* |
