@@ -371,7 +371,7 @@ public class TablesawRecordConverter extends GroupConverter {
         }
         if (ColumnType.DOUBLE.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
-                .flatMap(a -> doubleFromBinaryConverter(colIndex, a))
+                .flatMap(a -> annotatedDoubleConverter(colIndex, a))
                 .orElseGet(() -> new DefaultDoublePrimitiveConverter(colIndex));
         }
         if (ColumnType.BOOLEAN.equals(columnType)) {
@@ -388,16 +388,14 @@ public class TablesawRecordConverter extends GroupConverter {
                 .orElseGet(() -> createUnannotatedStringConverter(colIndex, schemaType, options));
         }
         if (ColumnType.FLOAT.equals(columnType)) {
-            return new PrimitiveConverter() {
-                @Override
-                public void addFloat(final float value) {
-                    proxy.appendFloat(colIndex, value);
-                }
-                @Override
-                public void addBinary(final Binary value) {
-                    proxy.appendFloat(colIndex, Float16Util.toFloat(value));
-                }
-            };
+            return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
+                .flatMap(a -> annotatedFloatConverter(colIndex, a))
+                .orElseGet(() -> new PrimitiveConverter() {
+                    @Override
+                    public void addFloat(final float value) {
+                        proxy.appendFloat(colIndex, value);
+                    }
+                });
         }
         if (ColumnType.INSTANT.equals(columnType)) {
             return Optional.ofNullable(schemaType.getLogicalTypeAnnotation())
@@ -583,7 +581,7 @@ public class TablesawRecordConverter extends GroupConverter {
         });
     }
 
-    private Optional<Converter> doubleFromBinaryConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+    private Optional<Converter> annotatedDoubleConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
         return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
             @Override
             public Optional<Converter> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
@@ -593,6 +591,14 @@ public class TablesawRecordConverter extends GroupConverter {
                         final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
                         proxy.appendDouble(colIndex, bigd.doubleValue());
                     }
+                    @Override
+                    public void addInt(final int value) {
+                        proxy.appendDouble(colIndex, BigDecimal.valueOf(value, decimalLogicalType.getScale()).doubleValue());
+                    }
+                    @Override
+                    public void addLong(long value) {
+                        proxy.appendDouble(colIndex, BigDecimal.valueOf(value, decimalLogicalType.getScale()).doubleValue());
+                    }
                 });
             }
             @Override
@@ -601,6 +607,38 @@ public class TablesawRecordConverter extends GroupConverter {
                     @Override
                     public void addBinary(final Binary value) {
                         proxy.appendDouble(colIndex, Float16Util.toFloat(value));
+                    }
+                });
+            }
+        });
+    }
+
+    private Optional<Converter> annotatedFloatConverter(final int colIndex, final LogicalTypeAnnotation annotation) {
+        return annotation.accept(new LogicalTypeAnnotationVisitor<Converter>() {
+            @Override
+            public Optional<Converter> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    @Override
+                    public void addBinary(final Binary value) {
+                        final BigDecimal bigd = new BigDecimal(new BigInteger(value.getBytes()), decimalLogicalType.getScale());
+                        proxy.appendFloat(colIndex, bigd.floatValue());
+                    }
+                    @Override
+                    public void addInt(final int value) {
+                        proxy.appendFloat(colIndex, BigDecimal.valueOf(value, decimalLogicalType.getScale()).floatValue());
+                    }
+                    @Override
+                    public void addLong(long value) {
+                        proxy.appendFloat(colIndex, BigDecimal.valueOf(value, decimalLogicalType.getScale()).floatValue());
+                    }
+                });
+            }
+            @Override
+            public Optional<Converter> visit(final Float16LogicalTypeAnnotation float16LogicalType) {
+                return Optional.of(new PrimitiveConverter() {
+                    @Override
+                    public void addBinary(final Binary value) {
+                        proxy.appendFloat(colIndex, Float16Util.toFloat(value));
                     }
                 });
             }

@@ -177,7 +177,7 @@ Annotated [parquet logical types](https://github.com/apache/parquet-format/blob/
 | UUID | StringColumn | Lowercase hexadecimal values in the 8-4-4-4-12 format (since v0.14) |
 | Signed Integers | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
 | Unsigned Integers  | ShortColumn or IntColumn or LongColumn | ShortColumn only with the *minimizeColumnSizes* option |
-| DECIMAL | DoubleColumn |  |
+| DECIMAL | DoubleColumn (default) or FloatColumn |  FloatColumn if *minimizeColumnSizes* option is set  __and__  precision fits *(changed in v0.16, was DoubleColumn only before)*  |
 | FLOAT16 | DoubleColumn (default) or FloatColumn |  Managed by the *minimizeColumnSizes* option  |
 | DATE | DateColumn |  |
 | TIME | TimeColumn |  |
