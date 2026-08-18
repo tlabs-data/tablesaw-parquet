@@ -87,7 +87,6 @@ public class TablesawRecordConverter extends GroupConverter {
     private static final String BINARY_INTERVAL_LENGTH_MESSAGE = "Must be 12 bytes";
     private static final String INTERVAL_PERIOD_DESIGNATOR = "P";
     private static final String INTERVAL_ZERO_STRING_REPRESENTATION = "P0D";
-    private static final int BINARY_UUID_LENGTH_VALUE = 16;
     private static final String BINARY_UUID_LENGTH_MESSAGE = "Must be 16 bytes";
 
     private final class DateTimePrimitiveConverter extends PrimitiveConverter {
@@ -543,7 +542,7 @@ public class TablesawRecordConverter extends GroupConverter {
                 return Optional.of(new PrimitiveConverter() {
                     @Override
                     public void addBinary(final Binary value) {
-                        Preconditions.checkArgument(value.length() == BINARY_UUID_LENGTH_VALUE,
+                        Preconditions.checkArgument(value.length() == UUIDLogicalTypeAnnotation.BYTES,
                             BINARY_UUID_LENGTH_MESSAGE);
                         final ByteBuffer buf = value.toByteBuffer();
                         buf.order(ByteOrder.BIG_ENDIAN);
