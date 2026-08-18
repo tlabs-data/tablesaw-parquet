@@ -52,7 +52,8 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         JSON(LogicalTypeAnnotation.jsonType()),
         BSON(LogicalTypeAnnotation.bsonType()),
         INTERVAL(LogicalTypeAnnotation.intervalType()),
-        FLOAT16(LogicalTypeAnnotation.float16Type());
+        FLOAT16(LogicalTypeAnnotation.float16Type()),
+        ENUM(LogicalTypeAnnotation.enumType());
         
         final LogicalTypeAnnotation logicalTypeAnnotation;
         

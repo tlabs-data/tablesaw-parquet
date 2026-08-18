@@ -804,4 +804,38 @@ class TestParquetWriter {
             .minimizeColumnSizes().build());
         assertTableEquals(orig, dest, FLOAT16_PARQUET);
     }
+
+    @Test
+    void testEnumLogicalTypeOption() {
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("enum", LogicalType.ENUM)).build();
+        assertEquals(Map.of("enum", LogicalTypeAnnotation.enumType()), options.getLogicalTypes());
+    }
+
+    @Test
+    void testEnumLogicalTypeWriting() throws IOException {
+        final Table orig = Table.create().addColumns(StringColumn.create("enum",
+            "A", "B", "A", "D"));
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("enum", LogicalType.ENUM)).build();
+        PARQUET_WRITER.write(orig, options);
+        ParquetFileReader reader = ParquetFileReader.open(new LocalInputFile(Path.of(OUTPUT_FILE_NAME)));
+        final Type type = reader.getFileMetaData().getSchema().getType("enum");
+        assertTrue(type.isPrimitive());
+        final PrimitiveType primitiveType = type.asPrimitiveType();
+        assertEquals(PrimitiveTypeName.BINARY, primitiveType.getPrimitiveTypeName());
+        final LogicalTypeAnnotation logicalTypeAnnotation = type.getLogicalTypeAnnotation();
+        assertEquals(LogicalTypeAnnotation.enumType(), logicalTypeAnnotation);
+    }
+
+    @Test
+    void testEnumReloading() {
+        final Table orig = Table.create().addColumns(StringColumn.create("enum",
+            "A", "B", "A", "D"));
+        final TablesawParquetWriteOptions options = TablesawParquetWriteOptions.builder(OUTPUT_FILE)
+            .withLogicalTypes(Map.of("enum", LogicalType.ENUM)).build();
+        PARQUET_WRITER.write(orig, options);
+        final Table dest = PARQUET_READER.read(TablesawParquetReadOptions.builder(OUTPUT_FILE).build());
+        assertTableEquals(orig, dest, "ENUM TYPE");
+    }
 }

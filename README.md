@@ -225,7 +225,7 @@ Note that the `ColumnType.SKIP` column type can be used with these options to fi
 
 Note that a tablesaw Table written to parquet and read back with default options will have Floats changed to Doubles and Shorts to Integers, as the *minimizeColumnSizes* reader option is false by default.
 
-Since v0.16, the `TablesawParquetWriteOptions.withLogicalTypes` method allows to specify a different Logical Type for StringColum. Available types are UUID, INTERVAL, JSON, and BSON. The column values must be valid representations of these types and no validation is done before converting data. If the option is used with another tablesaw column type than StringColumn, an `IllegalArgumentException` is raised when writing.
+Since v0.16, the `TablesawParquetWriteOptions.withLogicalTypes` method allows to specify a different Logical Type for StringColum. Available types are UUID, ENUM, INTERVAL, JSON, and BSON. The column values must be valid representations of these types and no validation is done before converting data. If the option is used with another tablesaw column type than StringColumn, an `IllegalArgumentException` is raised when writing.
 
 Note that parquet INTERVAL only supports Month and Days for the Period part, and the Duration part does not support Days and has MILLI precision only. Leading plus or minus signs are not supported, plus or minus signs on individual sections are supported.
 

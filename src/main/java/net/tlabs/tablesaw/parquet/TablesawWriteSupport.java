@@ -269,6 +269,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         RECORDER_MAPPING.put(ColumnType.STRING, FieldRecorder.STRING);
         LOGICALTYPE_MAPPING = new HashMap<>();
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.uuidType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
+        LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.enumType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.jsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.bsonType(), PrimitiveTypeName.BINARY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.intervalType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
@@ -279,6 +280,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.float16Type(), Float16LogicalTypeAnnotation.BYTES);
         LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
+        LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.enumType(), FieldRecorder.STRING);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.jsonType(), FieldRecorder.STRING);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.bsonType(), FieldRecorder.BSON);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.intervalType(), FieldRecorder.INTERVAL);
