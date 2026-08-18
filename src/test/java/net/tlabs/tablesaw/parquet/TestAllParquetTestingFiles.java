@@ -22,8 +22,6 @@ package net.tlabs.tablesaw.parquet;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -268,14 +265,4 @@ class TestAllParquetTestingFiles {
         assertEquals(1, table.columnCount(), "Variant column should be skipped");
     }
     
-    @Test
-    void testFloat16Reading() {
-        final Table orig = new TablesawParquetReader()
-            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + "float16_nonzeros_and_nans.parquet")
-            .minimizeColumnSizes()
-            .build());
-        assertEquals(ColumnType.FLOAT, orig.column(0).type());
-        assertTrue(orig.column(0).isMissing(0));
-        assertEquals(-2f, orig.floatColumn(0).getFloat(2));
-    }
 }

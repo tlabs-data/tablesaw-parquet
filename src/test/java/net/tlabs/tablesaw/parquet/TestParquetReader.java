@@ -287,9 +287,20 @@ class TestParquetReader {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT32_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_INT32_DECIMAL);
-        assertEquals(ColumnType.INTEGER, table.column(0).type(), APACHE_INT32_DECIMAL + "[" + "value" + "] wrong type");
-        assertEquals(100, table.intColumn(0).getInt(0), APACHE_INT32_DECIMAL + "[" + "value" + ",0] wrong value");
-        assertEquals(2400, table.intColumn(0).getInt(23), APACHE_INT32_DECIMAL + "[" + "value" + ",23] wrong value");
+        assertEquals(ColumnType.DOUBLE, table.column(0).type(), APACHE_INT32_DECIMAL + "[" + "value" + "] wrong type");
+        assertEquals(1.0d, table.doubleColumn(0).getDouble(0), APACHE_INT32_DECIMAL + "[" + "value" + ",0.0] wrong value");
+        assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_INT32_DECIMAL + "[" + "value" + ",23.0] wrong value");
+    }
+
+    @Test
+    void testInt32DecimalToFloat() {
+        final Table table = PARQUET_READER
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT32_DECIMAL)
+                .minimizeColumnSizes().build());
+        validateTable(table, 1, 24, APACHE_INT32_DECIMAL);
+        assertEquals(ColumnType.FLOAT, table.column(0).type(), APACHE_INT32_DECIMAL + "[" + "value" + "] wrong type");
+        assertEquals(1.0f, table.floatColumn(0).getFloat(0), APACHE_INT32_DECIMAL + "[" + "value" + ",0.0] wrong value");
+        assertEquals(24.0f, table.floatColumn(0).getFloat(23), APACHE_INT32_DECIMAL + "[" + "value" + ",23.0] wrong value");
     }
 
     @Test
@@ -297,9 +308,20 @@ class TestParquetReader {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT64_DECIMAL).build());
         validateTable(table, 1, 24, APACHE_INT64_DECIMAL);
-        assertEquals(ColumnType.LONG, table.column(0).type(), APACHE_INT64_DECIMAL + "[" + "value" + "] wrong type");
-        assertEquals(100l, table.longColumn(0).getLong(0), APACHE_INT64_DECIMAL + "[" + "value" + ",0] wrong value");
-        assertEquals(2400l, table.longColumn(0).getLong(23), APACHE_INT64_DECIMAL + "[" + "value" + ",23] wrong value");
+        assertEquals(ColumnType.DOUBLE, table.column(0).type(), APACHE_INT64_DECIMAL + "[" + "value" + "] wrong type");
+        assertEquals(1.0d, table.doubleColumn(0).getDouble(0), APACHE_INT64_DECIMAL + "[" + "value" + ",0.0] wrong value");
+        assertEquals(24.0d, table.doubleColumn(0).getDouble(23), APACHE_INT64_DECIMAL + "[" + "value" + ",23.0] wrong value");
+    }
+
+    @Test
+    void testInt64DecimalToFloat() {
+        final Table table = PARQUET_READER
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_INT64_DECIMAL)
+                .minimizeColumnSizes().build());
+        validateTable(table, 1, 24, APACHE_INT64_DECIMAL);
+        assertEquals(ColumnType.FLOAT, table.column(0).type(), APACHE_INT64_DECIMAL + "[" + "value" + "] wrong type");
+        assertEquals(1.0f, table.floatColumn(0).getFloat(0), APACHE_INT64_DECIMAL + "[" + "value" + ",0.0] wrong value");
+        assertEquals(24.0f, table.floatColumn(0).getFloat(23), APACHE_INT64_DECIMAL + "[" + "value" + ",23.0] wrong value");
     }
 
     @Test
@@ -312,6 +334,20 @@ class TestParquetReader {
         assertEquals(1.0d, table.doubleColumn(0).getDouble(0),
             APACHE_FIXED_LENGTH_DECIMAL + "[" + "value" + ",0] wrong value");
         assertEquals(24.0d, table.doubleColumn(0).getDouble(23),
+            APACHE_FIXED_LENGTH_DECIMAL + "[" + "value" + "23] wrong value");
+    }
+
+    @Test
+    void testFixedLengthDecimalToFloat() {
+        final Table table = PARQUET_READER
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL)
+                .minimizeColumnSizes().build());
+        validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL);
+        assertEquals(ColumnType.FLOAT, table.column(0).type(),
+            APACHE_FIXED_LENGTH_DECIMAL + "[" + "value" + "] wrong type");
+        assertEquals(1.0f, table.floatColumn(0).getFloat(0),
+            APACHE_FIXED_LENGTH_DECIMAL + "[" + "value" + ",0] wrong value");
+        assertEquals(24.0f, table.floatColumn(0).getFloat(23),
             APACHE_FIXED_LENGTH_DECIMAL + "[" + "value" + "23] wrong value");
     }
 
@@ -329,6 +365,20 @@ class TestParquetReader {
     }
 
     @Test
+    void testFixedLengthDecimalLegacyToFloat() {
+        final Table table = PARQUET_READER.read(
+            TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_FIXED_LENGTH_DECIMAL_LEGACY)
+            .minimizeColumnSizes().build());
+        validateTable(table, 1, 24, APACHE_FIXED_LENGTH_DECIMAL_LEGACY);
+        assertEquals(ColumnType.FLOAT, table.column(0).type(),
+            APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "value" + "] wrong type");
+        assertEquals(1.0f, table.floatColumn(0).getFloat(0),
+            APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "value" + ",0] wrong value");
+        assertEquals(24.0f, table.floatColumn(0).getFloat(23),
+            APACHE_FIXED_LENGTH_DECIMAL_LEGACY + "[" + "value" + ",23] wrong value");
+    }
+
+    @Test
     void testByteArrayDecimal() {
         final Table table = PARQUET_READER
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL).build());
@@ -338,6 +388,20 @@ class TestParquetReader {
         assertEquals(1.0d, table.doubleColumn(0).getDouble(0),
             APACHE_BYTE_ARRAY_DECIMAL + "[" + "value" + ",0] wrong value");
         assertEquals(24.0d, table.doubleColumn(0).getDouble(23),
+            APACHE_BYTE_ARRAY_DECIMAL + "[" + "value" + ",23] wrong value");
+    }
+
+    @Test
+    void testByteArrayDecimalToFloat() {
+        final Table table = PARQUET_READER
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + APACHE_BYTE_ARRAY_DECIMAL)
+                .minimizeColumnSizes().build());
+        validateTable(table, 1, 24, APACHE_BYTE_ARRAY_DECIMAL);
+        assertEquals(ColumnType.FLOAT, table.column(0).type(),
+            APACHE_BYTE_ARRAY_DECIMAL + "[" + "value" + "] wrong type");
+        assertEquals(1.0f, table.floatColumn(0).getFloat(0),
+            APACHE_BYTE_ARRAY_DECIMAL + "[" + "value" + ",0] wrong value");
+        assertEquals(24.0f, table.floatColumn(0).getFloat(23),
             APACHE_BYTE_ARRAY_DECIMAL + "[" + "value" + ",23] wrong value");
     }
 
@@ -399,5 +463,16 @@ class TestParquetReader {
         assertEquals("{\"a\":1}", StringUtils.deleteWhitespace(table.column(0).getString(0)), "Error decoding Bson");
         assertEquals("{\"a\":1,\"b\":null}", StringUtils.deleteWhitespace(table.column(0).getString(1)), "Error decoding Bson");
         assertTrue(table.column(0).isMissing(2));
+    }
+
+    @Test
+    void testFloat16Reading() {
+        final Table orig = new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + "float16_nonzeros_and_nans.parquet")
+            .minimizeColumnSizes()
+            .build());
+        assertEquals(ColumnType.FLOAT, orig.column(0).type());
+        assertTrue(orig.column(0).isMissing(0));
+        assertEquals(-2f, orig.floatColumn(0).getFloat(2));
     }
 }

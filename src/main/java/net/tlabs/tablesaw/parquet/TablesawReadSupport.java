@@ -197,7 +197,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 return BooleanColumn.create(fieldName);
             case INT32:
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
-                    .flatMap(a -> annotatedIntColumn(a, fieldName, options))
+                    .flatMap(a -> annotatedIntColumn(a, fieldName))
                     .orElseGet(() -> IntColumn.create(fieldName));
             case INT64:
                 return Optional.ofNullable(fieldType.getLogicalTypeAnnotation())
@@ -224,7 +224,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         }
     }
 
-    private static Optional<Column<?>> annotatedBinaryColumn(final LogicalTypeAnnotation annotation,
+    private Optional<Column<?>> annotatedBinaryColumn(final LogicalTypeAnnotation annotation,
             final String fieldName) {
         return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
             @Override
@@ -249,16 +249,17 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
             @Override
             public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
-                return Optional.of(DoubleColumn.create(fieldName));
+                return Optional.of(options.isFloatColumnTypeUsed() && decimalLogicalType.getPrecision() <= 32 ? 
+                    FloatColumn.create(fieldName) : DoubleColumn.create(fieldName));
             }
 
             @Override
-            public Optional<Column<?>> visit(GeometryLogicalTypeAnnotation geometryLogicalType) {
+            public Optional<Column<?>> visit(final GeometryLogicalTypeAnnotation geometryLogicalType) {
                 return Optional.of(StringColumn.create(fieldName));
             }
 
             @Override
-            public Optional<Column<?>> visit(GeographyLogicalTypeAnnotation geographyLogicalType) {
+            public Optional<Column<?>> visit(final GeographyLogicalTypeAnnotation geographyLogicalType) {
                 return Optional.of(StringColumn.create(fieldName));
             }
         });
@@ -269,7 +270,8 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
             @Override
             public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
-                return Optional.of(DoubleColumn.create(fieldName));
+                return Optional.of(options.isFloatColumnTypeUsed() && decimalLogicalType.getPrecision() <= 32 ? 
+                    FloatColumn.create(fieldName) : DoubleColumn.create(fieldName));
             }
             @Override
             public Optional<Column<?>> visit(final Float16LogicalTypeAnnotation float16LogicalType) {
@@ -278,7 +280,7 @@ public class TablesawReadSupport extends ReadSupport<Row> {
         });
     }
 
-    private static Optional<Column<?>> annotatedLongColumn(final LogicalTypeAnnotation annotation,
+    private Optional<Column<?>> annotatedLongColumn(final LogicalTypeAnnotation annotation,
             final String fieldName) {
         return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
             @Override
@@ -291,11 +293,15 @@ public class TablesawReadSupport extends ReadSupport<Row> {
                 return Optional.of(timestampLogicalType.isAdjustedToUTC() ?
                     InstantColumn.create(fieldName) : DateTimeColumn.create(fieldName));
             }
+            @Override
+            public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
+                return Optional.of(options.isFloatColumnTypeUsed() ?
+                    FloatColumn.create(fieldName) : DoubleColumn.create(fieldName));            }
         });
     }
 
-    private static Optional<Column<?>> annotatedIntColumn(final LogicalTypeAnnotation annotation,
-            final String fieldName,  final TablesawParquetReadOptions options) {
+    private Optional<Column<?>> annotatedIntColumn(final LogicalTypeAnnotation annotation,
+            final String fieldName) {
         return annotation.accept(new LogicalTypeAnnotationVisitor<Column<?>>() {
             @Override
             public Optional<Column<?>> visit(final DateLogicalTypeAnnotation dateLogicalType) {
@@ -309,16 +315,16 @@ public class TablesawReadSupport extends ReadSupport<Row> {
 
             @Override
             public Optional<Column<?>> visit(final IntLogicalTypeAnnotation intLogicalType) {
-                return Optional.of(mustUseShortColumn(intLogicalType, options) ?
+                return Optional.of(options.isShortColumnTypeUsed() && intLogicalType.getBitWidth() < 32 ?
                     ShortColumn.create(fieldName) : IntColumn.create(fieldName));
             }
 
-        });
-    }
+            @Override
+            public Optional<Column<?>> visit(final DecimalLogicalTypeAnnotation decimalLogicalType) {
+                return Optional.of(options.isFloatColumnTypeUsed() ?
+                    FloatColumn.create(fieldName) : DoubleColumn.create(fieldName));            }
 
-    private static boolean mustUseShortColumn(final IntLogicalTypeAnnotation intLogicalType,
-            final TablesawParquetReadOptions options) {
-        return options.isShortColumnTypeUsed() && intLogicalType.getBitWidth() < 32;
+        });
     }
 
     public Table getTable() {
