@@ -36,7 +36,9 @@ import org.apache.parquet.io.api.Binary;
 import org.apache.parquet.io.api.RecordConsumer;
 import org.apache.parquet.schema.Float16Util;
 import org.apache.parquet.schema.LogicalTypeAnnotation;
+import org.apache.parquet.schema.LogicalTypeAnnotation.Float16LogicalTypeAnnotation;
 import org.apache.parquet.schema.LogicalTypeAnnotation.TimeUnit;
+import org.apache.parquet.schema.LogicalTypeAnnotation.UUIDLogicalTypeAnnotation;
 import org.apache.parquet.schema.MessageType;
 import org.apache.parquet.schema.PrimitiveType;
 import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName;
@@ -55,6 +57,8 @@ import tech.tablesaw.api.Table;
 import tech.tablesaw.columns.Column;
 
 public class TablesawWriteSupport extends WriteSupport<Row> {
+
+    private static final int INTERVAL_BYTE_LENGTH = 12;
 
     private enum FieldRecorder {
         BOOLEAN(ColumnType.BOOLEAN) {
@@ -100,7 +104,8 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             }
         },
         FLOAT16 (ColumnType.FLOAT) {
-            private final ByteBuffer buffer = ByteBuffer.allocateDirect(2).order(ByteOrder.LITTLE_ENDIAN);
+            private final ByteBuffer buffer = ByteBuffer.allocateDirect(Float16LogicalTypeAnnotation.BYTES)
+                .order(ByteOrder.LITTLE_ENDIAN);
             @Override
             void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy, 
                     final int colIndex, final int rowNumber) {
@@ -119,7 +124,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             }
         },
         UUID(ColumnType.STRING) {
-            private final ByteBuffer buffer = ByteBuffer.allocateDirect(16);
+            private final ByteBuffer buffer = ByteBuffer.allocateDirect(UUIDLogicalTypeAnnotation.BYTES);
             @Override
             void recordValue(final RecordConsumer recordConsumer, final TableProxy tableProxy,
                     final int colIndex, final int rowNumber) {
@@ -174,7 +179,7 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
             }
         },
         INTERVAL(ColumnType.STRING) {
-            private final ByteBuffer buffer = ByteBuffer.allocateDirect(12).order(ByteOrder.LITTLE_ENDIAN);
+            private final ByteBuffer buffer = ByteBuffer.allocateDirect(INTERVAL_BYTE_LENGTH).order(ByteOrder.LITTLE_ENDIAN);
             private final Period emptyPeriod = Period.of(0, 0, 0);
             private final Duration emptyDuration = Duration.ofMillis(0);
             @Override
@@ -269,9 +274,9 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.intervalType(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
         LOGICALTYPE_MAPPING.put(LogicalTypeAnnotation.float16Type(), PrimitiveTypeName.FIXED_LEN_BYTE_ARRAY);
         LOGICALTYPE_FIELD_LENGTH = new HashMap<>();
-        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.uuidType(), 16);
-        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.intervalType(), 12);
-        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.float16Type(), 2);
+        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.uuidType(), UUIDLogicalTypeAnnotation.BYTES);
+        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.intervalType(), INTERVAL_BYTE_LENGTH);
+        LOGICALTYPE_FIELD_LENGTH.put(LogicalTypeAnnotation.float16Type(), Float16LogicalTypeAnnotation.BYTES);
         LOGICALTYPE_RECORDER_MAPPING = new HashMap<>();
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.uuidType(), FieldRecorder.UUID);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.jsonType(), FieldRecorder.STRING);
