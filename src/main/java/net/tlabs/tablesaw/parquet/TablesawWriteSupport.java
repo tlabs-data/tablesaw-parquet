@@ -24,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Duration;
 import java.time.Period;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -285,10 +284,6 @@ public class TablesawWriteSupport extends WriteSupport<Row> {
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.bsonType(), FieldRecorder.BSON);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.intervalType(), FieldRecorder.INTERVAL);
         LOGICALTYPE_RECORDER_MAPPING.put(LogicalTypeAnnotation.float16Type(), FieldRecorder.FLOAT16);
-    }
-
-    public TablesawWriteSupport(final Table table) {
-        this(table, Collections.emptyMap());
     }
 
     public TablesawWriteSupport(final Table table, final Map<String, LogicalTypeAnnotation> typeMap) {
