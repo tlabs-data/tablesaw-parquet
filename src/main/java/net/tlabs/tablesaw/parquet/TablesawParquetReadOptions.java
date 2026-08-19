@@ -362,13 +362,13 @@ public class TablesawParquetReadOptions extends ReadOptions {
         }
 
         @Override
-        public Builder allowDuplicateColumnNames(Boolean allow) {
+        public Builder allowDuplicateColumnNames(final Boolean allow) {
             super.allowDuplicateColumnNames(allow);
             return this;
         }
 
         @Override
-        public Builder skipRowsWithInvalidColumnCount(boolean skipRowsWithInvalidColumnCount) {
+        public Builder skipRowsWithInvalidColumnCount(final boolean skipRowsWithInvalidColumnCount) {
             super.skipRowsWithInvalidColumnCount(skipRowsWithInvalidColumnCount);
             return this;
         }
@@ -379,25 +379,25 @@ public class TablesawParquetReadOptions extends ReadOptions {
          * the provided ColumnType array must contain only the selected columns in the order they were provided.
          */
         @Override
-        public Builder columnTypes(ColumnType[] columnTypes) {
+        public Builder columnTypes(final ColumnType[] columnTypes) {
             super.columnTypes(columnTypes);
             return this;
         }
 
         @Override
-        public Builder columnTypes(Function<String, ColumnType> columnTypeFunction) {
+        public Builder columnTypes(final Function<String, ColumnType> columnTypeFunction) {
             super.columnTypes(columnTypeFunction);
             return this;
         }
 
         @Override
-        public Builder columnTypesPartial(Function<String, Optional<ColumnType>> columnTypeFunction) {
+        public Builder columnTypesPartial(final Function<String, Optional<ColumnType>> columnTypeFunction) {
             super.columnTypesPartial(columnTypeFunction);
             return this;
         }
 
         @Override
-        public Builder columnTypesPartial(Map<String, ColumnType> columnTypeByName) {
+        public Builder columnTypesPartial(final Map<String, ColumnType> columnTypeByName) {
             super.columnTypesPartial(columnTypeByName);
             return this;
         }
@@ -514,7 +514,7 @@ public class TablesawParquetReadOptions extends ReadOptions {
             return this;
         }
 
-        public Builder withRecordFilter(FilterPredicate rowGroupFilter) {
+        public Builder withRecordFilter(final FilterPredicate rowGroupFilter) {
             this.recordFilter = FilterCompat.get(rowGroupFilter);
             return this;
           }
