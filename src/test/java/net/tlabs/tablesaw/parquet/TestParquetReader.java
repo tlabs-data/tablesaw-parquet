@@ -36,6 +36,7 @@ import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
 import tech.tablesaw.api.ColumnType;
+import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.io.Source;
 
@@ -474,5 +475,15 @@ class TestParquetReader {
         assertEquals(ColumnType.FLOAT, orig.column(0).type());
         assertTrue(orig.column(0).isMissing(0));
         assertEquals(-2f, orig.floatColumn(0).getFloat(2));
+    }
+    
+    @Test
+    void testGeospatialReading() {
+        final Table orig = new TablesawParquetReader()
+            .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + "geospatial/geospatial.parquet")
+            .build());
+        for (Row row : orig) {
+            assertEquals(row.getString(1), row.getString(2));
+        }
     }
 }
