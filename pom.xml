@@ -227,6 +227,7 @@
             <phase>process-sources</phase>
             <configuration>
 	            <licenseName>apache_v2</licenseName>
+	            <canUpdateCopyright>true</canUpdateCopyright>
 	            <excludes>
 	            	<exclude>**/org/apache/**</exclude>
             	</excludes>

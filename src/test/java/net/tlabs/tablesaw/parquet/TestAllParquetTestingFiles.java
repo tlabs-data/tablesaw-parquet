@@ -4,7 +4,7 @@ package net.tlabs.tablesaw.parquet;
  * #%L
  * Tablesaw-Parquet
  * %%
- * Copyright (C) 2020 - 2022 Tlabs-data
+ * Copyright (C) 2020 - 2026 Tlabs-data
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,9 @@ class TestAllParquetTestingFiles {
         // parquet-java reader fails on this one
         // see https://github.com/apache/parquet-java/issues/3336
         if(filename.equals("nation.dict-malformed.parquet")) return false;
+        // ALP encoding not yet implemented
+        // see https://github.com/apache/parquet-java/pull/3397
+        if(filename.equals("alp_extended.zstd.parquet")) return false;
         return true;
     }
     

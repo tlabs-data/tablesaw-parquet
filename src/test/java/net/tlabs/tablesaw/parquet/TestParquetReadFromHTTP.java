@@ -4,7 +4,7 @@ package net.tlabs.tablesaw.parquet;
  * #%L
  * Tablesaw-Parquet
  * %%
- * Copyright (C) 2020 - 2022 Tlabs-data
+ * Copyright (C) 2020 - 2026 Tlabs-data
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
