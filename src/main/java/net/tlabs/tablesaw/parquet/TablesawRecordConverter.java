@@ -4,14 +4,14 @@ package net.tlabs.tablesaw.parquet;
  * #%L
  * Tablesaw-Parquet
  * %%
- * Copyright (C) 2020 - 2021 Tlabs-data
+ * Copyright (C) 2020 - 2026 Tlabs-data
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import net.tlabs.jts.io.DimensionAwareWKBReader;
+import net.tlabs.jts.io.GenericWKTWriter;
 import net.tlabs.tablesaw.parquet.TablesawParquetReadOptions.UnnanotatedBinaryAs;
 import org.apache.parquet.Preconditions;
 import org.apache.parquet.io.api.Binary;
@@ -70,10 +72,9 @@ import org.bson.BsonReader;
 import org.bson.codecs.DecoderContext;
 import org.bson.codecs.DocumentCodec;
 import org.bson.json.JsonWriterSettings;
+
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKBReader;
-
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.Row;
 import tech.tablesaw.api.Table;
@@ -288,7 +289,8 @@ public class TablesawRecordConverter extends GroupConverter {
     private final class GeospatialPrimitiveConverter extends PrimitiveConverter {
         private static final String BINARY_INVALID = "<INVALID>";
         private final int colIndex;
-        private final WKBReader reader = new WKBReader();
+        private final DimensionAwareWKBReader reader = new DimensionAwareWKBReader();
+        private final GenericWKTWriter writer = new GenericWKTWriter();
 
         private GeospatialPrimitiveConverter(final int colIndex) {
             this.colIndex = colIndex;
@@ -297,12 +299,13 @@ public class TablesawRecordConverter extends GroupConverter {
         @Override
         public void addBinary(final Binary value) {
             String valueStr = BINARY_INVALID;
+            final byte[] bytes = value.getBytesUnsafe();
             try {
-                final Geometry geometry = reader.read(value.getBytesUnsafe());
-                valueStr = geometry.toText();
-              } catch (ParseException e) {
-                  // uses invalid string
-              }
+                final Geometry geometry = reader.read(bytes);
+                valueStr = writer.write(geometry);
+            } catch (ParseException e) {
+                // uses invalid string
+            }
             proxy.appendString(colIndex, valueStr);
         }
     }

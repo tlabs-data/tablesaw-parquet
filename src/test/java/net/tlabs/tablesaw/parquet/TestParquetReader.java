@@ -4,14 +4,14 @@ package net.tlabs.tablesaw.parquet;
  * #%L
  * Tablesaw-Parquet
  * %%
- * Copyright (C) 2020 - 2021 Tlabs-data
+ * Copyright (C) 2020 - 2026 Tlabs-data
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -483,7 +483,17 @@ class TestParquetReader {
             .read(TablesawParquetReadOptions.builder(PARQUET_TESTING_FOLDER + "geospatial/geospatial.parquet")
             .build());
         for (Row row : orig) {
-            assertEquals(row.getString(1), row.getString(2));
+            final String wkt = row.getString(1);
+            // Empty Geometry collections do not store their dimension
+            if(wkt.endsWith("EMPTY") &&
+                    (wkt.startsWith("MULTIPOINT") || wkt.startsWith("MULTILINESTRING")
+                    || wkt.startsWith("MULTIPOLYGON") || wkt.startsWith("GEOMETRYCOLLECTION"))) {
+                final String[] splits = wkt.split(" ");
+                assertEquals(splits[0] + " " + splits[splits.length - 1], row.getString(2));
+            } else {
+                assertEquals(wkt, row.getString(2));
+            }
         }
     }
+    
 }
