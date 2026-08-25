@@ -20,12 +20,16 @@ package net.tlabs.jts.io;
  * #L%
  */
 
+import java.io.Serializable;
+
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.CoordinateSequence;
 import org.locationtech.jts.geom.CoordinateSequenceFactory;
 import org.locationtech.jts.geom.impl.CoordinateArraySequence;
 
-class DimensionAwareSequenceFactory implements CoordinateSequenceFactory {
+class DimensionAwareSequenceFactory implements CoordinateSequenceFactory, Serializable {
+
+    private static final long serialVersionUID = -2584080544247178881L;
 
     /**
      * Returns a {@link CoordinateArraySequence} based on the given array (the array is
