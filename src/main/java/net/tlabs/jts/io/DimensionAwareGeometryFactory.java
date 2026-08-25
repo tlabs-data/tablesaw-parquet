@@ -27,7 +27,7 @@ import org.locationtech.jts.geom.Polygon;
 
 class DimensionAwareGeometryFactory extends GeometryFactory {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -8005840917204882728L;
     private DimensionAwareSequenceFactory dasFactory;
 
     public DimensionAwareGeometryFactory() {
