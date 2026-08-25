@@ -102,7 +102,7 @@ public class GenericWKTWriter {
          * 
          * @param checkOrdinateFlags the index for the ordinates to test.
          */
-        private CheckOrdinatesFilter(EnumSet<Ordinate> checkOrdinateFlags) {
+        private CheckOrdinatesFilter(final EnumSet<Ordinate> checkOrdinateFlags) {
 
             this.outputOrdinates = EnumSet.of(Ordinate.X, Ordinate.Y);
             this.checkOrdinateFlags = checkOrdinateFlags;
@@ -110,18 +110,14 @@ public class GenericWKTWriter {
 
         /** @see org.locationtech.jts.geom.CoordinateSequenceFilter#isGeometryChanged */
         @Override
-        public void filter(CoordinateSequence seq, int i) {
+        public void filter(final CoordinateSequence seq, final int i) {
 
-            if (checkOrdinateFlags.contains(Ordinate.Z) && !outputOrdinates.contains(Ordinate.Z)) {
-                if (!Double.isNaN(seq.getZ(i))) {
-                    outputOrdinates.add(Ordinate.Z);
-                }
+            if (checkOrdinateFlags.contains(Ordinate.Z) && !Double.isNaN(seq.getZ(i))) {
+                outputOrdinates.add(Ordinate.Z);
             }
 
-            if (checkOrdinateFlags.contains(Ordinate.M) && !outputOrdinates.contains(Ordinate.M)) {
-                if (!Double.isNaN(seq.getM(i))) {
-                    outputOrdinates.add(Ordinate.M);
-                }
+            if (checkOrdinateFlags.contains(Ordinate.M) && !Double.isNaN(seq.getM(i))) {
+                outputOrdinates.add(Ordinate.M);
             }
         }
 

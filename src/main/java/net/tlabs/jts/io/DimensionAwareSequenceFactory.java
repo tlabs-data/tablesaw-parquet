@@ -58,7 +58,6 @@ class DimensionAwareSequenceFactory implements CoordinateSequenceFactory {
     public CoordinateSequence create(final int size, int dimension) {
       if (dimension > 3)
         dimension = 3;
-        //throw new IllegalArgumentException("dimension must be <= 3");
       
       // handle bogus dimension
       if (dimension < 2)
