@@ -145,21 +145,8 @@ public class DimensionAwareWKBReader {
         try {
             return read(new ByteArrayInStream(bytes), bytes.length / 8);
         } catch (IOException ex) {
-            throw new RuntimeException("Unexpected IOException caught: " + ex.getMessage());
+            throw new ParseException("Unexpected IOException caught: ", ex);
         }
-    }
-
-    /**
-     * Reads a {@link Geometry} in binary WKB format from an {@link InStream}.
-     *
-     * @param is the stream to read from
-     * @return the Geometry read
-     * @throws IOException    if the underlying stream creates an error
-     * @throws ParseException if the WKB is ill-formed
-     */
-    public Geometry read(final InStream is) throws IOException, ParseException {
-        // can't tell size of InStream, but MAX_VALUE should be safe
-        return read(is, Integer.MAX_VALUE);
     }
 
     private Geometry read(final InStream is, final int maxCoordNum) throws IOException, ParseException {
@@ -197,8 +184,7 @@ public class DimensionAwareWKBReader {
         // if not strict and not XDR or NDR, then we just use the dis default set at the
         // start of the geometry (if a multi-geometry). This allows WBKReader to work
         // with Spatialite native BLOB WKB, as well as other WKB variants that might
-        // just
-        // specify endian-ness at the start of the multigeometry.
+        // just specify endian-ness at the start of the multigeometry.
 
         final int typeInt = dis.readInt();
 
