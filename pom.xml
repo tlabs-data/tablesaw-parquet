@@ -238,6 +238,20 @@
             	</excludes>
             </configuration>
           </execution>
+          <execution>
+          	<id>third-party</id>
+          	<goals>
+          	  <goal>add-third-party</goal>
+          	</goals>
+          	<configuration>
+          	  <excludedScopes>system,provided,test</excludedScopes>
+          	  <excludeTransitiveDependencies>true</excludeTransitiveDependencies>
+          	  <thirdPartyFilename>META-INF/${project.groupId}:${project.artifactId}-${project.version}-THIRD-PARTY.txt</thirdPartyFilename>
+          	  <licenseMerges>
+			    <licenseMerge>Apache License 2.0|Apache-2.0|The Apache Software License, Version 2.0|Apache License, Version 2.0|The Apache License, Version 2.0|Apache Software License - Version 2.0|Apache 2</licenseMerge>
+			  </licenseMerges>
+          	</configuration>
+          </execution>
         </executions>
       </plugin>
       <plugin>
