@@ -113,6 +113,11 @@
           <version>2.7.1</version>
         </plugin>
         <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.5.0</version>
+        </plugin>
+        <plugin>
           <groupId>io.github.download-maven-plugin</groupId>
           <artifactId>download-maven-plugin</artifactId>
           <version>2.1.0</version>
@@ -212,6 +217,21 @@
           <artifactId>maven-enforcer-plugin</artifactId>
           <version>3.6.3</version>
         </plugin>
+		  <plugin>
+		    <groupId>org.codehaus.mojo</groupId>
+		    <artifactId>build-helper-maven-plugin</artifactId>
+		    <version>3.6.1</version>
+		  </plugin>
+        <plugin>
+	      <groupId>org.spdx</groupId>
+	      <artifactId>spdx-maven-plugin</artifactId>
+	      <version>1.0.4</version>
+	    </plugin>
+	    <plugin>
+	      <groupId>org.cyclonedx</groupId>
+	      <artifactId>cyclonedx-maven-plugin</artifactId>
+	      <version>2.9.3</version>
+	    </plugin>
       </plugins>
     </pluginManagement>
     <plugins>
@@ -232,6 +252,52 @@
 	            	<exclude>**/org/apache/**</exclude>
             	</excludes>
             </configuration>
+          </execution>
+          <execution>
+          	<id>third-party</id>
+            <phase>generate-resources</phase>
+          	<goals>
+          	  <goal>add-third-party</goal>
+          	</goals>
+          	<configuration>
+          	  <excludedScopes>system,provided,test</excludedScopes>
+          	  <excludeTransitiveDependencies>true</excludeTransitiveDependencies>
+          	  <thirdPartyFilename>META-INF/${project.groupId}_${project.artifactId}-${project.version}-THIRD-PARTY.txt</thirdPartyFilename>
+          	  <licenseMerges>
+			    <licenseMerge>Apache License 2.0|Apache-2.0|The Apache Software License, Version 2.0|Apache License, Version 2.0|The Apache License, Version 2.0|Apache Software License - Version 2.0|Apache 2</licenseMerge>
+			  </licenseMerges>
+          	</configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/classes/META-INF/</outputDirectory>
+              <resources>          
+                <resource>
+                  <directory>${basedir}</directory>
+                  <includes>
+               	    <include>LICENSE</include>
+               	    <include>NOTICE</include>
+               	  </includes>
+                </resource>
+                <resource>
+                  <directory>${project.build.directory}/site</directory>
+                  <includes>
+                    <include>${project.groupId}_${project.artifactId}-${project.version}.spdx.*</include>
+                  </includes>
+                </resource>
+              </resources>              
+            </configuration>            
           </execution>
         </executions>
       </plugin>
@@ -307,6 +373,66 @@
                   <version>[3.6.3,)</version>
                 </requireMavenVersion>
               </rules>    
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+	  <plugin>
+	    <groupId>org.codehaus.mojo</groupId>
+	    <artifactId>build-helper-maven-plugin</artifactId>
+	    <executions>
+	      <execution>
+	        <id>timestamp-property</id>
+	        <goals>
+	          <goal>timestamp-property</goal>
+	        </goals>
+	        <phase>validate</phase>
+	        <configuration>
+	          <name>current.year</name>
+	          <pattern>yyyy</pattern>
+	        </configuration>
+	      </execution>
+	    </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.spdx</groupId>
+        <artifactId>spdx-maven-plugin</artifactId>
+        <executions>
+            <execution>
+                <id>build-spdx</id>
+	            <phase>generate-resources</phase>
+                <goals>
+                    <goal>createSPDX</goal>
+                </goals>
+            </execution>
+        </executions>
+        <configuration>
+          <outputFormat>JSON-LD</outputFormat>
+          <includeSystemScope>false</includeSystemScope>
+          <includeRuntimeScope>false</includeRuntimeScope>
+          <includeProvidedScope>false</includeProvidedScope>
+          <includeTestScope>false</includeTestScope>
+          <creators>Organization: ${project.organization.name} (${project.developpers[0].email})</creators>
+          <useArtifactID>true</useArtifactID>
+          <copyrightText>Copyright (C) ${project.inceptionYear} - ${current.year} ${project.organization.name}</copyrightText>
+        </configuration>
+      </plugin>    
+      <plugin>
+        <groupId>org.cyclonedx</groupId>
+        <artifactId>cyclonedx-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>makeBom</goal>
+            </goals>
+            <configuration>
+	          <includeSystemScope>false</includeSystemScope>
+	          <includeRuntimeScope>false</includeRuntimeScope>
+	          <includeProvidedScope>false</includeProvidedScope>
+	          <includeTestScope>false</includeTestScope>
+	          <outputFormat>json</outputFormat>
+	          <outputName>classes/META-INF/${project.groupId}_${project.artifactId}-${project.version}-cyclonedx</outputName>
             </configuration>
           </execution>
         </executions>
