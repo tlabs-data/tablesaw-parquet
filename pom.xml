@@ -363,6 +363,21 @@
         <artifactId>maven-enforcer-plugin</artifactId>
         <executions>
           <execution>
+            <id>enforce-java-version</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireJavaVersion>
+                  <version>[17,)</version>
+                  <message>Java 17 or higher is required to build tablesaw-parquet</message>
+                </requireJavaVersion>
+              </rules>
+              <fail>true</fail>
+            </configuration>
+          </execution>
+          <execution>
             <id>enforce-maven</id>
             <goals>
               <goal>enforce</goal>
@@ -432,7 +447,7 @@
 	          <includeProvidedScope>false</includeProvidedScope>
 	          <includeTestScope>false</includeTestScope>
 	          <outputFormat>json</outputFormat>
-	          <outputName>classes/META-INF/${project.groupId}_${project.artifactId}-${project.version}-cyclonedx</outputName>
+	          <outputName>classes/META-INF/${project.groupId}_${project.artifactId}-${project.version}.cdx</outputName>
             </configuration>
           </execution>
         </executions>
