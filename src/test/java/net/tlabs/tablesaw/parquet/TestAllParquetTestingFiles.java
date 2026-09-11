@@ -114,6 +114,9 @@ class TestAllParquetTestingFiles {
         // ALP encoding not yet implemented
         // see https://github.com/apache/parquet-java/pull/3397
         if(filename.equals("alp_extended.zstd.parquet")) return false;
+        // File with an incompatible logical/physical type combination
+        // see https://github.com/apache/parquet-format/issues/607
+        if(filename.equals("int32_with_uuid_logical_type.parquet")) return false;
         return true;
     }
     
