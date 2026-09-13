@@ -462,6 +462,12 @@
       <version>${tablesaw.version}</version>
       <scope>provided</scope>
     </dependency>
+    <!-- Required to override resolved version -->
+    <dependency>
+      <groupId>it.unimi.dsi</groupId>
+      <artifactId>fastutil</artifactId>
+      <version>8.5.19</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.parquet</groupId>
       <artifactId>parquet-hadoop</artifactId>
