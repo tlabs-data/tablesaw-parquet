@@ -43,6 +43,8 @@ class TestTablesawRegistry {
     @BeforeAll
     static void init() {
         TablesawParquet.register();
+        // Ensure output folder exists
+        OUTPUT_FILE.getParentFile().mkdirs();
     }
     
     @AfterEach
