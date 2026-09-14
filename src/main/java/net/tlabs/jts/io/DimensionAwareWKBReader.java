@@ -18,8 +18,7 @@ package net.tlabs.jts.io;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * #L%
- */
-/*
+ * 
  * Derivative work of the JTS library distributed with the following copyright notice:
  *  
  * Copyright (c) 2016 Vivid Solutions.
