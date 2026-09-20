@@ -117,6 +117,9 @@ class TestAllParquetTestingFiles {
         // File with an incompatible logical/physical type combination
         // see https://github.com/apache/parquet-format/issues/607
         if(filename.equals("int32_with_uuid_logical_type.parquet")) return false;
+        // File with an FLBA(12) TIMESTAMP column
+        // see https://github.com/apache/parquet-format/issues/600
+        if(filename.equals("flba12_timestamp.parquet")) return false;
         return true;
     }
     
