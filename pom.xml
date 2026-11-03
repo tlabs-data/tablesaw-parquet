@@ -46,7 +46,7 @@
     <tablesaw.version>0.44.4</tablesaw.version>
     <parquet.version>1.18.1</parquet.version>
     <hadoop.version>3.4.3</hadoop.version>
-    <slf4j.version>2.0.19</slf4j.version>
+    <slf4j.version>2.0.20</slf4j.version>
     <junit.version>5.14.4</junit.version> <!-- JUnit 6 requires Java 17 -->
     <!-- Sonar Cloud integration -->
     <sonar.projectKey>tlabs-data_tablesaw-parquet</sonar.projectKey>
@@ -528,7 +528,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-core</artifactId>
-      <version>2.22.2</version>
+      <version>2.22.4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -556,12 +556,12 @@
 	<dependency>
 	    <groupId>at.yawk.lz4</groupId>
 	    <artifactId>lz4-java</artifactId>
-	    <version>1.11.3</version>
+	    <version>1.12.1</version>
 	</dependency>
     <dependency>
         <groupId>org.mongodb</groupId>
         <artifactId>bson</artifactId>
-        <version>5.12.0</version>
+        <version>5.14.0</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -583,7 +583,7 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.23.0</version>
+      <version>5.24.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
