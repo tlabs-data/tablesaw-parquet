@@ -37,6 +37,7 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockserver.configuration.ConfigurationProperties;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpStatusCode;
 
@@ -53,6 +54,7 @@ class TestParquetReadFromHTTP {
 
     @BeforeAll
     static void startServer() throws IOException {
+        ConfigurationProperties.localBoundIP("127.0.0.1");
         mockServer = startClientAndServer(HTTP_PORT);
         try(final InputStream in = new FileInputStream("target/test-classes/pandas_pyarrow.parquet")) {
             byte[] fileBytes = IOUtils.toByteArray(in);
