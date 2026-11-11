@@ -146,7 +146,7 @@ public class GenericWKTWriter {
     private static final EnumSet<Ordinate> ORDINATE_SET_M = EnumSet.of(Ordinate.M);
     private static final EnumSet<Ordinate> ORDINATE_SET_ZM = EnumSet.of(Ordinate.Z, Ordinate.M);
 
-    private EnumSet<Ordinate> outputOrdinates = EnumSet.of(Ordinate.X, Ordinate.Y);
+    private final EnumSet<Ordinate> outputOrdinates = EnumSet.of(Ordinate.X, Ordinate.Y);
     private int outputDimension = OUTPUT_DIMENSION;
     private OrdinateFormat ordinateFormat = null;
     private int coordsPerLine = -1;

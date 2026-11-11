@@ -109,9 +109,9 @@ public class DimensionAwareWKBReader {
 
     private static final String FIELD_NUMELEMS = "numElems";
 
-    private DimensionAwareGeometryFactory factory;
-    private DimensionAwareSequenceFactory csFactory;
-    private PrecisionModel precisionModel;
+    private final DimensionAwareGeometryFactory factory;
+    private final DimensionAwareSequenceFactory csFactory;
+    private final PrecisionModel precisionModel;
     // default dimension - will be set on read
     private int inputDimension = 2;
     /**

@@ -137,7 +137,7 @@ public class TablesawParquetWriteOptions extends WriteOptions {
         private byte[] footerKeyMetadata;
         private Map<String, byte[]> columnMetadataMap;
         private long rowGroupSize = ParquetWriter.DEFAULT_BLOCK_SIZE;
-        private Map<String, LogicalTypeAnnotation> logicalTypes = new HashMap<>();
+        private final Map<String, LogicalTypeAnnotation> logicalTypes = new HashMap<>();
 
         public Builder(final String outputFile) {
             super((Writer) null);
