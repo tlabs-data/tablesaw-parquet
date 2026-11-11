@@ -83,7 +83,7 @@ class TestFastparquetColumnTypeOptions extends AbstractTableParameterizedTest {
 
     private static final String PANDAS_FASTPARQUET = "target/test-classes/pandas_fastparquet.parquet";
     
-    private static final ColumnType[] columnTypes = new ColumnType[] {
+    private static final ColumnType[] columnTypes = {
         ColumnType.BOOLEAN,
         ColumnType.INTEGER,
         ColumnType.SHORT,
