@@ -38,11 +38,11 @@ public class SimpleRecordConverter extends GroupConverter {
   private final SimpleRecordConverter parent;
   protected SimpleRecord record;
 
-  public SimpleRecordConverter(GroupType schema) {
+  public SimpleRecordConverter(final GroupType schema) {
     this(schema, null, null);
   }
 
-  public SimpleRecordConverter(GroupType schema, String name, SimpleRecordConverter parent) {
+  public SimpleRecordConverter(final GroupType schema, final String name, final SimpleRecordConverter parent) {
     this.converters = new Converter[schema.getFieldCount()];
     this.parent = parent;
     this.name = name;
@@ -53,7 +53,7 @@ public class SimpleRecordConverter extends GroupConverter {
     }
   }
 
-  private Converter createConverter(Type field) {
+  private Converter createConverter(final Type field) {
     LogicalTypeAnnotation ltype = field.getLogicalTypeAnnotation();
 
     if (field.isPrimitive()) {
@@ -79,7 +79,7 @@ public class SimpleRecordConverter extends GroupConverter {
   }
 
   @Override
-  public Converter getConverter(int fieldIndex) {
+  public Converter getConverter(final int fieldIndex) {
     return converters[fieldIndex];
   }
 
@@ -102,48 +102,48 @@ public class SimpleRecordConverter extends GroupConverter {
   private class SimplePrimitiveConverter extends PrimitiveConverter {
     protected final String name;
 
-    public SimplePrimitiveConverter(String name) {
+    public SimplePrimitiveConverter(final String name) {
       this.name = name;
     }
 
     @Override
-    public void addBinary(Binary value) {
+    public void addBinary(final Binary value) {
       record.add(name, value.getBytes());
     }
 
     @Override
-    public void addBoolean(boolean value) {
+    public void addBoolean(final boolean value) {
       record.add(name, value);
     }
 
     @Override
-    public void addDouble(double value) {
+    public void addDouble(final double value) {
       record.add(name, value);
     }
 
     @Override
-    public void addFloat(float value) {
+    public void addFloat(final float value) {
       record.add(name, value);
     }
 
     @Override
-    public void addInt(int value) {
+    public void addInt(final int value) {
       record.add(name, value);
     }
 
     @Override
-    public void addLong(long value) {
+    public void addLong(final long value) {
       record.add(name, value);
     }
   }
 
   private class StringConverter extends SimplePrimitiveConverter {
-    public StringConverter(String name) {
+    public StringConverter(final String name) {
       super(name);
     }
 
     @Override
-    public void addBinary(Binary value) {
+    public void addBinary(final Binary value) {
       record.add(name, value.toStringUsingUTF8());
     }
   }
@@ -151,23 +151,23 @@ public class SimpleRecordConverter extends GroupConverter {
   private class DecimalConverter extends SimplePrimitiveConverter {
     private final int scale;
 
-    public DecimalConverter(String name, int scale) {
+    public DecimalConverter(final String name, final int scale) {
       super(name);
       this.scale = scale;
     }
 
     @Override
-    public void addBinary(Binary value) {
+    public void addBinary(final Binary value) {
       record.add(name, new BigDecimal(new BigInteger(value.getBytes()), scale));
     }
 
     @Override
-    public void addInt(int value) {
+    public void addInt(final int value) {
       record.add(name, BigDecimal.valueOf(value).movePointLeft(scale));
     }
 
     @Override
-    public void addLong(long value) {
+    public void addLong(final long value) {
       record.add(name, BigDecimal.valueOf(value).movePointLeft(scale));
     }
   }

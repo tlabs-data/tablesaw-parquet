@@ -28,7 +28,7 @@ public class SimpleRecord {
     this.values = new ArrayList<>();
   }
 
-  public void add(String name, Object value) {
+  public void add(final String name, final Object value) {
     values.add(new NameValue(name,value));
   }
   
@@ -41,7 +41,7 @@ public class SimpleRecord {
     private final String name;
     private final Object value;
 
-    public NameValue(String name, Object value) {
+    public NameValue(final String name, final Object value) {
       this.name = name;
       this.value = value;
     }
