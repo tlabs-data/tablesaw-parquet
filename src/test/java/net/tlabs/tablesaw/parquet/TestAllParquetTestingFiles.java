@@ -120,6 +120,10 @@ class TestAllParquetTestingFiles {
         // File with an FLBA(12) TIMESTAMP column
         // see https://github.com/apache/parquet-format/issues/600
         if(filename.equals("flba12_timestamp.parquet")) return false;
+        // Empty data page issue
+        // see https://github.com/apache/parquet-testing/pull/131
+        if(filename.equals("empty_data_pages_v1.parquet")) return false;
+        if(filename.equals("empty_data_pages_v2.parquet")) return false;
         return true;
     }
     
